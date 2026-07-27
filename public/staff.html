@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Expert Marketplace — кабинет консультанта</title>
 <link rel="stylesheet" href="/app.css">
+<script src="/anim.js" defer></script>
 </head>
 <body>
 <div class="wrap">
@@ -43,7 +44,9 @@ $('#load').onclick = load;
 
 async function load() {
   localStorage.setItem('em.token', token());
-  $('#list').innerHTML = '<div class="card muted">Загружаю…</div>';
+  $('#list').innerHTML = `<div class="card">
+    <div class="sk sk-line w45"></div><div class="sk sk-line w85"></div>
+    <div class="sk sk-line w70"></div><div class="sk sk-card" style="margin-top:12px"></div></div>`;
   try {
     const r = await fetch('/api/bookings', { headers: hdr() });
     if (r.status === 401) { $('#list').innerHTML = '<div class="err">Неверный staff-токен.</div>'; return; }
@@ -52,7 +55,7 @@ async function load() {
       $('#list').innerHTML = '<div class="card muted">Броней пока нет. Оставьте заявку на главной, чтобы появилась первая.</div>';
       return;
     }
-    $('#list').innerHTML = rows.map(card).join('');
+    $('#list').innerHTML = rows.map((b, i) => card(b, i)).join('');
     document.querySelectorAll('[data-gen]').forEach(b => b.onclick = () => generate(b.dataset.gen));
     document.querySelectorAll('[data-show]').forEach(b => b.onclick = () => show(b.dataset.show));
   } catch (err) {
@@ -65,10 +68,10 @@ function briefOf(request) {
   return typeof request.brief === 'string' ? JSON.parse(request.brief) : request.brief;
 }
 
-function card(b) {
+function card(b, i = 0) {
   const brief = briefOf(b.request);
   const done = b.has_summary;
-  return `<div class="card">
+  return `<div class="card lift reveal" data-i="${Math.min(i + 1, 6)}">
     <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start">
       <div>
         <h2 style="margin-bottom:5px">${esc(b.request?.contact_name || 'Клиент')} → ${esc(b.consultant?.name || b.consultant_id)}</h2>
@@ -113,7 +116,9 @@ async function generate(id) {
   err.innerHTML = '';
   if (notes.length < 30) { err.innerHTML = '<div class="err">Заметки слишком короткие — минимум 30 символов.</div>'; return; }
 
+  out.classList.add('live');
   out.innerHTML = '<span class="cursor"></span>';
+  UX.busy(document.querySelector(`[data-gen="${id}"]`), true);
   let text = '';
 
   try {
@@ -149,6 +154,9 @@ async function generate(id) {
     }
   } catch (e) {
     err.innerHTML = `<div class="err">${esc(e.message)}</div>`;
+  } finally {
+    out.classList.remove('live');
+    UX.busy(document.querySelector(`[data-gen="${id}"]`), false);
   }
 }
 

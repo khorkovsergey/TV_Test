@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Expert Marketplace — подбор консультанта</title>
 <link rel="stylesheet" href="/app.css">
+<script src="/anim.js" defer></script>
 </head>
 <body>
 <div class="wrap">
@@ -106,17 +107,21 @@ const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;
 let state = { id: null, brief: null };
 
 function step(n) {
-  for (const el of document.querySelectorAll('[data-s]')) {
-    const s = +el.dataset.s;
-    el.parentElement.classList.remove('on');
-  }
   document.querySelectorAll('#steps i').forEach(i => {
     const s = +i.dataset.s;
     i.className = s < n ? 'done' : s === n ? 'on' : '';
     const label = document.querySelector(`#steps span[data-s="${s}"]`);
-    if (label) label.style.color = s <= n ? 'var(--tx)' : 'var(--tx3)';
+    if (label) label.style.color = s <= n ? 'var(--tx)' : 'var(--tx-3)';
   });
-  ['s1','s2','s3','s4'].forEach((id, i) => $('#' + id).classList.toggle('hide', i + 1 !== n));
+  // Соединители заливаются по мере продвижения — прогресс виден без подписей.
+  document.querySelectorAll('#steps .sep').forEach((sep, k) => sep.classList.toggle('fill', k + 1 < n));
+
+  ['s1','s2','s3','s4'].forEach((id, i) => {
+    const el = $('#' + id);
+    const show = i + 1 === n;
+    el.classList.toggle('hide', !show);
+    if (show) { el.classList.remove('reveal'); void el.offsetWidth; el.classList.add('reveal'); }
+  });
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -132,8 +137,7 @@ $('#form').addEventListener('submit', async e => {
   const body = Object.fromEntries(fd.entries());
   body.consent = fd.get('consent') === 'on';
 
-  $('#go').disabled = true;
-  $('#go').textContent = 'Собираю бриф…';
+  UX.busy($('#go'), true);
   $('#formErr').innerHTML = '';
 
   try {
@@ -152,8 +156,7 @@ $('#form').addEventListener('submit', async e => {
   } catch (err) {
     $('#formErr').innerHTML = `<div class="err">Сеть недоступна: ${esc(err.message)}</div>`;
   } finally {
-    $('#go').disabled = false;
-    $('#go').textContent = 'Собрать бриф';
+    UX.busy($('#go'), false);
   }
 });
 
@@ -190,10 +193,16 @@ $('#back1').onclick = () => step(1);
 
 /* --------------------------------------------------------------- подбор */
 $('#toMatch').onclick = async () => {
-  $('#toMatch').disabled = true;
-  $('#toMatch').textContent = 'Подбираю…';
+  UX.busy($('#toMatch'), true);
   step(3);
-  $('#matches').innerHTML = '<div class="card muted">Ранжирую кандидатов…</div>';
+  // Скелетоны вместо надписи «загрузка»: макет не прыгает, когда придут данные.
+  $('#matches').innerHTML = Array.from({ length: 2 }, () => `
+    <div class="card">
+      <div class="sk sk-line w45"></div>
+      <div class="sk sk-line w85"></div>
+      <div class="sk sk-line w70"></div>
+      <div class="sk sk-card" style="margin-top:12px"></div>
+    </div>`).join('');
   try {
     const r = await fetch(`/api/requests/${state.id}/match`, { method: 'POST' });
     const data = await r.json();
@@ -202,8 +211,7 @@ $('#toMatch').onclick = async () => {
   } catch (err) {
     $('#matches').innerHTML = `<div class="err">${esc(err.message)}</div>`;
   } finally {
-    $('#toMatch').disabled = false;
-    $('#toMatch').textContent = 'Подобрать консультанта';
+    UX.busy($('#toMatch'), false);
   }
 };
 
@@ -222,7 +230,7 @@ function renderMatches(data) {
 
   $('#matches').innerHTML = data.ranked.map((m, i) => {
     const c = m.consultant || {};
-    return `<div class="card">
+    return `<div class="card lift reveal" data-i="${i + 1}">
       <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap">
         <div>
           <h2 style="margin-bottom:4px">${i + 1}. ${esc(c.name || m.consultant_id)}</h2>

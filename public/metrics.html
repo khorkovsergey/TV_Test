@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Expert Marketplace — метрики пилота</title>
 <link rel="stylesheet" href="/app.css">
+<script src="/anim.js" defer></script>
 </head>
 <body>
 <div class="wrap">
@@ -38,7 +39,9 @@ const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;
 $('#token').value = localStorage.getItem('em.token') || '';
 $('#load').onclick = load;
 
-const stat = (n, l, hint) => `<div class="stat"><div class="n">${esc(n)}</div><div class="l">${esc(l)}</div>${
+/* data-count включает набегающий счётчик из anim.js. */
+const stat = (n, l, hint, i = 0) => `<div class="stat reveal" data-i="${Math.min(i + 1, 6)}">
+  <div class="n" data-count>${esc(n)}</div><div class="l">${esc(l)}</div>${
   hint ? `<div class="l dim" style="margin-top:4px">${esc(hint)}</div>` : ''}</div>`;
 
 async function load() {
@@ -54,17 +57,17 @@ async function load() {
 
     $('#out').innerHTML = `
       <div class="grid g3" style="margin-bottom:14px">
-        ${stat(m.requests, 'Заявок')}
-        ${stat(m.booking_rate + '%', 'Consultation booking rate', `${m.bookings} броней`)}
-        ${stat(m.completion_rate + '%', 'Завершённые консультации', `${m.completed} с итогом`)}
+        ${stat(m.requests, 'Заявок', '', 0)}
+        ${stat(m.booking_rate + '%', 'Consultation booking rate', `${m.bookings} броней`, 1)}
+        ${stat(m.completion_rate + '%', 'Завершённые консультации', `${m.completed} с итогом`, 2)}
       </div>
       <div class="grid g3" style="margin-bottom:14px">
-        ${stat(m.repeat_bookings, 'Повторные брони')}
-        ${stat(m.briefs_failed, 'Брифов не собралось', `${m.briefs_ok} успешно`)}
-        ${stat(m.refusals, 'Отказов модели', 'по политикам безопасности')}
+        ${stat(m.repeat_bookings, 'Повторные брони', '', 3)}
+        ${stat(m.briefs_failed, 'Брифов не собралось', `${m.briefs_ok} успешно`, 4)}
+        ${stat(m.refusals, 'Отказов модели', 'по политикам безопасности', 5)}
       </div>
 
-      <div class="card">
+      <div class="card io">
         <h2>Экономика AI</h2>
         <div class="kv"><span class="muted">Вызовов модели</span><b>${m.ai_calls}</b></div>
         <div class="kv"><span class="muted">Входные / выходные токены</span><b>${m.tokens.input} / ${m.tokens.output}</b></div>
@@ -81,9 +84,11 @@ async function load() {
           ${m.repeat_kind_calls === 0 ? 'Пока каждый тип вызывался по одному разу — переиспользовать нечего, нулевая доля здесь нормальна.' : ''}</div>`}
       </div>
 
-      <div class="card">
+      <div class="card io">
         <h2>Последние вызовы модели</h2>
-        <div id="calls" class="small muted">Загружаю…</div>
+        <div id="calls" class="small muted">
+          <div class="sk sk-line w70"></div><div class="sk sk-line w85"></div><div class="sk sk-line w45"></div>
+        </div>
       </div>`;
 
     const rc = await fetch('/api/ai-calls', { headers });
