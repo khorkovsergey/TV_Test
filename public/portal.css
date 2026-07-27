@@ -87,6 +87,53 @@
 
 @media (max-width:1100px){.routes{grid-template-columns:repeat(2,1fr)}.stubs{grid-template-columns:1fr}}
 
+/* ---------- Chart workspace: progressive complexity ----------
+   Отдельный префикс .work-, потому что .chart-shell уже занят уроком Академии
+   и у него другая сетка. Переиспользуем только то, что действительно общее:
+   .toolbar, .sym, .toolrail, .mode-pill. */
+.work-shell{display:grid;grid-template-columns:52px 1fr;min-height:600px}
+.work-shell.with-panel{grid-template-columns:52px 1fr 280px}
+.work-shell .toolrail .t{width:30px;height:30px;border-radius:6px;background:var(--tv-ink-2);border:1px solid transparent}
+.work-shell .toolrail .t.locked{opacity:.32}
+.work-area{padding:14px 16px;position:relative}
+.work-area svg.px{display:block;width:100%;height:460px}
+
+/* Плотность: 1 — просторно, 3 — компактно. Живёт атрибутом на оболочке,
+   чтобы одно значение меняло сразу весь воркспейс. */
+.work-shell[data-density="1"] .work-area{padding:22px 24px}
+.work-shell[data-density="1"] .side{padding:16px;gap:12px}
+.work-shell[data-density="3"] .work-area{padding:7px 9px}
+.work-shell[data-density="3"] .side{padding:8px;gap:5px}
+.work-shell[data-density="3"] .wl-row{font-size:11px}
+
+.side{border-left:1px solid var(--tv-ink-3);padding:12px;display:flex;flex-direction:column;gap:9px}
+.side .hd{font-family:var(--tv-mono);font-size:10px;color:var(--tv-faint);letter-spacing:.08em}
+.wl-row{display:flex;justify-content:space-between;font-family:var(--tv-mono);font-size:12px}
+.density{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--tv-faint)}
+.density input{accent-color:var(--tv-blue)}
+.hintbar{display:flex;align-items:center;gap:10px;background:var(--tv-blue-dim);border:1px solid var(--tv-blue-line);border-radius:10px;padding:10px 14px;margin:12px 16px 0;font-size:12.5px;color:var(--tv-text)}
+.tb-item{font-size:13.5px;color:var(--tv-text);background:none;border:none;font-family:var(--tv-font);cursor:pointer;padding:0}
+.tb-item:hover{color:var(--tv-white)}
+.mode-pill button{font-family:var(--tv-font);font-size:12.5px;font-weight:700;padding:6px 14px;border-radius:var(--tv-r-pill);color:var(--tv-muted);background:none;border:none;cursor:pointer}
+.mode-pill button.on{background:var(--tv-blue);color:#fff}
+#proOverlay,#chartNews{transition:opacity .25s ease}
+.side,.tb-item,.density{transition:opacity .2s ease}
+
+/* ---------- Contextual research journey ---------- */
+.next-step{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--tv-ink-2);border:1px solid var(--tv-ink-3);border-radius:8px;padding:10px 12px;font-size:12.5px;color:var(--tv-text);cursor:pointer;text-align:left;width:100%;font-family:var(--tv-font)}
+.next-step:hover{border-color:var(--tv-blue-line)}
+.next-step b{color:var(--tv-blue);font-weight:700}
+.trail{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-family:var(--tv-mono);font-size:11px}
+.trail .n{background:var(--tv-ink-2);border-radius:5px;padding:5px 9px;color:var(--tv-text)}
+.trail .a{color:var(--tv-ghost)}
+.trail .sug{background:var(--tv-blue-dim);border:1px dashed var(--tv-blue-line);border-radius:5px;padding:5px 9px;color:var(--tv-blue)}
+
+@media (max-width:1180px){
+  .work-shell,.work-shell.with-panel{grid-template-columns:1fr}
+  .work-shell .toolrail{flex-direction:row;border-right:none;border-bottom:1px solid var(--tv-ink-3)}
+  .side{border-left:none;border-top:1px solid var(--tv-ink-3)}
+}
+
 /* ---------- Academy: карта трека ---------- */
 .track{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:20px}
 .lesson{background:var(--tv-ink);border:1px solid var(--tv-ink-3);border-radius:var(--tv-r);padding:18px;position:relative;text-align:left;width:100%;font-family:var(--tv-font)}

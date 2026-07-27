@@ -75,14 +75,23 @@ window.Academy = (function () {
   /* ---------------------------------------------------------------- mode */
 
   /* Beginner is the default for a new visitor — the whole point of the
-     hypothesis is that complexity should be opt-in, not opt-out. */
-  const mode = () => ls.get(K_MODE, 'beginner');
+     hypothesis is that complexity should be opt-in, not opt-out.
+
+     The value itself belongs to Portal: the chart workspace, the Copilot and
+     this track all have to agree on one mode, and one owner of the key is the
+     only way that stays true. The fallback keeps Academy standalone if home.js
+     ever fails to load, and tolerates the quoted value older builds wrote. */
+  function mode() {
+    if (window.Portal?.mode) return window.Portal.mode();
+    const raw = ls.get(K_MODE, 'beginner');
+    return ['beginner', 'standard', 'pro'].includes(raw) ? raw : 'beginner';
+  }
 
   function setMode(next) {
     const from = mode();
     if (from === next) return;
-    ls.set(K_MODE, next);
-    track('mode_switch', { from, to: next });
+    if (window.Portal?.setMode) window.Portal.setMode(next, 'pill');   // owns storage + analytics
+    else { ls.set(K_MODE, next); track('mode_switch', { from, to: next }); }
     applyMode();
   }
 

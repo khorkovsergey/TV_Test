@@ -48,7 +48,7 @@
 
   <div class="routes">
     <a class="route" href="#brief" data-route="understand_market"><div class="ic">01</div><h3>Understand today's market</h3><p>3 movers, 1 macro event, and why they moved.</p><div class="go">Open the brief ↓</div></a>
-    <a class="route" href="#asset" data-route="research_asset"><div class="ic">02</div><h3>Research one asset</h3><p>Price → drivers → peers → next event, in one flow.</p><div class="go">Start with BTC ↓</div></a>
+    <a class="route" href="/symbol.html?symbol=BTCUSD" data-route="research_asset"><div class="ic">02</div><h3>Research one asset</h3><p>Price → drivers → peers → next event, in one flow.</p><div class="go">Start with BTC →</div></a>
     <a class="route" href="#ideas" data-route="find_idea"><div class="ic">03</div><h3>Find an idea</h3><p>Curated by editors, with the author's track record.</p><div class="go">Editors' picks ↓</div></a>
     <a class="route" href="#watchlist" data-route="track_instruments"><div class="ic">04</div><h3>Track my instruments</h3><p>Watchlist, alerts and events that touch your assets.</p><div class="go">Build a watchlist ↓</div></a>
     <a class="route" href="/academy.html" data-route="learn"><div class="ic">05</div><h3>Learn without risk</h3><p>Guided lessons on live data + Paper Trading.</p><div class="go">Open Academy →</div></a>
@@ -93,11 +93,8 @@
 
       <div class="tv-card">
         <div style="font-size:14px;font-weight:700;color:var(--tv-white)">Your research journey</div>
-        <div class="row mono" style="font-size:11px;margin-top:11px;flex-wrap:wrap;gap:7px" id="journey">
-          <span style="background:var(--tv-ink-2);border-radius:5px;padding:5px 9px;color:var(--tv-text)">US CPI</span><span style="color:var(--tv-ghost)">→</span>
-          <span style="background:var(--tv-ink-2);border-radius:5px;padding:5px 9px;color:var(--tv-text)">BTCUSD</span><span style="color:var(--tv-ghost)">→</span>
-          <span style="background:var(--tv-blue-dim);border:1px dashed var(--tv-blue-line);border-radius:5px;padding:5px 9px;color:var(--tv-blue)">next: IBIT vs FBTC</span>
-        </div>
+        <div class="trail" style="margin-top:11px" id="trail"></div>
+        <button class="next-step" id="continueJourney" style="margin-top:12px"><span id="continueText">Continue</span> <b>→</b></button>
         <div style="font-size:12px;color:var(--tv-faint);margin-top:10px">Saved on this device — continue from here or from the Copilot.</div>
       </div>
     </div>
@@ -111,10 +108,10 @@
       <div style="font-size:13.5px;color:var(--tv-muted)">One flow for <b style="color:var(--tv-white)">BTCUSD</b> instead of eight tabs.</div>
       <div class="stub-steps"><span>price</span><span>drivers</span><span>peers</span><span>next event</span></div>
       <div class="row mt-16" style="flex-wrap:wrap;gap:8px">
-        <a class="btn btn-primary" href="/charts.html?symbol=BTCUSD" id="assetChart" style="padding:9px 16px">Open BTCUSD</a>
+        <a class="btn btn-primary" href="/symbol.html?symbol=BTCUSD" id="assetPage" style="padding:9px 16px">Open BTCUSD</a>
         <button class="btn btn-quiet" id="assetAsk" style="padding:9px 16px">Ask the Copilot</button>
       </div>
-      <div class="mono" style="font-size:10.5px;color:var(--tv-ghost);margin-top:10px">symbol page is a pilot stub — the flow, not the depth, is under test</div>
+      <div class="mono" style="font-size:10.5px;color:var(--tv-ghost);margin-top:10px">each step suggests the next one — the journey, not a feed</div>
     </div>
 
     <div class="tv-card" id="watchlist">
@@ -247,7 +244,34 @@ $('assetAsk').addEventListener('click', () => {
   document.querySelector('.cp-fab')?.click();
 });
 
-$('assetChart').addEventListener('click', () => P.meaningful('asset_research', { symbol: 'BTCUSD' }));
+$('assetPage').addEventListener('click', () => P.meaningful('asset_research', { symbol: 'BTCUSD' }));
+
+/* ------------------------------------------------------- research journey */
+
+/* The trail is the visitor's own path, not a demo: it renders whatever the
+   journey steps on the symbol page and the chart have recorded, and the
+   suggestion comes from the rule map given the last step. */
+function renderTrail() {
+  const labels = P.journey();
+  const next = P.suggestNext();
+  const esc = s => String(s).replace(/[<>&]/g, '');
+
+  $('trail').innerHTML = labels.length
+    ? labels.slice(-5).map(l => `<span class="n">${esc(l)}</span>`).join('<span class="a">→</span>')
+    : '<span class="n">nothing yet — pick a task above</span>';
+
+  $('continueText').textContent = labels.length
+    ? 'Suggested next: ' + next.label
+    : 'Start with BTCUSD';
+}
+
+$('continueJourney').addEventListener('click', () => {
+  const next = P.suggestNext();
+  if (P.journey().length) {
+    P.pushJourney({ from: P.lastKind(), to: next.to, rule: next.rule, label: next.label });
+  }
+  location.href = '/symbol.html?symbol=BTCUSD';
+});
 
 /* ----------------------------------------------------------------- ideas */
 
@@ -306,6 +330,7 @@ $('feedTabs').addEventListener('click', e => {
 
 renderChips();
 renderFeed('editors');
+renderTrail();
 </script>
 </body>
 </html>

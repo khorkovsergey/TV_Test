@@ -160,6 +160,120 @@ window.Portal = (function () {
     meaningful('register_intent');
   }
 
+  /* --------------------------------------------- progressive complexity */
+
+  const K_MODE     = 'ui_mode';           // shared with Academy and the Copilot
+  const K_DENSITY  = 'chart_density';
+  const K_FEATURES = 'features_used';
+
+  const MODES = ['beginner', 'standard', 'pro'];
+  const ORDER = { beginner: 0, standard: 1, pro: 2 };
+
+  /* ui_mode is read by three scripts, so it is stored as a PLAIN string, not
+     JSON. Reading is tolerant of the quoted value older builds wrote, otherwise
+     a visitor who switched modes before this release would be stuck on a value
+     none of the comparisons match. */
+  function mode() {
+    let v;
+    try { v = localStorage.getItem(K_MODE); } catch { v = null; }
+    if (typeof v === 'string') v = v.replace(/^"|"$/g, '');
+    return MODES.includes(v) ? v : 'beginner';
+  }
+
+  function setMode(next, source) {
+    if (!MODES.includes(next)) return mode();
+    const from = mode();
+    try { localStorage.setItem(K_MODE, next); } catch {}
+    if (from !== next) {
+      const props = { from, to: next, mode: next, source: source || 'pill' };
+      track('mode_switch', props);
+      // Mirrored so the Academy funnel sees the same switch it always has.
+      if (window.Academy?.track) window.Academy.track('mode_switch', props);
+    }
+    return next;
+  }
+
+  const allows = (m, min) => ORDER[m] >= ORDER[min || 'beginner'];
+
+  function density() {
+    let v;
+    try { v = Number(localStorage.getItem(K_DENSITY)); } catch { v = NaN; }
+    return v >= 1 && v <= 3 ? v : 2;
+  }
+  function setDensity(n) {
+    const v = Math.min(3, Math.max(1, Number(n) || 2));
+    try { localStorage.setItem(K_DENSITY, String(v)); } catch {}
+    return v;
+  }
+
+  /* First use of a progressive feature, once per feature per browser: the
+     hypothesis is about discovery, so the second click carries no information. */
+  function featureFirstUse(feature) {
+    const used = ls.get(K_FEATURES, []);
+    if (used.includes(feature)) return false;
+    used.push(feature);
+    ls.set(K_FEATURES, used);
+    track('feature_first_use', { feature, mode: mode() });
+    return true;
+  }
+
+  /* --------------------------------------------------------------- journey */
+
+  const K_JOURNEY = 'research_journey';        // labels only — the Copilot reads this
+  const K_JMETA   = 'research_journey_meta';   // structured twin for the rule map
+
+  /* The graph from the spec. Recommendations follow it rather than popularity:
+     what you looked at decides what is worth looking at next. */
+  const RULES = {
+    symbol:    [{ rule: 'peers',        to: 'peers',       label: 'Peers: BTC vs ETH vs SOL' },
+                { rule: 'next_event',   to: 'event',       label: 'Next event: FOMC' }],
+    peers:     [{ rule: 'sector',       to: 'sector',      label: 'Sector: crypto heatmap' }],
+    sector:    [{ rule: 'etf',          to: 'etf',         label: 'ETFs holding BTC' }],
+    etf:       [{ rule: 'next_event',   to: 'event',       label: 'Next event: FOMC' }],
+    economy:   [{ rule: 'affected',     to: 'symbol',      label: 'Instruments this touches' }],
+    news:      [{ rule: 'related',      to: 'symbol',      label: 'Related assets' }],
+    market:    [{ rule: 'reasons',      to: 'symbol',      label: 'Reasons for the move' }],
+    portfolio: [{ rule: 'holdings',     to: 'event',       label: 'Events touching holdings' }],
+    chart:     [{ rule: 'range_news',   to: 'news',        label: 'News of the selected range' }],
+    event:     [{ rule: 'affected',     to: 'symbol',      label: 'Instruments this touches' }]
+  };
+
+  const journey = () => ls.get(K_JOURNEY, []);
+  const journeyMeta = () => ls.get(K_JMETA, []);
+
+  /* One step of research. The label list stays a plain array of strings because
+     the Copilot sends it to the model as context; the structured twin is what
+     drives the recommendation. */
+  function pushJourney(step) {
+    const label = String(step.label || step.to || '').slice(0, 60);
+    if (!label) return null;
+
+    const labels = journey();
+    labels.push(label);
+    ls.set(K_JOURNEY, labels.slice(-20));
+
+    const meta = journeyMeta();
+    meta.push({ label, kind: step.to || 'symbol', rule: step.rule || null, ts: new Date().toISOString() });
+    ls.set(K_JMETA, meta.slice(-20));
+
+    track('journey_step', { from: step.from || lastKind(), to: step.to || null, rule: step.rule || null, label });
+    meaningful('journey_step', { rule: step.rule || null });
+    return label;
+  }
+
+  function lastKind() {
+    const meta = journeyMeta();
+    return meta.length ? meta[meta.length - 1].kind : null;
+  }
+
+  /* What to offer next, given where the visitor just was. */
+  function suggestNext(fromKind) {
+    const kind = fromKind || lastKind() || 'symbol';
+    const options = RULES[kind] || RULES.symbol;
+    const seen = new Set(journeyMeta().map(m => m.rule));
+    return options.find(o => !seen.has(o.rule)) || options[0];
+  }
+
   /* ---------------------------------------------------------------- boot */
 
   /* The bounce metric is about the home page, so it only arms there — the file
@@ -182,6 +296,9 @@ window.Portal = (function () {
   return {
     variant, track, events, meaningful, observe,
     watchlist, toggleSymbol, saveWatchlist, registerClick,
+    mode, setMode, allows, MODES, ORDER,
+    density, setDensity, featureFirstUse,
+    journey, journeyMeta, pushJourney, suggestNext, lastKind, RULES,
     BOUNCE_MS
   };
 })();

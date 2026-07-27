@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Symbol — research journey</title>
+<link rel="stylesheet" href="/tv-theme.css">
+<link rel="stylesheet" href="/portal.css">
+<script src="/home.js"></script>
+<script src="/copilot.js" defer></script>
+</head>
+<body>
+
+<div class="mock-strip">
+  UNAFFILIATED CASE-STUDY MOCKUP · NOT A REAL PLATFORM · NOT INVESTMENT ADVICE
+</div>
+
+<!-- The symbol page is where the research journey is most visible: what the
+     visitor just looked at decides what is offered next, and the trail makes
+     the path itself a thing they can see and come back to. -->
+
+<nav class="portal-nav">
+  <div class="logo"><a href="/"><img src="/assets/tv-logo-white.svg" alt="Platform"></a></div>
+  <div class="search"><svg class="g" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="M11 11l4 4"/></svg>Search</div>
+  <div class="menu">
+    <a href="/">Home</a>
+    <a href="/#markets" class="active">Markets</a>
+    <a href="/#ideas">Ideas</a>
+    <a href="/academy.html">Academy</a>
+    <a href="/experts.html">Experts</a>
+  </div>
+  <div class="right">
+    <a class="btn btn-secondary" href="/charts.html" id="navChart" style="padding:8px 16px">Open Supercharts ↗</a>
+    <span style="font-size:14px;color:var(--tv-muted)">Sign in</span>
+    <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
+  </div>
+</nav>
+
+<main class="tv-page" style="max-width:1180px">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:24px;flex-wrap:wrap">
+    <div>
+      <div class="tv-eyebrow" id="eyebrow">BTCUSD · Crypto</div>
+      <h1 class="tv-h1" style="margin-top:6px" id="assetName">Bitcoin</h1>
+      <div class="row" style="margin-top:8px">
+        <span class="mono" style="font-size:28px;font-weight:700;color:var(--tv-white)">118,420.50</span>
+        <span class="mono pos" style="font-size:14px">+3,272.10 (+2.84%)</span>
+        <span class="tag tag-fact">FACT · MARKET DATA · SAMPLE</span>
+      </div>
+    </div>
+    <div class="row" style="flex-wrap:wrap;gap:10px">
+      <button class="btn btn-primary" id="addWatch">Add to watchlist</button>
+      <a class="btn btn-secondary" href="/charts.html" id="openChart">Open chart</a>
+    </div>
+  </div>
+
+  <div class="grid-2 mt-24" style="grid-template-columns:1.6fr 1fr;align-items:start">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="tv-card" style="padding:0;overflow:hidden">
+        <!-- Sample series: this shell is not wired to a quote feed. -->
+        <svg viewBox="0 0 640 210" style="display:block;width:100%;height:210px" role="img" aria-label="Sample price chart">
+          <line x1="0" y1="52" x2="640" y2="52" stroke="#1F2430"/><line x1="0" y1="104" x2="640" y2="104" stroke="#1F2430"/><line x1="0" y1="156" x2="640" y2="156" stroke="#1F2430"/>
+          <polyline points="0,164 50,156 100,170 150,146 200,154 250,132 300,140 350,114 400,124 450,96 500,104 550,76 600,62 640,48" fill="none" stroke="#089981" stroke-width="2"/>
+        </svg>
+      </div>
+
+      <div class="tv-card">
+        <div class="row" style="justify-content:space-between">
+          <p class="title" style="margin:0">Why it moves today</p>
+          <span class="tag tag-ai">AI · SOURCED</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-top:12px;font-size:13.5px;color:var(--tv-text);line-height:1.5">
+          <div><span class="mono" style="font-size:10.5px;color:var(--tv-green)">MACRO</span> · CPI 2.6% vs 2.8% expected → rate-cut odds up <span class="mono" style="font-size:11px;color:var(--tv-faint)">Reuters 13:31</span></div>
+          <div><span class="mono" style="font-size:10.5px;color:#5B8DFF">FLOWS</span> · Spot ETF net inflow $612M, 4th day <span class="mono" style="font-size:11px;color:var(--tv-faint)">Farside 09:10</span></div>
+        </div>
+        <!-- Journey rule: News → related assets -->
+        <button class="next-step" style="margin-top:12px" data-rule="related" data-to="symbol"
+                data-label="Related assets">These news also touch: <b>ETH, COIN, IBIT, XAUUSD →</b></button>
+      </div>
+    </div>
+
+    <!-- The journey rail -->
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="tv-card accent">
+        <div class="mono" style="font-size:10.5px;color:#5B8DFF;letter-spacing:.08em">NEXT RESEARCH STEP</div>
+        <div style="font-size:14.5px;font-weight:700;color:var(--tv-white);margin-top:8px;line-height:1.4">
+          You've seen the price and the drivers. Where next?</div>
+        <div style="display:flex;flex-direction:column;gap:7px;margin-top:12px" id="steps">
+          <button class="next-step" data-rule="peers" data-to="peers" data-label="Peers: BTC vs ETH vs SOL">Peers: <b>BTC vs ETH vs SOL — 6M →</b></button>
+          <button class="next-step" data-rule="sector" data-to="sector" data-label="Sector: crypto heatmap">Sector: <b>crypto heatmap today →</b></button>
+          <button class="next-step" data-rule="etf" data-to="etf" data-label="ETFs holding BTC">ETFs holding it: <b>IBIT, FBTC →</b></button>
+          <button class="next-step" data-rule="next_event" data-to="event" data-label="Next event: FOMC">Next event: <b>FOMC in 18h — alert me →</b></button>
+        </div>
+        <div class="mono" style="font-size:10px;color:var(--tv-faint);margin-top:11px">recommendations follow the journey graph, not popularity</div>
+      </div>
+
+      <div class="tv-card">
+        <div style="font-size:14px;font-weight:700;color:var(--tv-white)">Your research journey</div>
+        <div class="trail" style="margin-top:11px" id="trail"></div>
+        <div style="font-size:12px;color:var(--tv-faint);margin-top:10px;line-height:1.45">
+          Saved on this device. Continue from here or from Home — the Copilot sees it too.</div>
+        <button class="btn btn-quiet" id="resetTrail" style="margin-top:12px;padding:6px 14px;font-size:12px">Clear the trail</button>
+      </div>
+
+      <div class="tv-card">
+        <div style="font-size:14px;font-weight:700;color:var(--tv-white)">Journey graph (the rule set)</div>
+        <div class="mono" style="font-size:11px;color:var(--tv-muted);margin-top:10px;line-height:2">
+          Symbol → peers → sector → ETF<br>
+          Symbol → next event<br>
+          Economy → affected instruments<br>
+          News → related assets<br>
+          Market → reasons for the move<br>
+          Portfolio → events touching holdings<br>
+          Chart → news of the selected range
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="disclaimer">
+    Data on this page is illustrative. Recommendations are research navigation, not investment
+    advice.
+  </div>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const P = window.Portal;
+const params = new URLSearchParams(location.search);
+
+/* ------------------------------------------------------------- the symbol */
+
+const NAMES = { BTCUSD: 'Bitcoin', ETHUSD: 'Ethereum', TSLA: 'Tesla', SPX: 'S&P 500',
+                EURUSD: 'Euro / US Dollar', XAUUSD: 'Gold', US10Y: 'US 10-year yield' };
+const CLASS = { BTCUSD: 'Crypto', ETHUSD: 'Crypto', TSLA: 'Stocks', SPX: 'Indices',
+                EURUSD: 'Forex', XAUUSD: 'Commodities', US10Y: 'Bonds' };
+
+function lsRaw(k, fallback) {
+  try { const v = localStorage.getItem(k); return v === null ? fallback : v; } catch { return fallback; }
+}
+
+const symbol = (params.get('symbol') || lsRaw('active_symbol', '') || 'BTCUSD').toUpperCase();
+document.title = symbol + ' — research journey';
+$('eyebrow').textContent = symbol + ' · ' + (CLASS[symbol] || 'Instrument');
+$('assetName').textContent = NAMES[symbol] || symbol;
+$('openChart').href = '/charts.html?symbol=' + encodeURIComponent(symbol);
+$('navChart').href = '/charts.html?symbol=' + encodeURIComponent(symbol);
+try { localStorage.setItem('active_symbol', symbol); } catch {}
+
+/* Arriving on a symbol page IS a research step — the rest of the rail is
+   recommended relative to it. */
+if (P.lastKind() !== 'symbol' || P.journey().slice(-1)[0] !== symbol) {
+  P.pushJourney({ from: P.lastKind() || 'entry', to: 'symbol', rule: 'open_symbol', label: symbol });
+}
+
+/* ------------------------------------------------------------- the trail */
+
+function renderTrail() {
+  const labels = P.journey();
+  const next = P.suggestNext();
+  const parts = labels.slice(-6).map(l => `<span class="n">${l.replace(/[<>&]/g, '')}</span>`);
+  $('trail').innerHTML =
+    (parts.length ? parts.join('<span class="a">→</span>') + '<span class="a">→</span>' : '') +
+    `<span class="sug">suggested: ${next.label}</span>`;
+}
+
+/* Every recommendation click extends the trail, persists it and reports the
+   rule it came from — that is the whole measurement of the journey. */
+document.addEventListener('click', e => {
+  const b = e.target.closest('.next-step[data-rule]');
+  if (!b) return;
+  P.pushJourney({ from: 'symbol', to: b.dataset.to, rule: b.dataset.rule, label: b.dataset.label });
+  renderTrail();
+  b.disabled = true;
+  b.style.opacity = '.55';
+});
+
+$('resetTrail').addEventListener('click', () => {
+  try { localStorage.removeItem('research_journey'); localStorage.removeItem('research_journey_meta'); } catch {}
+  P.track('journey_cleared', {});
+  renderTrail();
+});
+
+$('addWatch').addEventListener('click', () => {
+  const list = P.watchlist();
+  if (!list.includes(symbol)) P.toggleSymbol(symbol);
+  P.saveWatchlist('symbol_page');
+  $('addWatch').textContent = '✓ In your watchlist';
+  $('addWatch').disabled = true;
+});
+
+$('openChart').addEventListener('click', () =>
+  P.pushJourney({ from: 'symbol', to: 'chart', rule: 'open_chart', label: symbol + ' chart' }));
+
+renderTrail();
+P.track('symbol_page_opened', { symbol, mode: P.mode() });
+</script>
+</body>
+</html>

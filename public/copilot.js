@@ -12,6 +12,7 @@
     const page =
       path === '/' || path.endsWith('index.html') || path.endsWith('classic.html') ? 'portal_home' :
       path.includes('charts') ? 'chart_workspace' :
+      path.includes('symbol') ? 'symbol' :
       path.includes('academy') ? 'academy' :
       path.includes('lesson') ? 'chart_lesson' :
       path.includes('experts') ? 'experts' :
@@ -20,7 +21,8 @@
     return {
       page,
       url: path,
-      mode: ls('ui_mode') || 'beginner',
+      // Portal owns ui_mode; the fallback strips the quotes older builds wrote.
+      mode: window.Portal?.mode ? window.Portal.mode() : (ls('ui_mode') || 'beginner').replace(/^"|"$/g, ''),
       symbol: ls('active_symbol') || 'BTCUSD',
       chartRange: ls('chart_range') || '1D',
       journey: jsonLs('research_journey', []).slice(-5)
@@ -39,6 +41,7 @@
     academy: ['Quiz me on lesson 2', 'Why do prices bounce off levels?', 'What should I learn next?'],
     chart_lesson: ['Explain this drop on the chart', 'Compare BTC vs ETH here', 'Set an alert at this level'],
     chart_workspace: ['Explain the move on this chart', 'Compare it with ETH', 'Set an alert at this level'],
+    symbol: ['Why did it move today?', 'How does it compare with its peers?', 'What is the next event for it?'],
     experts: ['What should I ask a consultant?', 'Explain what a licence means here'],
     portal: ['Explain the move', 'Compare instruments', 'Help me with Pine Script']
   };

@@ -87,7 +87,9 @@ Hard limits:
 `.trim();
 
 function contextBlock(ctx = {}) {
-  const level = ctx.mode === 'standard'
+  // Standard and Pro are both "has seen a chart before"; only beginner needs
+  // every term defined. Anything unrecognised falls back to the careful side.
+  const level = ctx.mode === 'standard' || ctx.mode === 'pro'
     ? 'Experienced: concise professional language is fine, no hand-holding.'
     : 'Beginner: plain language, define any term you use, no jargon.';
   const journey = Array.isArray(ctx.journey) && ctx.journey.length

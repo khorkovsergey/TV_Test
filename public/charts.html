@@ -16,10 +16,10 @@
   UNAFFILIATED CASE-STUDY MOCKUP · NOT A REAL PLATFORM · NOT INVESTMENT ADVICE
 </div>
 
-<!-- This page exists to make the Portal/Chart boundary explicit: browsing and
-     the professional workspace are different products with different rules.
-     The chart engine itself is out of scope for the pilot, and the panel on
-     the right says so rather than faking depth. -->
+<!-- The chart workspace, and the one place where the Portal/Chart boundary is
+     visible. The interface adapts to the level the visitor is on instead of
+     showing all forty tools to someone who arrived an hour ago — but nothing is
+     ever locked: the mode pill and "Full interface" move both ways at once. -->
 
 <nav class="portal-nav">
   <div class="logo"><a href="/"><img src="/assets/tv-logo-white.svg" alt="Platform"></a></div>
@@ -38,91 +38,281 @@
   </div>
 </nav>
 
-<div class="toolbar">
-  <div class="sym" id="sym">BTCUSD</div>
-  <div style="font-size:13px;color:var(--tv-text)" id="range">1D · Line</div>
-  <span class="tag tag-fact">FACT · MARKET DATA · SAMPLE</span>
-  <div class="mono" style="font-size:11px;color:var(--tv-faint)" id="compare"></div>
-  <div style="flex:1"></div>
-  <a href="/" style="font-size:13px;font-weight:700">← back to the portal</a>
+<div class="toolbar" style="flex-wrap:wrap">
+  <a class="sym" href="/symbol.html" id="symLink">BTCUSD</a>
+  <span class="tb-item" id="rangeLabel">1D · Candles</span>
+  <div class="mode-pill" id="modePill">
+    <button data-mode="beginner">Beginner</button>
+    <button data-mode="standard">Standard</button>
+    <button data-mode="pro">Pro</button>
+  </div>
+  <span class="mono" id="modeCaption" style="font-size:11px;color:var(--tv-faint)"></span>
+  <button class="tb-item" data-min="standard" data-feature="indicators" hidden>Indicators</button>
+  <button class="tb-item" data-min="standard" data-feature="alert" hidden>Alert</button>
+  <button class="tb-item" data-min="standard" data-feature="replay" hidden>Replay</button>
+  <button class="tb-item" data-min="pro" data-feature="templates" hidden>Templates</button>
+  <button class="tb-item" data-min="pro" data-feature="layouts" hidden>Layouts</button>
+  <button class="tb-item" data-min="pro" data-feature="pine" hidden>Pine Editor</button>
+  <span style="flex:1"></span>
+  <div class="density" data-min="standard" hidden>
+    <span>Density</span>
+    <input type="range" min="1" max="3" value="2" id="density" aria-label="Interface density">
+  </div>
+  <button class="btn btn-secondary" id="fullBtn" style="padding:7px 14px;font-size:12.5px">Full interface →</button>
 </div>
 
-<div class="chart-shell">
-  <div class="toolrail" id="toolrail"></div>
+<div class="hintbar" id="hintbar">
+  <span class="tag tag-ai">PROGRESSIVE COMPLEXITY</span>
+  <span id="hintText">Beginner preset: 3 drawing tools, 1 indicator, side panels hidden. Everything
+    unlocks as you level up — or instantly via “Full interface”.</span>
+  <span style="flex:1"></span>
+  <button class="btn btn-quiet" id="hintClose" style="padding:5px 12px;font-size:11.5px" aria-label="Dismiss">✕</button>
+</div>
 
-  <div class="chart-area">
-    <!-- Sample series: this shell is not wired to a quote feed. -->
-    <svg viewBox="0 0 760 430" role="img" aria-label="Sample price chart">
-      <line x1="0" y1="72"  x2="760" y2="72"  stroke="#1F2430"/>
-      <line x1="0" y1="144" x2="760" y2="144" stroke="#1F2430"/>
-      <line x1="0" y1="216" x2="760" y2="216" stroke="#1F2430"/>
-      <line x1="0" y1="288" x2="760" y2="288" stroke="#1F2430"/>
-      <line x1="0" y1="360" x2="760" y2="360" stroke="#1F2430"/>
-      <polyline points="0,340 60,326 120,338 180,306 240,318 300,286 360,296 420,262 480,274 540,238 600,248 660,208 720,190 760,176"
-                fill="none" stroke="#089981" stroke-width="2.2"/>
-      <text x="12" y="30" fill="#787B86" font-family="Consolas,monospace" font-size="12" id="chartLabel">sample data</text>
-    </svg>
+<div class="work-shell" id="shell" data-density="2">
+  <div class="toolrail" id="toolrail">
+    <button class="t" title="Crosshair" data-feature="tool_crosshair" aria-label="Crosshair"></button>
+    <button class="t" title="Horizontal line" data-feature="tool_hline" aria-label="Horizontal line"></button>
+    <button class="t" title="Trend line" data-feature="tool_trend" aria-label="Trend line"></button>
+    <button class="t locked" data-min="standard" title="Fibonacci" data-feature="tool_fib" aria-label="Fibonacci"></button>
+    <button class="t locked" data-min="standard" title="Brush" data-feature="tool_brush" aria-label="Brush"></button>
+    <button class="t locked" data-min="standard" title="Text" data-feature="tool_text" aria-label="Text"></button>
+    <button class="t locked" data-min="pro" title="Patterns" data-feature="tool_patterns" aria-label="Patterns"></button>
+    <button class="t locked" data-min="pro" title="Forecast" data-feature="tool_forecast" aria-label="Forecast"></button>
+    <button class="t locked" data-min="pro" title="Measure" data-feature="tool_measure" aria-label="Measure"></button>
+    <div class="cap" id="toolCap">3 of 40 tools</div>
   </div>
 
-  <aside class="lesson-panel">
-    <div class="head">
-      <div style="font-size:14px;font-weight:700;color:var(--tv-white)">Portal ↔ Chart</div>
-      <span class="tag tag-warn">PILOT STUB</span>
-    </div>
-    <div class="body">
-      <div class="task">
-        <h3>Two products, one door</h3>
-        <p>The portal is for browsing and deciding: a brief, ideas, events, the Academy.
-           This workspace is for working: full toolset, no marketing modules, no feeds.
-           The new IA gives it exactly one entrance — the button in the header — so a
-           beginner is never dropped into it by accident.</p>
-      </div>
+  <div class="work-area">
+    <!-- Sample series: this shell is not wired to a quote feed. -->
+    <svg class="px" viewBox="0 0 820 460" role="img" aria-label="Sample price chart">
+      <line x1="0" y1="76" x2="820" y2="76" stroke="#1F2430"/><line x1="0" y1="152" x2="820" y2="152" stroke="#1F2430"/><line x1="0" y1="228" x2="820" y2="228" stroke="#1F2430"/><line x1="0" y1="304" x2="820" y2="304" stroke="#1F2430"/><line x1="0" y1="380" x2="820" y2="380" stroke="#1F2430"/>
+      <g stroke="#089981" fill="#089981"><line x1="30" y1="332.6" x2="30" y2="357.9" stroke-width="1.4"/><rect x="25" y="347.7" width="10" height="3"/></g>
+      <g stroke="#089981" fill="#089981"><line x1="64" y1="321.9" x2="64" y2="361.5" stroke-width="1.4"/><rect x="59" y="337.2" width="10" height="10.4"/></g>
+      <g stroke="#F23645" fill="#F23645"><line x1="98" y1="324.4" x2="98" y2="361.3" stroke-width="1.4"/><rect x="93" y="337.2" width="10" height="9.4"/></g>
+      <g stroke="#089981" fill="#089981"><line x1="132" y1="321.7" x2="132" y2="362.2" stroke-width="1.4"/><rect x="127" y="334.4" width="10" height="12.3"/></g>
+      <g stroke="#089981" fill="#089981"><line x1="166" y1="313.1" x2="166" y2="343.6" stroke-width="1.4"/><rect x="161" y="320.9" width="10" height="13.4"/></g>
+      <g stroke="#089981" fill="#089981"><line x1="200" y1="286.2" x2="200" y2="334.0" stroke-width="1.4"/><rect x="195" y="301.4" width="10" height="19.5"/></g>
+      <g stroke="#089981" fill="#089981"><line x1="234" y1="273.1" x2="234" y2="309.2" stroke-width="1.4"/><rect x="229" y="289.1" width="10" height="12.3"/></g>
+      <g stroke="#089981" fill="#089981"><line x1="268" y1="256.7" x2="268" y2="299.6" stroke-width="1.4"/><rect x="263" y="271.8" width="10" height="17.3"/></g>
+      <g stroke="#089981" fill="#089981"><line x1="302" y1="250.0" x2="302" y2="285.9" stroke-width="1.4"/><rect x="297" y="255.4" width="10" height="16.4"/></g>
+      <g stroke="#F23645" fill="#F23645"><line x1="336" y1="251.3" x2="336" y2="276.1" stroke-width="1.4"/><rect x="331" y="255.4" width="10" height="8.9"/></g>
+      <g stroke="#089981" fill="#089981"><line x1="370" y1="249.1" x2="370" y2="272.7" stroke-width="1.4"/><rect x="365" y="253.1" width="10" height="11.2"/></g>
+      <g stroke="#089981" fill="#089981"><line x1="404" y1="228.6" x2="404" y2="262.1" stroke-width="1.4"/><rect x="399" y="238.9" width="10" height="14.2"/></g>
+      <g stroke="#F23645" fill="#F23645"><line x1="438" y1="223.0" x2="438" y2="263.6" stroke-width="1.4"/><rect x="433" y="238.9" width="10" height="18.1"/></g>
+      <g stroke="#F23645" fill="#F23645"><line x1="472" y1="243.2" x2="472" y2="279.2" stroke-width="1.4"/><rect x="467" y="257.0" width="10" height="16.1"/></g>
+      <g stroke="#089981" fill="#089981"><line x1="506" y1="262.2" x2="506" y2="285.7" stroke-width="1.4"/><rect x="501" y="271.2" width="10" height="3"/></g>
+      <g stroke="#089981" fill="#089981"><line x1="540" y1="247.1" x2="540" y2="278.3" stroke-width="1.4"/><rect x="535" y="253.6" width="10" height="17.6"/></g>
+      <g stroke="#089981" fill="#089981"><line x1="574" y1="229.8" x2="574" y2="260.2" stroke-width="1.4"/><rect x="569" y="241.0" width="10" height="12.6"/></g>
+      <g stroke="#089981" fill="#089981"><line x1="608" y1="224.1" x2="608" y2="245.1" stroke-width="1.4"/><rect x="603" y="228.5" width="10" height="12.5"/></g>
+      <g stroke="#F23645" fill="#F23645"><line x1="642" y1="213.7" x2="642" y2="233.7" stroke-width="1.4"/><rect x="637" y="228.5" width="10" height="3"/></g>
+      <g stroke="#F23645" fill="#F23645"><line x1="676" y1="217.8" x2="676" y2="244.0" stroke-width="1.4"/><rect x="671" y="229.3" width="10" height="3"/></g>
+      <g stroke="#F23645" fill="#F23645"><line x1="710" y1="219.6" x2="710" y2="250.2" stroke-width="1.4"/><rect x="705" y="231.1" width="10" height="8.9"/></g>
+      <g stroke="#089981" fill="#089981"><line x1="744" y1="228.5" x2="744" y2="253.5" stroke-width="1.4"/><rect x="739" y="236.3" width="10" height="3.7"/></g>
+      <g stroke="#089981" fill="#089981"><line x1="778" y1="213.2" x2="778" y2="252.1" stroke-width="1.4"/><rect x="773" y="218.7" width="10" height="17.6"/></g>
 
-      <div style="font-size:12.5px;color:var(--tv-muted);line-height:1.55">
-        What would live here in production: the real chart engine, drawing tools,
-        indicators, layouts, alerts and broker order entry. None of it is part of
-        this case-study stand.
-      </div>
+      <!-- Pro adds a second pane. SVG ignores the hidden attribute, so these
+           groups are driven by style.display and opacity, not by [hidden]. -->
+      <g id="proOverlay" style="opacity:0">
+        <polyline points="30,347.7 64,342.5 98,343.9 132,341.5 166,337.4 200,328.1 234,318.5 268,303.5 302,287.7 336,276.4 370,266.7 404,256.7 438,253.7 472,257.3 506,258.6 540,258.7 574,259.2 608,253.5 642,244.7 676,236.7 710,234.0 744,233.1 778,231.1" fill="none" stroke="#2962FF" stroke-width="1.4" opacity="0.85"/>
+        <rect x="0" y="392" width="820" height="60" fill="#161A23"/>
+        <polyline points="0,432 140,420 280,436 420,412 560,424 700,404 820,416" fill="none" stroke="#9C27B0" stroke-width="1.5"/>
+        <text x="10" y="408" fill="#787B86" font-family="Consolas,monospace" font-size="11">RSI(14) · 58.2</text>
+      </g>
+      <g id="chartNews" style="opacity:0">
+        <rect x="358" y="0" width="140" height="392" fill="#2962FF" opacity="0.07"/>
+        <circle cx="438" cy="257" r="6" fill="#131722" stroke="#FF9800" stroke-width="2"/>
+      </g>
+    </svg>
 
-      <div style="flex:1"></div>
-      <div class="row" style="flex-wrap:wrap;gap:8px">
-        <a class="btn btn-primary" href="/academy.html" style="padding:9px 16px">Learn the chart first</a>
-        <a class="btn btn-quiet" href="/" style="padding:9px 16px">Back to tasks</a>
+    <!-- Journey rule: Chart → news of the selected range. -->
+    <div id="rangeNews" hidden style="position:absolute;left:36px;bottom:20px;width:430px;max-width:calc(100% - 52px);background:var(--tv-ink);border:1px solid var(--tv-ink-3);border-radius:12px;padding:14px 16px">
+      <div class="row" style="justify-content:space-between">
+        <span class="mono" style="font-size:10px;color:#5B8DFF">SELECTED RANGE · 21–24 JUL</span>
+        <span class="tag tag-ai">AI · SOURCED</span>
       </div>
-      <div class="disclaimer" style="margin-top:6px">Sample data for illustration. Not investment advice.</div>
+      <div style="font-size:13px;color:var(--tv-text);margin-top:9px;line-height:1.5">2 events in this range:
+        <b style="color:var(--tv-white)">CPI release</b> (Reuters 13:31) and a record
+        <b style="color:var(--tv-white)">ETF inflow</b> (Farside 09:10).</div>
+      <button class="next-step" id="explainMove" style="margin-top:9px">Explain this move <b>→</b></button>
     </div>
+  </div>
+
+  <aside class="side" id="sidePanel" hidden>
+    <div class="hd">WATCHLIST</div>
+    <div id="watchRows"></div>
+    <div class="hd" data-min="pro" hidden style="margin-top:10px">DOM · HOTLIST · PINE CONSOLE</div>
+    <div style="flex:1"></div>
+    <div class="hd">NEXT RESEARCH STEP</div>
+    <button class="next-step" id="nextStep"><span id="nextStepText">Symbol page: peers, sector, ETFs</span> <b>→</b></button>
   </aside>
 </div>
 
+<div class="tv-page" style="max-width:1180px;padding-top:20px">
+  <div class="disclaimer" style="border-top:none;padding-top:0;margin-top:0">
+    Sample data for illustration — this workspace is a case-study shell, not a chart engine, and it
+    is not connected to a market data feed. The portal is for browsing and deciding; this screen is
+    the working surface, and the header button is its only entrance. Not investment advice.
+  </div>
+</div>
+
 <script>
+const $ = id => document.getElementById(id);
+const P = window.Portal;
 const params = new URLSearchParams(location.search);
 
-function ls(k, fallback) {
+/* ------------------------------------------------------------ the symbol */
+
+function lsRaw(k, fallback) {
   try { const v = localStorage.getItem(k); return v === null ? fallback : v; } catch { return fallback; }
 }
 function lsJson(k, fallback) {
   try { return JSON.parse(localStorage.getItem(k) || 'null') ?? fallback; } catch { return fallback; }
 }
 
-/* The symbol can arrive three ways: a link from the portal, a Copilot action
-   that stored it, or nothing at all. */
-const symbol = (params.get('symbol') || ls('active_symbol', '') || 'BTCUSD').toUpperCase();
-const range  = params.get('range') || ls('chart_range', '') || '1D';
+/* The symbol arrives three ways: a link from the portal, a Copilot action that
+   stored it, or nothing at all. */
+const symbol = (params.get('symbol') || lsRaw('active_symbol', '') || 'BTCUSD').toUpperCase();
+const range  = params.get('range') || lsRaw('chart_range', '') || '1D';
 const compare = lsJson('compare_symbols', []).filter(s => s && s.toUpperCase() !== symbol);
 
-document.getElementById('sym').textContent = symbol;
-document.getElementById('range').textContent = range + ' · Line';
-document.getElementById('chartLabel').textContent = symbol + ' — sample data';
-document.getElementById('compare').textContent = compare.length ? 'compared with ' + compare.join(', ') : '';
-
+$('symLink').textContent = symbol;
+$('symLink').href = '/symbol.html?symbol=' + encodeURIComponent(symbol);
+$('rangeLabel').textContent = range + ' · Candles' + (compare.length ? ' · vs ' + compare.join(', ') : '');
 try { localStorage.setItem('active_symbol', symbol); } catch {}
 
-/* The full rail, all of it inert — showing the tools without pretending they work. */
-document.getElementById('toolrail').innerHTML =
-  Array.from({ length: 8 }, () => '<button class="t" disabled aria-label="Chart tool — not part of the pilot"></button>').join('') +
-  '<div class="cap">workspace stub</div>';
+/* The watchlist panel shows the visitor's own list when there is one. */
+const watch = P.watchlist();
+const SAMPLE = [['BTCUSD', '118,420 +2.84%', 'pos'], ['ETHUSD', '3,842 +1.92%', 'pos'],
+                ['SPX', '5,612 +0.42%', 'pos'], ['EURUSD', '1.0842 −0.18%', 'neg']];
+$('watchRows').innerHTML = (watch.length ? watch.map(s => [s, 'saved', '']) : SAMPLE)
+  .map(([s, v, cls]) => `<div class="wl-row"><span style="color:var(--tv-text)">${s}</span><span class="${cls}">${v}</span></div>`)
+  .join('');
 
-window.Portal.track('chart_workspace_opened', { symbol, range, compare_count: compare.length });
+/* -------------------------------------------------- progressive complexity */
+
+const CAPTIONS = {
+  beginner: '3 tools · 1 indicator · panels hidden',
+  standard: '6 tools · indicators & alerts · watchlist panel',
+  pro: 'all 40 tools · multi-pane · DOM, Pine, layouts'
+};
+const TOOLCAP = { beginner: '3 of 40 tools', standard: '6 of 40 tools', pro: '40 of 40 tools' };
+const HINTS = {
+  beginner: 'Beginner preset: 3 drawing tools, 1 indicator, side panels hidden. Everything unlocks as you level up — or instantly via “Full interface”.',
+  standard: 'Standard preset: six tools, indicators, alerts and replay, plus your watchlist. Density is yours to set.',
+  pro: 'Pro preset: the full workspace. The pill goes back to Beginner whenever you want — nothing here is one-way.'
+};
+
+/* One function decides everything the mode controls, so a new progressive
+   element only needs a data-min attribute to join in. */
+function applyMode(m, source) {
+  const mode = P.setMode(m, source);
+
+  document.querySelectorAll('#modePill button').forEach(b =>
+    b.classList.toggle('on', b.dataset.mode === mode));
+
+  document.querySelectorAll('[data-min]').forEach(el => {
+    const visible = P.allows(mode, el.dataset.min);
+    if (el.classList.contains('t')) el.classList.toggle('locked', !visible);
+    else { el.hidden = !visible; el.style.display = visible ? '' : 'none'; }
+  });
+
+  $('modeCaption').textContent = CAPTIONS[mode];
+  $('toolCap').textContent = TOOLCAP[mode];
+  if ($('hintText')) $('hintText').textContent = HINTS[mode];
+  if ($('hintbar')) $('hintbar').style.display = mode === 'beginner' ? '' : 'none';
+
+  $('sidePanel').hidden = mode === 'beginner';
+  $('shell').classList.toggle('with-panel', mode !== 'beginner');
+
+  // SVG ignores [hidden]; opacity keeps the transition and the layout stable.
+  const ov = $('proOverlay'), cn = $('chartNews');
+  ov.style.display = ''; cn.style.display = '';
+  ov.style.opacity = mode === 'pro' ? 1 : 0;
+  cn.style.opacity = mode === 'beginner' ? 0 : 1;
+  $('rangeNews').hidden = mode === 'beginner';
+
+  document.body.dataset.uiMode = mode;
+}
+
+$('modePill').addEventListener('click', e => {
+  const b = e.target.closest('[data-mode]');
+  if (b) applyMode(b.dataset.mode, 'pill');
+});
+
+/* The escape hatch has to be instant, and it has to work in both directions. */
+$('fullBtn').addEventListener('click', () => applyMode('pro', 'full_button'));
+$('hintClose').addEventListener('click', () => $('hintbar').remove());
+
+/* Any progressive control reports its first use — that is the measure of
+   whether the ramp actually leads anywhere. */
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-feature]');
+  if (!el || el.classList.contains('locked')) return;
+  P.featureFirstUse(el.dataset.feature);
+});
+
+$('density').addEventListener('input', e => {
+  const v = P.setDensity(e.target.value);
+  $('shell').dataset.density = v;
+  P.featureFirstUse('density');
+});
+$('density').addEventListener('change', e =>
+  P.track('density_changed', { density: P.setDensity(e.target.value), mode: P.mode() }));
+
+/* ---------------------------------------------------------------- journey */
+
+function renderNextStep() {
+  const s = P.suggestNext('chart');
+  $('nextStepText').textContent = s.label;
+  $('nextStep').dataset.rule = s.rule;
+  $('nextStep').dataset.to = s.to;
+}
+
+$('nextStep').addEventListener('click', () => {
+  const s = P.suggestNext('chart');
+  P.pushJourney({ from: 'chart', to: s.to, rule: s.rule, label: s.label });
+  location.href = '/symbol.html?symbol=' + encodeURIComponent(symbol);
+});
+
+$('explainMove').addEventListener('click', () => {
+  P.pushJourney({ from: 'chart', to: 'news', rule: 'range_news', label: 'Range news 21–24 Jul' });
+  document.querySelector('.cp-fab')?.click();
+});
+
+/* ------------------------------------------------------------- first exit */
+
+/* "Новичок не потерялся": did the first chart session end in the mode it
+   started in, and how long did it last. */
+const openedAt = Date.now();
+const startMode = P.mode();
+let firstSession = false;
+try {
+  firstSession = !sessionStorage.getItem('chart_seen');
+  sessionStorage.setItem('chart_seen', '1');
+} catch {}
+
+window.addEventListener('pagehide', () => {
+  P.track('chart_first_session_exit', {
+    mode: P.mode(), started_in: startMode, first_session: firstSession,
+    ms_on_page: Date.now() - openedAt
+  });
+});
+
+/* -------------------------------------------------------------------- go */
+
+/* A visitor who has never chosen a mode is being assigned one — that is worth
+   one event, so the funnel knows which mode the session started in. Switching
+   later fires the same event with source pill or full_button. */
+const hadMode = lsRaw('ui_mode', null) !== null;
+applyMode(P.mode(), 'default');
+if (!hadMode) P.track('mode_switch', { from: null, to: P.mode(), mode: P.mode(), source: 'default' });
+
+$('shell').dataset.density = P.density();
+$('density').value = P.density();
+renderNextStep();
+
+P.track('chart_workspace_opened', { symbol, range, compare_count: compare.length, mode: P.mode() });
 </script>
 </body>
 </html>
