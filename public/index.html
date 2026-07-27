@@ -3,343 +3,99 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Expert Marketplace — find a consultant</title>
+<meta name="robots" content="noindex, nofollow">
+<title>Platform — home</title>
 <link rel="stylesheet" href="/tv-theme.css">
+<link rel="stylesheet" href="/portal.css">
 </head>
 <body>
 
-<nav class="tv-nav">
-  <div class="tv-brand"><span class="mark">EM</span>Expert Marketplace</div>
-  <div class="links">
-    <a href="/" class="active">Request</a>
-    <a href="/staff.html">Consultant desk</a>
-    <a href="/metrics.html">Metrics</a>
+<div class="mock-strip">
+  UNAFFILIATED CASE-STUDY MOCKUP · NOT A REAL PLATFORM · NOT INVESTMENT ADVICE
+</div>
+
+<nav class="portal-nav">
+  <div class="logo"><img src="/assets/tv-logo-white.svg" alt="Platform"></div>
+  <div class="search"><span class="g">⌕</span>Search (⌘K)</div>
+  <div class="menu">
+    <a href="#">Products</a>
+    <a href="#">Community</a>
+    <a href="#">Markets</a>
+    <a href="/experts.html" class="active">Experts</a>
+    <a href="#">More</a>
   </div>
-  <div class="spacer"></div>
-  <span class="tag tag-warn">CONCIERGE PILOT</span>
+  <div class="right">
+    <span style="font-size:14px;color:var(--tv-muted)">Sign in</span>
+    <span class="btn btn-primary" style="padding:9px 16px">Get started</span>
+    <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
+  </div>
 </nav>
 
-<main class="tv-page">
-  <div class="tv-eyebrow">Expert Marketplace · Pilot</div>
-
-  <div class="steps mt-16" id="steps">
-    <div class="step active" data-s="1"><b>1</b>Request</div><span class="sep">→</span>
-    <div class="step" data-s="2"><b>2</b>Brief</div><span class="sep">→</span>
-    <div class="step" data-s="3"><b>3</b>Match</div><span class="sep">→</span>
-    <div class="step" data-s="4"><b>4</b>Booking</div>
+<div class="portal-hero">
+  <h1>Look first.<br>Then leap.</h1>
+  <p>The all-in-one platform millions of traders and investors trust</p>
+  <div class="cta">
+    <span class="btn btn-primary" style="padding:13px 28px">Get started</span>
+    <span class="btn btn-secondary" style="padding:13px 28px">See plans</span>
   </div>
+  <div class="ph" style="max-width:1180px;margin:44px auto 0;height:240px;display:flex;align-items:center;justify-content:center;font-family:var(--tv-mono);font-size:12px;color:var(--tv-ghost)">platform hero visual</div>
+</div>
 
-  <!-- ============================================================ STEP 1 -->
-  <section id="s1" class="mt-24">
-    <h1 class="tv-h1">Tell us what you need help with</h1>
-    <p class="tv-lead">We turn your description into a structured brief and match you with a consultant
-      whose licence and specialisation fit. You see the brief before the consultant does.</p>
-
-    <form class="tv-card mt-24" id="form">
-      <div class="grid-2">
-        <div class="field">
-          <label for="fName">What should we call you</label>
-          <input type="text" id="fName" name="contact_name" maxlength="120" placeholder="Alex" required>
-        </div>
-        <div class="field">
-          <label for="fMail">Email</label>
-          <input type="email" id="fMail" name="contact_email" placeholder="you@example.com" required>
-        </div>
-      </div>
-
-      <div class="field">
-        <label>Country</label>
-        <div class="hint">Determines which jurisdiction the consultant must be licensed in</div>
-        <div class="seg" data-name="country">
-          <div class="opt selected" data-v="US">United States</div>
-          <div class="opt" data-v="EU">European Union</div>
-          <div class="opt" data-v="UK">United Kingdom</div>
-          <div class="opt" data-v="IN">India</div>
-        </div>
-      </div>
-
-      <div class="field">
-        <label>Language for the consultation</label>
-        <div class="seg" data-name="language">
-          <div class="opt selected" data-v="en">English</div>
-          <div class="opt" data-v="de">Deutsch</div>
-          <div class="opt" data-v="hi">हिन्दी</div>
-        </div>
-      </div>
-
-      <div class="field">
-        <label>Approximate capital</label>
-        <div class="seg" data-name="capital_band">
-          <div class="opt selected" data-v="under $50k">under $50k</div>
-          <div class="opt" data-v="$50k-$250k">$50k-$250k</div>
-          <div class="opt" data-v="$250k-$1M">$250k-$1M</div>
-          <div class="opt" data-v="over $1M">over $1M</div>
-          <div class="opt" data-v="prefer not to say">prefer not to say</div>
-        </div>
-      </div>
-
-      <div class="field">
-        <label for="fGoal">What do you need help with?</label>
-        <div class="hint">In your own words, no jargon needed</div>
-        <textarea id="fGoal" name="goal_text" maxlength="6000" required
-          placeholder="For example: my savings have sat in a deposit account for years and the rate keeps dropping. I want to understand whether to move some of it, but I'm not ready to risk the whole amount and I don't know where to start."></textarea>
-        <div class="hint" id="cnt">0 characters · 40 minimum</div>
-      </div>
-
-      <label class="checkbox-row">
-        <input type="checkbox" id="fConsent" required>
-        <span>I agree that a structured brief of my enquiry may be shared with the consultant I choose.
-          The marketplace does not provide investment advice.</span>
-      </label>
-
-      <div class="row mt-16">
-        <button type="submit" class="btn btn-primary" id="goBtn">Build my brief</button>
-      </div>
-      <div id="formErr" class="mono" style="color:var(--tv-red); font-size:12.5px; margin-top:12px;"></div>
-    </form>
-
-    <div class="disclaimer">Pilot mode: payments are not connected and consultant licence status is not
-      automatically verified. A booking holds a slot; payment happens outside the platform.
-      Not investment advice.</div>
-  </section>
-
-  <!-- ============================================================ STEP 2 -->
-  <section id="s2" class="mt-24" hidden>
-    <h1 class="tv-h1">Your brief</h1>
-    <p class="tv-lead">This is how the consultant will see your enquiry. Assembled from what you wrote —
-      nothing has been added.</p>
-    <div class="tv-card accent mt-24" id="briefCard"></div>
-    <div class="row mt-16">
-      <button class="btn btn-primary" id="matchBtn">Find a consultant</button>
-      <button class="btn btn-secondary" id="backBtn">Edit my request</button>
+<div class="section">
+  <div class="tv-eyebrow" style="color:var(--tv-blue)">Products</div>
+  <div class="cards-4">
+    <div class="tv-card"><p class="title">Supercharts</p><div style="font-size:13.5px;color:var(--tv-muted)">Advanced charting across every market</div><div class="ph" style="height:74px;margin-top:16px"></div></div>
+    <div class="tv-card"><p class="title">Screeners</p><div style="font-size:13.5px;color:var(--tv-muted)">Filter thousands of instruments</div><div class="ph" style="height:74px;margin-top:16px"></div></div>
+    <div class="tv-card"><p class="title">Scripting</p><div style="font-size:13.5px;color:var(--tv-muted)">Build your own indicators</div><div class="ph" style="height:74px;margin-top:16px"></div></div>
+    <div class="tv-card" style="border-color:var(--tv-blue-line);background:var(--tv-blue-dim)">
+      <div class="row" style="justify-content:space-between"><p class="title" style="margin:0">Experts</p><span class="tag tag-warn">NEW · PILOT</span></div>
+      <div style="font-size:13.5px;color:var(--tv-muted);margin-top:4px">Talk to a licensed consultant — matched to your country, capital and task</div>
+      <a class="btn btn-primary" href="/experts.html" style="margin-top:16px">Find my expert</a>
     </div>
-    <div class="disclaimer">The brief is generated from your own words and is not an assessment of your
-      situation. Not investment advice.</div>
-  </section>
+  </div>
+</div>
 
-  <!-- ============================================================ STEP 3 -->
-  <section id="s3" class="mt-24" hidden>
-    <h1 class="tv-h1">Who fits</h1>
-    <p class="tv-lead" id="matchNote"></p>
-    <div id="matches" class="mt-24"></div>
-    <div class="disclaimer">Ranking reflects fit with your brief only — never price. Licence status is
-      not automatically verified in the pilot. Not investment advice.</div>
-  </section>
+<div class="section">
+  <div class="head">
+    <h2>Markets</h2>
+    <a href="#" style="font-size:13.5px;font-weight:700">See all markets →</a>
+  </div>
+  <!-- Sample figures for the mockup — this shell is not wired to a quote feed. -->
+  <div class="market-row">
+    <div class="mkt"><div class="t">SPX</div><div class="p">5 612.4</div><div class="c pos">+0.42%</div><svg viewBox="0 0 160 34"><polyline points="0,28 40,22 80,24 120,14 160,8" fill="none" stroke="#089981" stroke-width="1.8"/></svg></div>
+    <div class="mkt"><div class="t">NDQ</div><div class="p">20 148</div><div class="c pos">+0.71%</div><svg viewBox="0 0 160 34"><polyline points="0,30 40,24 80,20 120,12 160,6" fill="none" stroke="#089981" stroke-width="1.8"/></svg></div>
+    <div class="mkt"><div class="t">BTCUSD</div><div class="p">118 420</div><div class="c pos">+2.84%</div><svg viewBox="0 0 160 34"><polyline points="0,30 40,22 80,26 120,12 160,5" fill="none" stroke="#089981" stroke-width="1.8"/></svg></div>
+    <div class="mkt"><div class="t">EURUSD</div><div class="p">1.0842</div><div class="c neg">−0.18%</div><svg viewBox="0 0 160 34"><polyline points="0,10 40,14 80,12 120,22 160,26" fill="none" stroke="#F23645" stroke-width="1.8"/></svg></div>
+    <div class="mkt"><div class="t">XAUUSD</div><div class="p">2 412</div><div class="c pos">+1.10%</div><svg viewBox="0 0 160 34"><polyline points="0,26 40,24 80,18 120,16 160,10" fill="none" stroke="#089981" stroke-width="1.8"/></svg></div>
+  </div>
+  <div class="disclaimer" style="border:none;padding-top:10px;margin-top:8px;">Sample figures for layout only — this shell is not connected to a market data feed.</div>
+</div>
 
-  <!-- ============================================================ STEP 4 -->
-  <section id="s4" class="mt-24" hidden>
-    <h1 class="tv-h1">You're booked</h1>
-    <div class="tv-card accent mt-24" id="booked"></div>
-    <div class="disclaimer">Payments are not connected in the pilot — the consultant will reach you by
-      email. Not investment advice.</div>
-  </section>
-</main>
+<div class="section" style="padding-bottom:24px">
+  <div class="head"><h2>Community ideas</h2><span style="font-size:13px;color:var(--tv-faint)">Editors' picks · Popular · Following</span></div>
+  <div class="cards-4" style="grid-template-columns:repeat(3,1fr)">
+    <div class="tv-card" style="padding:0;overflow:hidden"><div class="ph" style="height:104px;border-radius:0"></div><div style="padding:13px"><div style="font-size:13.5px;font-weight:700;color:var(--tv-white)">Placeholder idea title</div><div class="mono" style="font-size:11px;color:var(--tv-faint);margin-top:6px">sample_author · 43</div></div></div>
+    <div class="tv-card" style="padding:0;overflow:hidden"><div class="ph" style="height:104px;border-radius:0"></div><div style="padding:13px"><div style="font-size:13.5px;font-weight:700;color:var(--tv-white)">Placeholder idea title</div><div class="mono" style="font-size:11px;color:var(--tv-faint);margin-top:6px">sample_author · 120</div></div></div>
+    <div class="tv-card" style="padding:0;overflow:hidden"><div class="ph" style="height:104px;border-radius:0"></div><div style="padding:13px"><div style="font-size:13.5px;font-weight:700;color:var(--tv-white)">Placeholder idea title</div><div class="mono" style="font-size:11px;color:var(--tv-faint);margin-top:6px">sample_author · 130</div></div></div>
+  </div>
+</div>
 
-<script>
-const $ = id => document.getElementById(id);
-const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const state = { id: null };
-
-/* ------------------------------------------------------ segmented choices */
-/* The theme uses .seg/.opt instead of <select>; selection is read back on submit. */
-document.querySelectorAll('.seg').forEach(seg => {
-  seg.addEventListener('click', e => {
-    const opt = e.target.closest('.opt');
-    if (!opt) return;
-    seg.querySelectorAll('.opt').forEach(o => o.classList.remove('selected'));
-    opt.classList.add('selected');
-  });
-});
-const segValue = name =>
-  document.querySelector(`.seg[data-name="${name}"] .opt.selected`)?.dataset.v || '';
-
-/* ------------------------------------------------------------------ steps */
-function step(n) {
-  document.querySelectorAll('#steps .step').forEach(el =>
-    el.classList.toggle('active', +el.dataset.s === n));
-  [1, 2, 3, 4].forEach(i => { $('s' + i).hidden = i !== n; });
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-$('fGoal').addEventListener('input', e => {
-  const n = e.target.value.trim().length;
-  $('cnt').textContent = n < 40 ? `${n} characters · 40 minimum` : `${n} characters`;
-});
-
-/* ----------------------------------------------------------------- submit */
-$('form').addEventListener('submit', async e => {
-  e.preventDefault();
-  const btn = $('goBtn');
-  btn.disabled = true;
-  btn.textContent = 'Building…';
-  $('formErr').textContent = '';
-
-  const body = {
-    contact_name:  $('fName').value,
-    contact_email: $('fMail').value,
-    country:       segValue('country'),
-    language:      segValue('language'),
-    capital_band:  segValue('capital_band'),
-    goal_text:     $('fGoal').value,
-    consent:       $('fConsent').checked
-  };
-
-  try {
-    const r = await fetch('/api/requests', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
-    });
-    const data = await r.json();
-    if (!r.ok) { $('formErr').textContent = (data.errors || [data.error]).join('. '); return; }
-    state.id = data.id;
-    renderBrief(data.brief, data.brief_error);
-    step(2);
-  } catch (err) {
-    $('formErr').textContent = 'Network error: ' + err.message;
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Build my brief';
-  }
-});
-
-const bullets = (title, arr) => (!arr || !arr.length) ? '' :
-  `<div class="mt-16"><div class="tv-eyebrow">${esc(title)}</div>
-   <ul style="margin:8px 0 0; padding-left:18px; color:var(--tv-muted); font-size:14px;">
-   ${arr.map(x => `<li style="margin-bottom:5px">${esc(x)}</li>`).join('')}</ul></div>`;
-
-function renderBrief(b, err) {
-  if (!b) {
-    $('briefCard').innerHTML = `<p class="title">Brief could not be built</p>
-      <p style="color:var(--tv-muted)">${esc(err || 'unknown reason')}. Your request was saved —
-      the consultant will see your text as written.</p>`;
-    return;
-  }
-  $('briefCard').innerHTML = `
-    <div class="row" style="gap:8px; flex-wrap:wrap; margin-bottom:14px;">
-      <span class="tag tag-ai">AI · FROM YOUR OWN WORDS</span>
-      <span class="tag tag-fact">HORIZON ${esc(b.horizon).toUpperCase()}</span>
-      <span class="tag tag-fact">EXPERIENCE ${esc(b.knowledge_level).toUpperCase()}</span>
+<footer class="portal-footer">
+  <div class="cols">
+    <div class="col"><b>Products</b><div>Supercharts</div><div>Screeners</div><div>Heatmaps</div><div>Calendars</div></div>
+    <div class="col"><b>Community</b><div>Ideas</div><div>Scripts</div><div>Streams</div></div>
+    <div class="col"><b>Experts</b><div><a href="/experts.html">Find a consultant</a></div><div>Become a consultant</div><div>How matching works</div></div>
+    <div class="col"><b>Company</b><div>About</div><div>Careers</div><div>Blog</div></div>
+    <div class="col"><b>More</b><div>Pricing</div><div>Store</div><div>Help center</div></div>
+  </div>
+  <div class="cols" style="margin-top:26px;grid-template-columns:1fr;">
+    <div class="disclaimer" style="border-top:none;padding-top:0;margin-top:0;">
+      Unaffiliated case-study prototype built for an internal product review. Not a real platform,
+      not operated by or endorsed by any company whose branding appears here. Only the Experts
+      section is functional; everything else is a static placeholder. Not investment advice.
     </div>
-    <p class="title" style="font-size:17px; line-height:1.45;">${esc(b.summary)}</p>
-    <table class="tv mt-16">
-      <tr><td style="color:var(--tv-faint); width:190px;">Stated goal</td><td>${esc(b.stated_goal)}</td></tr>
-      <tr><td style="color:var(--tv-faint);">Actual question</td><td>${esc(b.actual_question)}</td></tr>
-      ${b.topics?.length ? `<tr><td style="color:var(--tv-faint);">Topics</td><td class="mono">${esc(b.topics.join(' · '))}</td></tr>` : ''}
-    </table>
-    ${bullets('What the consultant should clarify first', b.questions_for_consultant)}
-    ${bullets('What is missing from your description', b.missing_info)}
-    ${b.risk_signals?.length ? `<div class="mt-16"><span class="tag tag-warn">RISK SIGNALS</span>
-      <p style="color:var(--tv-muted); font-size:13.5px; margin-top:8px;">${esc(b.risk_signals.join('; '))}.
-      These are notes for the consultant, not a judgement on your situation.</p></div>` : ''}`;
-}
+  </div>
+</footer>
 
-$('backBtn').addEventListener('click', () => step(1));
-
-/* ------------------------------------------------------------------ match */
-$('matchBtn').addEventListener('click', async () => {
-  const btn = $('matchBtn');
-  btn.disabled = true;
-  btn.textContent = 'Matching…';
-  step(3);
-  $('matches').innerHTML = '<div class="tv-card mono" style="color:var(--tv-ghost)">Ranking candidates…</div>';
-  try {
-    const r = await fetch(`/api/requests/${state.id}/match`, { method: 'POST' });
-    const data = await r.json();
-    if (!r.ok) throw new Error(data.error || 'matching failed');
-    renderMatches(data);
-  } catch (err) {
-    $('matches').innerHTML = `<div class="tv-card mono" style="color:var(--tv-red)">${esc(err.message)}</div>`;
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Find a consultant';
-  }
-});
-
-const SLOTS = ['tomorrow 11:00', 'tomorrow 16:00', 'Thu 10:00', 'Thu 18:00'];
-const initials = n => String(n || '?').split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
-
-function renderMatches(data) {
-  if (!data.ranked?.length) {
-    $('matchNote').textContent = '';
-    $('matches').innerHTML = `<div class="tv-card"><span class="tag tag-warn">NO MATCH</span>
-      <p style="color:var(--tv-muted); margin-top:10px;">${esc(data.note || 'No matching consultants were found.')}</p></div>`;
-    return;
-  }
-  $('matchNote').textContent =
-    `The hard filter on jurisdiction, language and capital range ruled out ${data.filtered_out} of the roster. ` +
-    `The order below reflects fit with your brief.`;
-
-  $('matches').innerHTML = data.ranked.map((m, i) => {
-    const c = m.consultant || {};
-    return `<div class="tv-card" style="margin-bottom:14px;">
-      <div style="display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap;">
-        <div style="width:52px;height:52px;border-radius:50%;background:var(--tv-ink-2);
-                    border:1px solid var(--tv-ink-3);display:flex;align-items:center;justify-content:center;
-                    font-family:var(--tv-mono);font-size:16px;color:var(--tv-white);flex:0 0 52px;">${esc(initials(c.name))}</div>
-        <div style="flex:1; min-width:220px;">
-          <p class="title">${i + 1}. ${esc(c.name || m.consultant_id)}</p>
-          <div class="mono" style="font-size:12px; color:var(--tv-faint);">
-            ${esc(c.jurisdiction || '—')} · ${esc(c.license_id || 'no licence id')} · UNVERIFIED
-          </div>
-          <div class="row mt-16" style="gap:6px; flex-wrap:wrap;">
-            ${(c.specialties || []).map(s => `<span class="tag tag-fact">${esc(String(s).toUpperCase())}</span>`).join('')}
-          </div>
-        </div>
-        <div style="text-align:right;">
-          <div class="mono" style="font-size:30px; color:var(--tv-white); font-variant-numeric:tabular-nums;">${m.score}</div>
-          <div class="tv-eyebrow">fit</div>
-        </div>
-      </div>
-
-      <p style="color:var(--tv-muted); font-size:14px; margin-top:14px;">${esc(c.bio || '')}</p>
-      <div class="tv-card accent mt-16" style="padding:14px;">
-        <span class="tag tag-ai">AI · WHY THEY FIT</span>
-        <p style="margin:8px 0 0; font-size:13.5px;">${esc(m.rationale)}</p>
-        ${m.concerns ? `<p style="margin:10px 0 0; font-size:13.5px; color:var(--tv-orange);">
-          Does not cover: ${esc(m.concerns)}</p>` : ''}
-      </div>
-
-      <div class="row mt-16" style="flex-wrap:wrap; gap:8px;">
-        <span class="tv-eyebrow" style="margin-right:4px;">book a slot</span>
-        ${SLOTS.map(s => `<button class="btn btn-quiet" data-book="${esc(c.id)}" data-slot="${esc(s)}">${esc(s)}</button>`).join('')}
-        ${c.rate_hour ? `<span class="mono" style="margin-left:auto; font-size:12.5px; color:var(--tv-faint);">≈ $${c.rate_hour} / hour</span>` : ''}
-      </div>
-    </div>`;
-  }).join('');
-
-  document.querySelectorAll('[data-book]').forEach(b =>
-    b.addEventListener('click', () => book(b.dataset.book, b.dataset.slot)));
-}
-
-/* ---------------------------------------------------------------- booking */
-async function book(consultantId, slot) {
-  document.querySelectorAll('[data-book]').forEach(b => b.disabled = true);
-  try {
-    const r = await fetch('/api/bookings', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ request_id: state.id, consultant_id: consultantId, slot })
-    });
-    const data = await r.json();
-    if (!r.ok) throw new Error(data.error || 'booking failed');
-    $('booked').innerHTML = `
-      <span class="tag tag-fact">CONFIRMED</span>
-      <p class="title mt-16">Your consultation is booked</p>
-      <table class="tv mt-16">
-        <tr><td style="color:var(--tv-faint); width:190px;">Consultant</td><td>${esc(data.consultant)}</td></tr>
-        <tr><td style="color:var(--tv-faint);">Slot</td><td class="mono">${esc(data.slot)}</td></tr>
-        <tr><td style="color:var(--tv-faint);">Booking reference</td><td class="mono">${esc(data.id)}</td></tr>
-      </table>
-      <p style="color:var(--tv-muted); font-size:13.5px; margin-top:14px;">
-        The consultant receives your brief before the meeting. Afterwards you get a standardised
-        summary: what was discussed, what was agreed, and what to do next.</p>`;
-    step(4);
-  } catch (err) {
-    $('matches').insertAdjacentHTML('afterbegin',
-      `<div class="tv-card mono" style="color:var(--tv-red); margin-bottom:14px;">${esc(err.message)}</div>`);
-    document.querySelectorAll('[data-book]').forEach(b => b.disabled = false);
-  }
-}
-
-step(1);
-</script>
 </body>
 </html>

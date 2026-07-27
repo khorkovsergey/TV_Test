@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Experts — find a consultant</title>
+<link rel="stylesheet" href="/tv-theme.css">
+<link rel="stylesheet" href="/portal.css">
+</head>
+<body>
+
+<div class="mock-strip">
+  UNAFFILIATED CASE-STUDY MOCKUP · NOT A REAL PLATFORM · NOT INVESTMENT ADVICE
+</div>
+
+<nav class="portal-nav">
+  <div class="logo"><a href="/"><img src="/assets/tv-logo-white.svg" alt="Platform"></a></div>
+  <div class="search"><span class="g">⌕</span>Search (⌘K)</div>
+  <div class="menu">
+    <a href="/">Products</a>
+    <a href="#">Community</a>
+    <a href="#">Markets</a>
+    <a href="/experts.html" class="active">Experts</a>
+    <a href="#">More</a>
+  </div>
+  <div class="right">
+    <span class="tag tag-warn">CONCIERGE PILOT</span>
+    <span style="font-size:14px;color:var(--tv-muted)">Sign in</span>
+    <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
+  </div>
+</nav>
+
+<main class="tv-page">
+  <div class="tv-eyebrow">Experts · Pilot inside the platform</div>
+  <h1 class="tv-h1" style="margin-top:8px;">Tell us what you need help with</h1>
+  <p class="tv-lead">We turn your description into a structured brief and match you with a consultant
+    whose licence and specialisation fit. You see the brief before the consultant does.</p>
+
+  <div class="steps mt-24" id="steps">
+    <div class="step active" data-s="1"><b>1</b>Request</div><span class="sep">—</span>
+    <div class="step" data-s="2"><b>2</b>Brief</div><span class="sep">—</span>
+    <div class="step" data-s="3"><b>3</b>Match</div><span class="sep">—</span>
+    <div class="step" data-s="4"><b>4</b>Booking</div>
+  </div>
+
+  <div class="grid-2 mt-24" style="grid-template-columns:1.4fr 1fr; align-items:start;">
+
+    <!-- ============================================ LEFT: request form -->
+    <div class="tv-card" id="leadForm">
+      <div class="field">
+        <label for="fName">What should we call you</label>
+        <input type="text" id="fName" maxlength="120" placeholder="Alex">
+      </div>
+      <div class="field">
+        <label for="fMail">Email</label>
+        <input type="email" id="fMail" placeholder="you@example.com">
+      </div>
+      <div class="field">
+        <label>Country <span class="hint">determines the consultant's jurisdiction</span></label>
+        <div class="seg" data-name="country">
+          <span class="opt selected" data-v="US">United States</span>
+          <span class="opt" data-v="EU">European Union</span>
+          <span class="opt" data-v="UK">United Kingdom</span>
+          <span class="opt" data-v="IN">India</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Language for the consultation</label>
+        <div class="seg" data-name="language">
+          <span class="opt selected" data-v="en">English</span>
+          <span class="opt" data-v="de">Deutsch</span>
+          <span class="opt" data-v="hi">हिन्दी</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Approximate capital</label>
+        <div class="seg" data-name="capital_band">
+          <span class="opt selected" data-v="under $50k">under $50k</span>
+          <span class="opt" data-v="$50k-$250k">$50k-$250k</span>
+          <span class="opt" data-v="$250k-$1M">$250k-$1M</span>
+          <span class="opt" data-v="over $1M">over $1M</span>
+          <span class="opt" data-v="prefer not to say">prefer not to say</span>
+        </div>
+      </div>
+      <div class="field">
+        <label for="fGoal">What do you need help with?
+          <span class="hint" id="cnt">in your own words · 40 characters minimum</span></label>
+        <textarea id="fGoal" maxlength="6000"
+          placeholder="For example: my savings have sat in a deposit account for years and the rate keeps dropping. I want to understand whether to move some of it, but I'm not ready to risk the whole amount and I don't know where to start."></textarea>
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="fConsent">
+        <label for="fConsent">I agree that a structured brief of my enquiry may be shared with the
+          consultant I choose. The marketplace does not provide investment advice.</label>
+      </div>
+      <div class="row mt-16">
+        <button class="btn btn-primary" id="buildBrief">Build my brief</button>
+        <span class="mono" style="font-size:11px;color:var(--tv-ghost)">≈ 20 seconds</span>
+      </div>
+      <div class="mono" id="formErr" style="font-size:12px;color:var(--tv-red);margin-top:12px;"></div>
+    </div>
+
+    <!-- ============================================ RIGHT: brief + matches -->
+    <div style="display:flex;flex-direction:column;gap:14px;">
+
+      <div class="tv-card accent" id="briefCard" hidden>
+        <div class="row" style="justify-content:space-between">
+          <p class="title" style="margin:0">Your brief</p>
+          <span class="tag tag-ai">AI · FROM YOUR OWN WORDS</span>
+        </div>
+        <div style="font-size:13px;color:var(--tv-muted);margin-top:6px;line-height:1.5">
+          This is how the consultant will see your enquiry. Assembled automatically — nothing added.</div>
+        <div id="briefBody" class="mono" style="font-size:12.5px;color:var(--tv-text);margin-top:12px;line-height:1.7"></div>
+        <div class="row mt-16">
+          <button class="btn btn-primary" id="matchBtn">Find a consultant</button>
+          <button class="btn btn-secondary" id="editBtn">Edit request</button>
+        </div>
+      </div>
+
+      <div id="matchNote" class="mono" style="font-size:11.5px;color:var(--tv-faint);"></div>
+      <div id="matches" style="display:flex;flex-direction:column;gap:10px;"></div>
+
+      <div class="tv-card accent" id="booked" hidden></div>
+
+      <div class="disclaimer" style="border:none;padding:0;margin:0;">
+        Pilot mode: payments are not connected and licence status is not automatically verified.
+        A booking holds a slot; payment happens outside the platform. Educational concierge MVP,
+        demonstration consultants. Not investment advice.
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="portal-footer">
+  <div class="cols">
+    <div class="col"><b>Products</b><div>Supercharts</div><div>Screeners</div></div>
+    <div class="col"><b>Community</b><div>Ideas</div><div>Scripts</div></div>
+    <div class="col"><b>Experts</b><div><a href="/experts.html">Find a consultant</a></div><div><a href="/metrics.html">Metrics (staff)</a></div></div>
+    <div class="col"><b>Company</b><div>About</div></div>
+    <div class="col"><b>More</b><div>Pricing</div><div>Help center</div></div>
+  </div>
+  <div class="cols" style="margin-top:26px;grid-template-columns:1fr;">
+    <div class="disclaimer" style="border-top:none;padding-top:0;margin-top:0;">
+      Unaffiliated case-study prototype built for an internal product review. Not operated by or
+      endorsed by any company whose branding appears here.
+    </div>
+  </div>
+</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const state = { id: null };
+
+/* Segmented choices replace <select>; the value is read back on submit. */
+document.querySelectorAll('.seg').forEach(seg => {
+  seg.addEventListener('click', e => {
+    const opt = e.target.closest('.opt');
+    if (!opt) return;
+    seg.querySelectorAll('.opt').forEach(o => o.classList.remove('selected'));
+    opt.classList.add('selected');
+  });
+});
+const segValue = name =>
+  document.querySelector(`.seg[data-name="${name}"] .opt.selected`)?.dataset.v || '';
+
+function step(n) {
+  document.querySelectorAll('#steps .step').forEach(el =>
+    el.classList.toggle('active', +el.dataset.s === n));
+}
+
+$('fGoal').addEventListener('input', e => {
+  const n = e.target.value.trim().length;
+  $('cnt').textContent = n < 40 ? `in your own words · ${n}/40 characters` : `${n} characters`;
+});
+
+/* ------------------------------------------------------------ 1. request */
+$('buildBrief').addEventListener('click', async () => {
+  const btn = $('buildBrief');
+  btn.disabled = true; btn.textContent = 'Building…';
+  $('formErr').textContent = '';
+
+  const body = {
+    contact_name:  $('fName').value,
+    contact_email: $('fMail').value,
+    country:       segValue('country'),
+    language:      segValue('language'),
+    capital_band:  segValue('capital_band'),
+    goal_text:     $('fGoal').value,
+    consent:       $('fConsent').checked
+  };
+
+  try {
+    const r = await fetch('/api/requests', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+    });
+    const data = await r.json();
+    if (!r.ok) { $('formErr').textContent = (data.errors || [data.error]).join('. '); return; }
+    state.id = data.id;
+    renderBrief(data.brief, data.brief_error);
+    $('briefCard').hidden = false;
+    step(2);
+    $('briefCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } catch (err) {
+    $('formErr').textContent = 'Network error: ' + err.message;
+  } finally {
+    btn.disabled = false; btn.textContent = 'Build my brief';
+  }
+});
+
+const line = (k, v) => `— ${k}: ${esc(v)}<br>`;
+
+function renderBrief(b, err) {
+  if (!b) {
+    $('briefBody').innerHTML =
+      `<span style="color:var(--tv-orange)">Brief could not be built: ${esc(err || 'unknown reason')}.
+       Your request was saved — the consultant will see your text as written.</span>`;
+    return;
+  }
+  $('briefBody').innerHTML =
+      `<span style="color:var(--tv-white)">${esc(b.summary)}</span><br><br>`
+    + line('stated goal', b.stated_goal)
+    + line('actual question', b.actual_question)
+    + line('horizon', b.horizon)
+    + line('experience', b.knowledge_level)
+    + (b.topics?.length ? line('topics', b.topics.join(' · ')) : '')
+    + (b.questions_for_consultant?.length
+        ? `<br><span style="color:var(--tv-faint)">clarify first:</span><br>`
+          + b.questions_for_consultant.map(q => `— ${esc(q)}<br>`).join('')
+        : '')
+    + (b.missing_info?.length
+        ? `<br><span style="color:var(--tv-faint)">missing from the description:</span><br>`
+          + b.missing_info.map(q => `— ${esc(q)}<br>`).join('')
+        : '')
+    + (b.risk_signals?.length
+        ? `<br><span style="color:var(--tv-orange)">risk signals: ${esc(b.risk_signals.join('; '))}</span>`
+        : '');
+}
+
+$('editBtn').addEventListener('click', () => {
+  step(1);
+  $('leadForm').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+});
+
+/* -------------------------------------------------------------- 2. match */
+$('matchBtn').addEventListener('click', async () => {
+  const btn = $('matchBtn');
+  btn.disabled = true; btn.textContent = 'Matching…';
+  step(3);
+  $('matches').innerHTML = '<div class="expert mono" style="color:var(--tv-ghost)">Ranking candidates…</div>';
+  try {
+    const r = await fetch(`/api/requests/${state.id}/match`, { method: 'POST' });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'matching failed');
+    renderMatches(data);
+  } catch (err) {
+    $('matches').innerHTML = `<div class="expert mono" style="color:var(--tv-red)">${esc(err.message)}</div>`;
+  } finally {
+    btn.disabled = false; btn.textContent = 'Find a consultant';
+  }
+});
+
+const SLOTS = ['tomorrow 11:00', 'tomorrow 16:00', 'Thu 10:00', 'Thu 18:00'];
+const initials = n => String(n || '?').split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
+
+function renderMatches(data) {
+  if (!data.ranked?.length) {
+    $('matchNote').textContent = '';
+    $('matches').innerHTML = `<div class="tv-card"><span class="tag tag-warn">NO MATCH</span>
+      <p style="color:var(--tv-muted);margin-top:10px;font-size:13.5px">${esc(data.note || 'No matching consultants were found.')}</p></div>`;
+    return;
+  }
+  $('matchNote').textContent =
+    `hard filter ruled out ${data.filtered_out} of the roster · ordered by fit with your brief`;
+
+  $('matches').innerHTML = data.ranked.map(m => {
+    const c = m.consultant || {};
+    return `<div class="expert" style="flex-wrap:wrap">
+      <div class="ava" style="display:flex;align-items:center;justify-content:center;
+        font-family:var(--tv-mono);font-size:15px;color:var(--tv-white)">${esc(initials(c.name))}</div>
+      <div class="who">
+        <div class="n">${esc(c.name || m.consultant_id)}</div>
+        <div class="lic">${esc(c.license_id || 'no licence id')} · ${esc(c.jurisdiction || '—')} ·
+          UNVERIFIED · ${esc((c.specialties || []).join(' · '))}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="mono" style="font-size:22px;color:var(--tv-white);font-variant-numeric:tabular-nums">${m.score}</div>
+        <div class="tv-eyebrow">fit</div>
+      </div>
+      <div style="flex:1 0 100%">
+        <div class="tv-card accent" style="padding:12px;margin-top:12px">
+          <span class="tag tag-ai">AI · WHY THEY FIT</span>
+          <p style="margin:8px 0 0;font-size:13px">${esc(m.rationale)}</p>
+          ${m.concerns ? `<p style="margin:8px 0 0;font-size:13px;color:var(--tv-orange)">Does not cover: ${esc(m.concerns)}</p>` : ''}
+        </div>
+        <div class="row mt-16" style="flex-wrap:wrap;gap:8px">
+          ${SLOTS.map(s => `<button class="btn btn-quiet" data-book="${esc(c.id)}" data-slot="${esc(s)}">${esc(s)}</button>`).join('')}
+          ${c.rate_hour ? `<span class="mono" style="margin-left:auto;font-size:12px;color:var(--tv-faint)">≈ $${c.rate_hour} / hour</span>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.querySelectorAll('[data-book]').forEach(b =>
+    b.addEventListener('click', () => book(b.dataset.book, b.dataset.slot)));
+}
+
+/* ------------------------------------------------------------ 3. booking */
+async function book(consultantId, slot) {
+  document.querySelectorAll('[data-book]').forEach(b => b.disabled = true);
+  try {
+    const r = await fetch('/api/bookings', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ request_id: state.id, consultant_id: consultantId, slot })
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'booking failed');
+    $('booked').hidden = false;
+    $('booked').innerHTML = `
+      <span class="tag tag-fact">CONFIRMED</span>
+      <p class="title mt-16" style="margin-bottom:0">Your consultation is booked</p>
+      <div class="mono" style="font-size:12.5px;color:var(--tv-text);margin-top:12px;line-height:1.8">
+        — consultant: ${esc(data.consultant)}<br>
+        — slot: ${esc(data.slot)}<br>
+        — reference: ${esc(data.id)}
+      </div>
+      <p style="color:var(--tv-muted);font-size:13px;margin-top:12px">
+        The consultant receives your brief before the meeting. Afterwards you get a standardised
+        summary: what was discussed, what was agreed, and what to do next.</p>`;
+    step(4);
+    $('booked').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } catch (err) {
+    $('matches').insertAdjacentHTML('afterbegin',
+      `<div class="expert mono" style="color:var(--tv-red)">${esc(err.message)}</div>`);
+    document.querySelectorAll('[data-book]').forEach(b => b.disabled = false);
+  }
+}
+</script>
+</body>
+</html>
