@@ -138,8 +138,18 @@ export const TOOLS = [
 /* Human-readable button labels. Anything not listed is unsupported in the pilot. */
 function actionFor(name, input) {
   switch (name) {
-    case 'create_alert':
-      return { id: name, label: `Alert me: ${input.symbol} ${input.condition}${input.value != null ? ' ' + input.value : ''}`, payload: input };
+    case 'create_alert': {
+      // The condition is written by the model and often already states the
+      // number, so appending value blindly produced labels ending in a stray
+      // digit. Only add it when it is not already in the sentence.
+      const cond = String(input.condition || '').trim();
+      const needsValue = input.value != null && !cond.includes(String(input.value));
+      return {
+        id: name,
+        label: `Alert me: ${input.symbol} — ${cond}${needsValue ? ' ' + input.value : ''}`,
+        payload: input
+      };
+    }
     case 'open_chart':
       return { id: name, label: `Open ${input.symbol} chart${input.range ? ' · ' + input.range : ''}`, payload: input };
     case 'compare':
