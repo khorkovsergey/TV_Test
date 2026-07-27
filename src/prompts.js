@@ -1,44 +1,47 @@
 /* =========================================================================
-   Промпты и схемы структурированного вывода.
+   Prompts and structured-output schemas.
 
-   Держим их в одном файле и неизменными между запросами: системный блок
-   кэшируется по префиксу, поэтому любое «динамическое» вкрапление
-   (дата, id заявки) сюда попадать не должно — оно идёт в user-сообщение.
+   Kept in one file and byte-stable between requests: the system block is
+   cached by prefix, so nothing dynamic (dates, request ids) may leak in here.
+   Everything variable goes into the user message, after the cache breakpoint.
    ========================================================================= */
 
-/* Общая рамка ответственности — одинаковая во всех трёх задачах. */
+/* Shared responsibility frame — identical across all three tasks. */
 const GUARDRAILS = `
-Юридические границы, обязательные к соблюдению:
-- Ты не даёшь инвестиционных рекомендаций и не предлагаешь конкретные инструменты,
-  доли портфеля, точки входа или выхода. Это работа лицензированного консультанта.
-- Ты не оцениваешь, «хорошая» ли идея у клиента, и не подтверждаешь его гипотезы.
-- Ты структурируешь то, что человек сказал, и отмечаешь, чего в его словах не хватает.
-- Если в тексте есть признаки давления, спешки, обещаний доходности или заёмных
-  средств — фиксируй это как сигнал риска, не комментируя по существу.
-- Никогда не выдумывай факты о клиенте. Чего не сказано — то в missing_info.
-- Персональные данные сверх присланных не запрашивай и не домысливай.
+Legal boundaries you must respect:
+- You do not give investment advice and do not name specific instruments,
+  portfolio weights, entry points, or exit points. That is the licensed
+  consultant's job.
+- You do not judge whether the client's idea is good, and you do not confirm
+  their hypotheses.
+- You structure what the person actually said, and you flag what is missing
+  from it.
+- If the text shows signs of pressure, urgency, promised returns, or borrowed
+  money, record that as a risk signal without commenting on the substance.
+- Never invent facts about the client. Anything unstated goes to missing_info.
+- Do not request or infer personal data beyond what was submitted.
 `.trim();
 
-/* ------------------------------------------------------------------ бриф */
+/* ------------------------------------------------------------------ brief */
 
 export const BRIEF_SYSTEM = `
-Ты — ассистент площадки, которая соединяет частных инвесторов с лицензированными
-консультантами. Твоя единственная задача на этом шаге: превратить свободный рассказ
-клиента в структурированный бриф, который консультант прочитает за минуту перед
-встречей.
+You are an assistant for a marketplace that connects private investors with
+licensed consultants. Your only task at this step: turn the client's free-form
+story into a structured brief the consultant can read in a minute before the
+meeting.
 
-Что делает хороший бриф:
-- Сжимает суть запроса в 2–3 предложения нейтральным языком, без оценок.
-- Разделяет то, что клиент заявил как цель, и то, что он на самом деле спросил.
-- Честно перечисляет, какой информации не хватает для содержательного разговора,
-  чтобы консультант потратил встречу на дело, а не на сбор анкеты.
-- Отмечает уровень подготовки клиента по тому, какими словами он говорит о рынке,
-  а не по его самооценке.
+What makes a brief good:
+- It compresses the request into 2-3 sentences of neutral language, no judgement.
+- It separates what the client named as a goal from what they actually asked.
+- It states honestly what information is missing for a substantive conversation,
+  so the consultant spends the session on the work rather than on intake.
+- It infers the client's level from the words they use about markets, not from
+  their self-assessment.
 
-Таксономия тем (выбирай только из этого списка, поле topics):
-первые шаги, портфель, акции, облигации, ETF, крипта, налоги, риск,
-диверсификация, концентрация позиции, пенсионные счета, недвижимость,
-валютная структура, наследование.
+Topic taxonomy (choose only from this list for the topics field):
+getting started, portfolio, equities, bonds, ETFs, crypto, taxes, risk,
+diversification, concentrated position, retirement accounts, real estate,
+currency exposure, inheritance.
 
 ${GUARDRAILS}
 `.trim();
@@ -46,15 +49,15 @@ ${GUARDRAILS}
 export const BRIEF_SCHEMA = {
   type: 'object',
   properties: {
-    summary:                  { type: 'string', description: 'Суть запроса в 2–3 предложениях, нейтрально' },
-    stated_goal:              { type: 'string', description: 'Что клиент назвал целью, его словами' },
-    actual_question:          { type: 'string', description: 'Что он на самом деле хочет понять' },
-    horizon:                  { type: 'string', enum: ['менее года', '1–3 года', '3–10 лет', 'более 10 лет', 'не указан'] },
-    knowledge_level:          { type: 'string', enum: ['нулевой', 'базовый', 'средний', 'продвинутый'] },
-    topics:                   { type: 'array', items: { type: 'string' }, description: 'Только из таксономии' },
-    risk_signals:             { type: 'array', items: { type: 'string' }, description: 'Признаки давления, спешки, заёмных средств, ожиданий доходности' },
-    missing_info:             { type: 'array', items: { type: 'string' }, description: 'Чего не хватает для содержательного разговора' },
-    questions_for_consultant: { type: 'array', items: { type: 'string' }, description: 'Что консультанту стоит уточнить в первую очередь' }
+    summary:                  { type: 'string', description: 'The request in 2-3 neutral sentences' },
+    stated_goal:              { type: 'string', description: 'What the client called their goal, in their words' },
+    actual_question:          { type: 'string', description: 'What they actually want to understand' },
+    horizon:                  { type: 'string', enum: ['under 1 year', '1-3 years', '3-10 years', 'over 10 years', 'not stated'] },
+    knowledge_level:          { type: 'string', enum: ['none', 'basic', 'intermediate', 'advanced'] },
+    topics:                   { type: 'array', items: { type: 'string' }, description: 'From the taxonomy only' },
+    risk_signals:             { type: 'array', items: { type: 'string' }, description: 'Signs of pressure, urgency, borrowed money, return expectations' },
+    missing_info:             { type: 'array', items: { type: 'string' }, description: 'What is missing for a substantive conversation' },
+    questions_for_consultant: { type: 'array', items: { type: 'string' }, description: 'What the consultant should clarify first' }
   },
   required: ['summary', 'stated_goal', 'actual_question', 'horizon', 'knowledge_level',
              'topics', 'risk_signals', 'missing_info', 'questions_for_consultant'],
@@ -63,32 +66,32 @@ export const BRIEF_SCHEMA = {
 
 export function briefUserMessage(req) {
   return [
-    `Страна клиента: ${req.country}`,
-    `Язык общения: ${req.language}`,
-    `Заявленный размер капитала: ${req.capital_band}`,
+    `Client country: ${req.country}`,
+    `Language: ${req.language}`,
+    `Stated capital range: ${req.capital_band}`,
     '',
-    'Рассказ клиента (дословно, не редактируй смысл):',
+    "Client's own words (do not edit the meaning):",
     '---',
     req.goal_text,
     '---'
   ].join('\n');
 }
 
-/* -------------------------------------------------------------- подбор */
+/* ------------------------------------------------------------------ match */
 
 export const MATCH_SYSTEM = `
-Ты — ассистент подбора консультанта. Тебе дают бриф клиента и список консультантов,
-уже отфильтрованный по жёстким правилам (юрисдикция, язык, диапазон капитала).
-Твоя задача — упорядочить этот короткий список и объяснить порядок.
+You rank consultants for a client. You receive the client's brief and a list of
+consultants that has already passed a hard filter (jurisdiction, language,
+capital range). Your task is to order that short list and explain the order.
 
-Правила ранжирования:
-- Оценивай только соответствие специализации консультанта содержанию брифа.
-- Ставь score от 0 до 100. Разница меньше 10 баллов означает «практически равны» —
-  так и пиши в rationale, не выдумывай различия.
-- В concerns указывай, чего этот консультант в запросе НЕ закрывает. Если закрывает
-  всё — пустая строка.
-- Не ранжируй по цене и не советуй «взять подешевле».
-- Не добавляй консультантов, которых нет во входном списке.
+Ranking rules:
+- Judge only how well each consultant's specialisation fits the brief.
+- Score 0 to 100. A gap under 10 points means "effectively tied" — say exactly
+  that in the rationale rather than inventing a distinction.
+- In concerns, state what this consultant does NOT cover in the request. If they
+  cover everything, return an empty string.
+- Do not rank by price and do not suggest picking the cheaper option.
+- Do not add consultants that are not in the input list.
 
 ${GUARDRAILS}
 `.trim();
@@ -103,8 +106,8 @@ export const MATCH_SCHEMA = {
         properties: {
           consultant_id: { type: 'string' },
           score:         { type: 'integer' },
-          rationale:     { type: 'string', description: 'Почему этот консультант подходит под бриф, 1–2 предложения' },
-          concerns:      { type: 'string', description: 'Чего он не закрывает; пустая строка если всё закрывает' }
+          rationale:     { type: 'string', description: 'Why this consultant fits the brief, 1-2 sentences' },
+          concerns:      { type: 'string', description: 'What they do not cover; empty string if nothing' }
         },
         required: ['consultant_id', 'score', 'rationale', 'concerns'],
         additionalProperties: false
@@ -117,10 +120,10 @@ export const MATCH_SCHEMA = {
 
 export function matchUserMessage(brief, consultants) {
   return [
-    'Бриф клиента:',
+    'Client brief:',
     JSON.stringify(brief, null, 2),
     '',
-    'Доступные консультанты (уже прошли жёсткий фильтр):',
+    'Available consultants (already past the hard filter):',
     JSON.stringify(consultants.map(c => ({
       consultant_id: c.id,
       specialties: c.specialties,
@@ -131,50 +134,51 @@ export function matchUserMessage(brief, consultants) {
   ].join('\n');
 }
 
-/* ---------------------------------------------------------------- итог */
+/* ---------------------------------------------------------------- summary */
 
 export const SUMMARY_SYSTEM = `
-Ты — ассистент, который превращает черновые заметки консультанта после встречи
-в стандартизированный итог. Итог читают двое: клиент и комплаенс площадки.
+You turn a consultant's rough post-meeting notes into a standardised summary.
+Two audiences read it: the client, and the marketplace's compliance function.
 
-Формат ответа — Markdown ровно с этими разделами, в этом порядке:
+Respond in Markdown with exactly these sections, in this order:
 
-## Что обсуждали
-## Что консультант зафиксировал
-## Договорённости
-## Что клиент делает дальше
-## Открытые вопросы
+## What we discussed
+## What the consultant noted
+## Agreements
+## What the client does next
+## Open questions
 
-Правила:
-- Пиши только то, что есть в заметках. Ничего не достраивай и не обобщай до совета.
-- Если раздел нечем наполнить — так и напиши: «В заметках не зафиксировано».
-- Формулировки — от третьего лица, нейтрально: «консультант отметил», «клиент сообщил».
-- Никаких рекомендаций от своего имени, никаких новых инструментов и цифр.
-- В «Что клиент делает дальше» — только действия, которые прямо названы в заметках.
-- Не используй заголовки, списки или разделы сверх перечисленных.
+Rules:
+- Include only what is in the notes. Do not extrapolate and do not generalise
+  into advice.
+- If a section has nothing to fill it, write exactly: "Not recorded in the notes."
+- Write in the third person, neutrally: "the consultant noted", "the client said".
+- No recommendations in your own voice, no new instruments, no new numbers.
+- Under "What the client does next", list only actions the notes name explicitly.
+- Do not add headings, sections, or lists beyond the five above.
 
 ${GUARDRAILS}
 `.trim();
 
 export function summaryUserMessage(brief, notes) {
   return [
-    'Бриф, с которым клиент пришёл:',
-    JSON.stringify(brief ?? { summary: 'бриф отсутствует' }, null, 2),
+    'Brief the client arrived with:',
+    JSON.stringify(brief ?? { summary: 'no brief available' }, null, 2),
     '',
-    'Черновые заметки консультанта после встречи:',
+    "Consultant's rough notes after the meeting:",
     '---',
     notes,
     '---'
   ].join('\n');
 }
 
-/* Дисклеймер, который дописывается к каждому итогу на стороне сервиса,
-   а не генерируется моделью — чтобы его нельзя было «уговорить» убрать. */
+/* The disclaimer is appended by the service, not generated by the model,
+   so no prompt can talk it away. */
 export const SUMMARY_DISCLAIMER = `
 
 ---
 
-*Итог составлен автоматически на основе заметок консультанта и не является
-инвестиционной рекомендацией. Проверьте формулировки перед отправкой клиенту:
-ответственность за содержание несёт консультант. Пилотный режим площадки —
-статус лицензий консультантов не верифицирован автоматически.*`;
+*This summary was generated automatically from the consultant's notes and is not
+investment advice. Review the wording before sending it to the client: the
+consultant is responsible for its content. Pilot mode — consultant licence
+status is not automatically verified.*`;

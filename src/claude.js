@@ -1,18 +1,18 @@
 /* =========================================================================
-   Интеграция с Claude API.
+   Claude API integration.
 
-   Три задачи, каждая — отдельный вызов:
-     1) buildBrief   — структурный вывод по JSON-схеме (бриф клиента)
-     2) rankMatches  — структурный вывод по JSON-схеме (ранжирование)
-     3) streamSummary— стриминг Markdown (итог консультации)
+   Three tasks, one call each:
+     1) buildBrief    — structured output against a JSON schema (client brief)
+     2) rankMatches   — structured output against a JSON schema (ranking)
+     3) streamSummary — streamed Markdown (consultation summary)
 
-   Общее для всех:
-   · системный блок помечен cache_control — он стабилен, значит кэшируется
-     между запросами; проверять эффект по usage.cache_read_input_tokens
-   · включены серверные фолбэки: если классификаторы отклонят запрос,
-     Anthropic переиграет его на запасной модели внутри того же вызова
-   · stop_reason проверяется ДО чтения content — на отказе content пуст
-   · каждый вызов пишется в аудит (модель, токены, кэш, длительность)
+   Common to all three:
+   · the system block carries cache_control — it is byte-stable, so it is
+     cached across requests; verify via usage.cache_read_input_tokens
+   · server-side fallbacks are on: if the safety classifiers decline a request,
+     Anthropic re-runs it on a fallback model inside the same call
+   · stop_reason is checked BEFORE reading content — on a refusal content is empty
+   · every call is written to the audit log (model, tokens, cache, duration)
    ========================================================================= */
 
 import Anthropic from '@anthropic-ai/sdk';
@@ -26,8 +26,8 @@ import { logAiCall } from './db.js';
 const MODEL  = process.env.CLAUDE_MODEL  || 'claude-opus-5';
 const EFFORT = process.env.CLAUDE_EFFORT || 'medium';
 
-/* Серверные фолбэки на отказ классификатора: Anthropic сам подбирает
-   запасную модель по категории отказа, нам нечего сопровождать. */
+/* Server-side fallbacks on a classifier refusal: Anthropic picks the fallback
+   model by refusal category, so there is no model list for us to maintain. */
 const FALLBACK_BETA = 'server-side-fallback-2026-07-01';
 
 export const hasKey = () => Boolean(process.env.ANTHROPIC_API_KEY);
@@ -35,16 +35,17 @@ export const hasKey = () => Boolean(process.env.ANTHROPIC_API_KEY);
 let client = null;
 function anthropic() {
   if (!hasKey()) {
-    const e = new Error('ANTHROPIC_API_KEY не задан — AI-шаги недоступны');
+    const e = new Error('ANTHROPIC_API_KEY is not set — AI steps unavailable');
     e.code = 'NO_KEY';
     throw e;
   }
-  if (!client) client = new Anthropic();  // ключ берётся из окружения, в коде его нет
+  if (!client) client = new Anthropic();  // key comes from the environment, never from code
   return client;
 }
 
-/* Системный блок один и тот же от запроса к запросу — ставим точку кэширования
-   на него. Всё изменчивое уходит в user-сообщение, после точки кэша. */
+/* The system block is identical from request to request — that is where the
+   cache breakpoint goes. Everything variable lives in the user message,
+   after the breakpoint. */
 const cachedSystem = text => [{ type: 'text', text, cache_control: { type: 'ephemeral' } }];
 
 function usageOf(msg) {
@@ -59,16 +60,16 @@ function usageOf(msg) {
 
 class RefusalError extends Error {
   constructor(details) {
-    super('Запрос отклонён политиками безопасности модели');
+    super('Request declined by the model safety policies');
     this.code = 'REFUSAL';
     this.details = details || null;
   }
 }
 
-/* Достаём JSON из ответа со structured output: первый text-блок — валидный JSON. */
+/* With structured output the first text block is valid JSON. */
 function parseStructured(msg) {
   const block = msg.content.find(b => b.type === 'text');
-  if (!block) throw new Error('Модель не вернула текстовый блок');
+  if (!block) throw new Error('Model returned no text block');
   return JSON.parse(block.text);
 }
 
@@ -92,13 +93,13 @@ async function structuredCall({ kind, system, user, schema, requestId, effort })
     stop_reason: msg.stop_reason, ms: Date.now() - started, ...usageOf(msg)
   });
 
-  // Проверяем ДО чтения content: на отказе content пуст либо частичен.
+  // Checked BEFORE reading content: on a refusal content is empty or partial.
   if (msg.stop_reason === 'refusal') throw new RefusalError(msg.stop_details);
 
   return parseStructured(msg);
 }
 
-/* ------------------------------------------------------------------ 1. бриф */
+/* ----------------------------------------------------------------- 1. brief */
 
 export async function buildBrief(request) {
   return structuredCall({
@@ -110,16 +111,18 @@ export async function buildBrief(request) {
   });
 }
 
-/* ---------------------------------------------------------------- 2. подбор */
+/* ----------------------------------------------------------------- 2. match */
 
-/* Жёсткий фильтр — обычный код, а не модель: юрисдикция, язык, диапазон капитала.
-   Правила такого рода должны быть детерминированными и проверяемыми. */
+/* The hard filter is plain code, not the model: jurisdiction, language, capital
+   range. Rules of this kind must be deterministic and auditable.
+   Keys must stay identical to CAPITAL_BANDS in server.js and to the <select>
+   options on the request form. */
 const CAPITAL_MIDPOINT = {
-  'до 500 тыс.':      250000,
-  '500 тыс. – 3 млн': 1750000,
-  '3 – 15 млн':       9000000,
-  'более 15 млн':     30000000,
-  'не указываю':      null
+  'under $50k':    25000,
+  '$50k-$250k':    150000,
+  '$250k-$1M':     600000,
+  'over $1M':      3000000,
+  'prefer not to say': null
 };
 
 export function hardFilter(request, consultants) {
@@ -138,12 +141,12 @@ export function hardFilter(request, consultants) {
 
 export async function rankMatches(request, brief, candidates) {
   if (candidates.length === 0) return [];
-  // Одного кандидата ранжировать нечего — не тратим вызов модели.
+  // Nothing to rank with a single candidate — don't spend a model call.
   if (candidates.length === 1) {
     return [{
       consultant_id: candidates[0].id,
       score: 100,
-      rationale: 'Единственный консультант, прошедший жёсткий фильтр по юрисдикции, языку и диапазону капитала.',
+      rationale: 'The only consultant that cleared the hard filter on jurisdiction, language and capital range.',
       concerns: ''
     }];
   }
@@ -157,17 +160,18 @@ export async function rankMatches(request, brief, candidates) {
     effort: 'high'
   });
 
-  // Модель не должна изобретать консультантов — отбрасываем всё, чего нет в списке.
+  // The model must not invent consultants — drop anything outside the input list.
   const allowed = new Set(candidates.map(c => c.id));
   return (out.ranked || [])
     .filter(m => allowed.has(m.consultant_id))
     .sort((a, b) => b.score - a.score);
 }
 
-/* ------------------------------------------------------------------ 3. итог */
+/* --------------------------------------------------------------- 3. summary */
 
-/* Стриминг: итог длинный, ждать его целиком плохо и для UX, и для таймаутов.
-   onDelta вызывается на каждом куске текста; функция возвращает полный итог. */
+/* Streamed: the summary is long, and waiting for it whole is bad both for the
+   user and for request timeouts. onDelta fires per chunk; the function returns
+   the complete summary. */
 export async function streamSummary({ brief, notes, requestId, onDelta }) {
   const started = Date.now();
   let text = '';
@@ -193,7 +197,7 @@ export async function streamSummary({ brief, notes, requestId, onDelta }) {
 
   if (msg.stop_reason === 'refusal') throw new RefusalError(msg.stop_details);
 
-  // Дисклеймер добавляет сервис, а не модель — так его нельзя убрать промптом.
+  // The disclaimer is appended by the service, not the model — no prompt removes it.
   return text + SUMMARY_DISCLAIMER;
 }
 

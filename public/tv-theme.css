@@ -1,0 +1,136 @@
+/* Expert Marketplace — TradingView-style theme
+   Токены из дизайн-системы TradingView (кейс С. Хорьков) */
+:root{
+  --tv-black:#000000;
+  --tv-ink:#131722;      /* карточки/поверхности на чёрном */
+  --tv-ink-2:#1E222D;    /* вложенные поверхности, инпуты */
+  --tv-ink-3:#2A2E39;    /* бордеры */
+  --tv-line:#1F2430;     /* тонкие разделители */
+  --tv-white:#FFFFFF;
+  --tv-text:#D1D4DC;     /* основной текст на тёмном */
+  --tv-muted:#B2B5BE;    /* вторичный */
+  --tv-faint:#787B86;    /* подписи */
+  --tv-ghost:#50535E;    /* самое тихое */
+  --tv-blue:#2962FF;
+  --tv-blue-dim:#0E1A3A; /* заливка выделенных панелей */
+  --tv-blue-line:#1E3A80;
+  --tv-green:#089981;
+  --tv-green-dim:#0A2F2A;
+  --tv-red:#F23645;
+  --tv-red-dim:#2B1518;
+  --tv-orange:#FF9800;
+  --tv-orange-dim:#2A1D06;
+  --tv-font:'Trebuchet MS',Tahoma,'Segoe UI',sans-serif;
+  --tv-mono:Consolas,'Roboto Mono','Courier New',monospace;
+  --tv-r:12px;
+  --tv-r-pill:999px;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--tv-black);color:var(--tv-text);font-family:var(--tv-font);font-size:15px;line-height:1.5}
+a{color:var(--tv-blue);text-decoration:none}
+a:hover{color:#5B8DFF}
+
+/* ---------- Шапка ---------- */
+.tv-nav{display:flex;align-items:center;gap:22px;height:64px;padding:0 24px;border-bottom:1px solid var(--tv-line);background:var(--tv-black)}
+.tv-brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;color:var(--tv-white);white-space:nowrap}
+.tv-brand .mark{width:30px;height:30px;border-radius:8px;background:var(--tv-blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;font-family:var(--tv-mono)}
+.tv-nav .links{display:flex;gap:4px}
+.tv-nav .links a{color:var(--tv-muted);font-weight:700;font-size:14.5px;padding:8px 15px;border-radius:var(--tv-r-pill)}
+.tv-nav .links a:hover{color:var(--tv-white);background:var(--tv-ink)}
+.tv-nav .links a.active{color:var(--tv-white);background:var(--tv-ink-2)}
+.tv-nav .spacer{flex:1}
+
+/* ---------- Заголовки страниц ---------- */
+.tv-page{max-width:1120px;margin:0 auto;padding:36px 24px 72px}
+.tv-h1{font-size:34px;font-weight:700;letter-spacing:-.015em;color:var(--tv-white);margin:0}
+.tv-lead{font-size:15px;color:var(--tv-muted);margin:10px 0 0;max-width:720px}
+.tv-eyebrow{font-family:var(--tv-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--tv-faint)}
+
+/* ---------- Карточки ---------- */
+.tv-card{background:var(--tv-ink);border:1px solid var(--tv-ink-3);border-radius:var(--tv-r);padding:20px}
+.tv-card .title{font-size:16px;font-weight:700;color:var(--tv-white);margin:0 0 4px}
+.tv-card.accent{background:var(--tv-blue-dim);border-color:var(--tv-blue-line)}
+
+/* ---------- KPI ---------- */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.kpi{background:var(--tv-ink);border:1px solid var(--tv-ink-3);border-radius:var(--tv-r);padding:18px}
+.kpi .lbl{font-family:var(--tv-mono);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--tv-faint)}
+.kpi .val{font-family:var(--tv-mono);font-size:34px;font-weight:700;color:var(--tv-white);margin-top:8px;font-variant-numeric:tabular-nums;line-height:1.05}
+.kpi .val small{font-size:15px;color:var(--tv-faint);font-weight:400}
+.kpi .sub{font-family:var(--tv-mono);font-size:12px;color:var(--tv-faint);margin-top:6px}
+.kpi .sub .up{color:var(--tv-green)} .kpi .sub .dn{color:var(--tv-red)}
+
+/* ---------- Кнопки ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 20px;border-radius:var(--tv-r-pill);font-family:var(--tv-font);font-size:14px;font-weight:700;border:1px solid transparent;cursor:pointer;transition:filter .12s}
+.btn:hover{filter:brightness(1.12)}
+.btn-primary{background:var(--tv-blue);color:#fff}
+.btn-secondary{background:transparent;color:var(--tv-text);border-color:var(--tv-ink-3)}
+.btn-quiet{background:var(--tv-ink-2);color:var(--tv-muted)}
+.btn:disabled{opacity:.45;cursor:default;filter:none}
+
+/* ---------- Формы ---------- */
+.field{display:flex;flex-direction:column;gap:7px;margin-bottom:16px}
+.field label{font-size:13.5px;font-weight:700;color:var(--tv-muted)}
+.field .hint{font-family:var(--tv-mono);font-size:11.5px;color:var(--tv-ghost)}
+input[type=text],input[type=email],input[type=password],select,textarea{
+  background:var(--tv-ink-2);border:1px solid var(--tv-ink-3);border-radius:8px;color:var(--tv-white);
+  font-family:var(--tv-font);font-size:14.5px;padding:11px 14px;outline:none;width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--tv-blue)}
+input::placeholder,textarea::placeholder{color:var(--tv-ghost)}
+textarea{min-height:120px;resize:vertical}
+.checkbox-row{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;color:var(--tv-muted)}
+.checkbox-row input{width:16px;height:16px;margin-top:2px;accent-color:var(--tv-blue)}
+
+/* сегментный выбор (страна/язык/капитал) */
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.seg .opt{border:1px solid var(--tv-ink-3);background:var(--tv-ink-2);color:var(--tv-text);border-radius:var(--tv-r-pill);padding:8px 16px;font-size:13.5px;font-weight:700;cursor:pointer}
+.seg .opt.selected{background:var(--tv-blue);border-color:var(--tv-blue);color:#fff}
+
+/* ---------- Метки типа контента (trust-first) ---------- */
+.tag{display:inline-flex;align-items:center;font-family:var(--tv-mono);font-size:10.5px;letter-spacing:.05em;border-radius:4px;padding:3px 8px}
+.tag-fact{color:var(--tv-green);background:var(--tv-green-dim);border:1px solid #0d4f43}
+.tag-ai{color:#5B8DFF;background:var(--tv-blue-dim);border:1px solid var(--tv-blue-line)}
+.tag-warn{color:var(--tv-orange);background:var(--tv-orange-dim);border:1px solid #4a3510}
+
+/* ---------- Статусы ---------- */
+.status{display:inline-flex;align-items:center;gap:7px;font-family:var(--tv-mono);font-size:12px}
+.status::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--tv-faint)}
+.status.ok::before{background:var(--tv-green)}
+.status.pending::before{background:var(--tv-orange)}
+.status.cancelled::before{background:var(--tv-red)}
+
+/* ---------- Таблицы ---------- */
+table.tv{width:100%;border-collapse:collapse;font-size:13.5px}
+table.tv th{font-family:var(--tv-mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--tv-faint);text-align:left;font-weight:400;padding:10px 14px;border-bottom:1px solid var(--tv-ink-3)}
+table.tv td{padding:13px 14px;border-bottom:1px solid var(--tv-line);color:var(--tv-text)}
+table.tv tr:last-child td{border-bottom:none}
+table.tv td.num,table.tv th.num{font-family:var(--tv-mono);font-variant-numeric:tabular-nums;text-align:right}
+.pos{color:var(--tv-green);font-weight:700}.neg{color:var(--tv-red);font-weight:700}
+
+/* ---------- Воронка ---------- */
+.funnel{display:flex;flex-direction:column;gap:10px}
+.funnel .row{display:grid;grid-template-columns:190px 1fr 84px;gap:14px;align-items:center}
+.funnel .name{font-size:13.5px;color:var(--tv-muted)}
+.funnel .bar{height:26px;border-radius:6px;background:var(--tv-ink-2);overflow:hidden}
+.funnel .bar i{display:block;height:100%;background:var(--tv-blue);border-radius:6px}
+.funnel .n{font-family:var(--tv-mono);font-size:13.5px;color:var(--tv-white);text-align:right;font-variant-numeric:tabular-nums}
+
+/* ---------- Шаги визарда ---------- */
+.steps{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--tv-faint)}
+.steps .step{display:flex;align-items:center;gap:8px;padding:7px 14px;border-radius:var(--tv-r-pill);border:1px solid var(--tv-ink-3)}
+.steps .step b{font-family:var(--tv-mono);font-size:11px;width:18px;height:18px;border-radius:50%;background:var(--tv-ink-2);display:flex;align-items:center;justify-content:center;color:var(--tv-muted)}
+.steps .step.active{border-color:var(--tv-blue);color:var(--tv-white)}
+.steps .step.active b{background:var(--tv-blue);color:#fff}
+.steps .sep{color:var(--tv-ghost)}
+
+/* ---------- Дисклеймер ---------- */
+.disclaimer{font-size:12.5px;color:var(--tv-faint);border-top:1px solid var(--tv-line);padding-top:14px;margin-top:22px}
+
+/* ---------- Утилиты ---------- */
+.row{display:flex;gap:14px;align-items:center}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.mt-16{margin-top:16px}.mt-24{margin-top:24px}.mt-32{margin-top:32px}
+.mono{font-family:var(--tv-mono)}
+@media (max-width:960px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.grid-2{grid-template-columns:1fr}}

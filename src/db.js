@@ -1,10 +1,10 @@
 /* =========================================================================
-   Слой хранения.
+   Storage layer.
 
-   Если задан DATABASE_URL — работаем на Postgres (продовый путь, Railway).
-   Если нет — поднимаем то же API поверх памяти процесса, чтобы сервис можно
-   было запустить локально без базы. Память честно помечена как непостоянная:
-   данные исчезают при перезапуске, и /api/health это показывает.
+   With DATABASE_URL set we run on Postgres (the production path, Railway).
+   Without it, the same API is served from process memory so the service can
+   start locally with no database. Memory mode is labelled honestly: data is
+   lost on restart, and /api/health says so.
    ========================================================================= */
 
 import pg from 'pg';
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS requests (
   contact_name  TEXT NOT NULL,
   contact_email TEXT NOT NULL,
   country       TEXT NOT NULL,
-  language      TEXT NOT NULL DEFAULT 'ru',
+  language      TEXT NOT NULL DEFAULT 'en',
   capital_band  TEXT NOT NULL,
   goal_text     TEXT NOT NULL,
   consent       BOOLEAN NOT NULL DEFAULT FALSE,
@@ -86,26 +86,28 @@ CREATE TABLE IF NOT EXISTS ai_calls (
 );
 `;
 
-/* Демо-ростер. Лицензии помечены как непроверенные — это пилот, а не реестр. */
+/* Demo roster. Licences are marked unverified — this is a pilot, not a registry.
+   capital_min / capital_max are USD and must stay consistent with the capital
+   bands in server.js and the midpoint table in claude.js. */
 const SEED = [
-  { id: 'c1', name: 'А. Ковалёв',  jurisdiction: 'RU', languages: ['ru'],        specialties: ['первые шаги', 'облигации', 'налоги'],           license_id: 'DEMO-RU-001', capital_min: 0,       capital_max: 5000000,  rate_hour: 6000,  bio: 'Работает с теми, кто впервые выходит за пределы депозита.' },
-  { id: 'c2', name: 'M. Iversen',  jurisdiction: 'EU', languages: ['en', 'de'],  specialties: ['портфель', 'ETF', 'пенсионные счета'],          license_id: 'DEMO-EU-014', capital_min: 1000000, capital_max: 50000000, rate_hour: 14000, bio: 'Долгосрочные портфели, распределение активов, горизонты 10+ лет.' },
-  { id: 'c3', name: 'S. Rao',      jurisdiction: 'IN', languages: ['en', 'hi'],  specialties: ['первые шаги', 'акции', 'риск'],                 license_id: 'DEMO-IN-207', capital_min: 0,       capital_max: 2000000,  rate_hour: 3500,  bio: 'Объясняет риск на простых примерах, много работает с новичками.' },
-  { id: 'c4', name: 'J. Whitfield',jurisdiction: 'US', languages: ['en'],        specialties: ['портфель', 'налоги', 'концентрация позиции'],   license_id: 'DEMO-US-882', capital_min: 5000000, capital_max: null,     rate_hour: 22000, bio: 'Крупный капитал, концентрированные позиции, налоговая оптимизация.' },
-  { id: 'c5', name: 'Е. Соколова', jurisdiction: 'RU', languages: ['ru', 'en'],  specialties: ['крипта', 'риск', 'диверсификация'],             license_id: 'DEMO-RU-045', capital_min: 100000,  capital_max: 10000000, rate_hour: 9000,  bio: 'Крипто-активы в контексте общего портфеля, без хайпа.' }
+  { id: 'c1', name: 'James Whitfield', jurisdiction: 'US', languages: ['en'],       specialties: ['getting started', 'bonds', 'taxes'],                 license_id: 'DEMO-US-001', capital_min: 0,      capital_max: 1000000, rate_hour: 180, bio: 'Works with people moving money beyond a savings account for the first time.' },
+  { id: 'c2', name: 'Marta Iversen',   jurisdiction: 'EU', languages: ['en', 'de'], specialties: ['portfolio', 'ETFs', 'retirement accounts'],          license_id: 'DEMO-EU-014', capital_min: 0,      capital_max: 5000000, rate_hour: 240, bio: 'Long-horizon portfolios, asset allocation, ten years and beyond.' },
+  { id: 'c3', name: 'Sunita Rao',      jurisdiction: 'IN', languages: ['en', 'hi'], specialties: ['getting started', 'equities', 'risk'],               license_id: 'DEMO-IN-207', capital_min: 0,      capital_max: null,    rate_hour: 90,  bio: 'Explains risk through plain examples; most of her clients are first-timers.' },
+  { id: 'c4', name: 'Daniel Osei',     jurisdiction: 'US', languages: ['en'],       specialties: ['portfolio', 'taxes', 'concentrated position'],       license_id: 'DEMO-US-882', capital_min: 100000, capital_max: null,    rate_hour: 320, bio: 'Larger balances, concentrated single-stock positions, tax-aware planning.' },
+  { id: 'c5', name: 'Ellen Croft',     jurisdiction: 'UK', languages: ['en'],       specialties: ['crypto', 'risk', 'diversification'],                 license_id: 'DEMO-UK-045', capital_min: 0,      capital_max: null,    rate_hour: 200, bio: 'Digital assets in the context of a whole portfolio, without the hype.' }
 ];
 
-/* ------------------------------------------------------------------ postgres */
+/* ---------------------------------------------------------------- postgres */
 
 let pool = null;
 
 function pgConfig() {
-  // Внутренний хост Railway TLS не требует, внешний — требует.
+  // Railway's internal host needs no TLS; the public proxy host does.
   const internal = /\.railway\.internal|localhost|127\.0\.0\.1/.test(URL);
   return { connectionString: URL, ssl: internal ? false : { rejectUnauthorized: false } };
 }
 
-/* ------------------------------------------------------------------- memory */
+/* ------------------------------------------------------------------ memory */
 
 const mem = {
   consultants: new Map(),
@@ -116,7 +118,7 @@ const mem = {
   aiCalls: []
 };
 
-/* ------------------------------------------------------------------- init */
+/* -------------------------------------------------------------------- init */
 
 export async function init() {
   if (MODE === 'postgres') {
@@ -229,6 +231,16 @@ export async function getMatches(requestId) {
   return mem.matches.filter(m => m.request_id === requestId).sort((a, b) => b.score - a.score);
 }
 
+/* How many requests ever reached the matching step — the funnel needs this
+   between "brief built" and "booked". */
+export async function countRequestsWithMatches() {
+  if (MODE === 'postgres') {
+    const { rows } = await q('SELECT count(DISTINCT request_id)::int AS n FROM matches');
+    return rows[0].n;
+  }
+  return new Set(mem.matches.map(m => m.request_id)).size;
+}
+
 /* ---------------------------------------------------------------- bookings */
 
 export async function createBooking(requestId, consultantId, slot) {
@@ -298,7 +310,7 @@ export async function listConsultations() {
   return [...mem.consultations.values()];
 }
 
-/* --------------------------------------------------------------- ai audit */
+/* ---------------------------------------------------------------- ai audit */
 
 export async function logAiCall(rec) {
   const row = { id: 'ai_' + randomUUID().slice(0, 8), created_at: new Date().toISOString(), ...rec };

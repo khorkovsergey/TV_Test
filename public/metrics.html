@@ -1,112 +1,242 @@
-<!doctype html>
-<html lang="ru">
+<!DOCTYPE html>
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Expert Marketplace — метрики пилота</title>
-<link rel="stylesheet" href="/app.css">
-<script src="/anim.js" defer></script>
+<title>Expert Marketplace — pilot metrics</title>
+<link rel="stylesheet" href="/tv-theme.css">
 </head>
 <body>
-<div class="wrap">
-  <div class="top">
-    <div class="brand"><span class="mark">EM</span> Expert Marketplace</div>
-    <nav>
-      <a href="/">Заявка</a>
-      <a href="/staff.html">Кабинет консультанта</a>
-      <a href="/metrics.html" class="on">Метрики</a>
-    </nav>
+
+<nav class="tv-nav">
+  <div class="tv-brand"><span class="mark">EM</span>Expert Marketplace</div>
+  <div class="links">
+    <a href="/">Request</a>
+    <a href="/staff.html">Consultant desk</a>
+    <a href="/metrics.html" class="active">Metrics</a>
   </div>
+  <div class="spacer"></div>
+  <span class="tag tag-warn">CONCIERGE PILOT</span>
+</nav>
 
-  <h1>Метрики пилота</h1>
-  <p class="muted">Те показатели, что заявлены в гипотезе: booking rate, завершённые консультации,
-    повторные брони. Плюс стоимость AI — без неё юнит-экономику концьерж-пилота не посчитать.</p>
+<main class="tv-page">
+  <div class="tv-eyebrow">Expert Marketplace · Pilot</div>
+  <h1 class="tv-h1" style="margin-top:8px;">Pilot metrics</h1>
+  <p class="tv-lead">The measures named in the hypothesis: booking rate, completed consultations,
+    repeat bookings — plus AI cost, without which the concierge pilot has no unit economics.</p>
 
-  <div class="card">
-    <div class="row" style="align-items:end">
-      <label style="margin:0"><span>Staff-токен</span><input id="token" placeholder="если задан на сервере"></label>
-      <button class="primary" id="load" style="height:38px">Обновить</button>
+  <div class="tv-card mt-24" style="display:flex; gap:14px; align-items:flex-end; flex-wrap:wrap;">
+    <div class="field" style="margin:0; flex:0 1 320px;">
+      <label for="staffToken">Staff token</label>
+      <input type="password" id="staffToken" placeholder="If one is set on the server" autocomplete="off">
+    </div>
+    <button class="btn btn-primary" id="refreshBtn">Refresh</button>
+    <div class="spacer" style="flex:1;"></div>
+    <div class="mono" style="font-size:12px; color:var(--tv-faint);">
+      <span class="tag tag-fact">FACT · SERVER DATA</span>
+      <span id="updatedAt" style="margin-left:10px;">updated —</span>
     </div>
   </div>
 
-  <div id="out"></div>
-  <div class="foot" id="health"></div>
-</div>
+  <div class="kpi-grid mt-16">
+    <div class="kpi">
+      <div class="lbl">Booking rate</div>
+      <div class="val"><span id="kpiBookingRate">—</span><small> %</small></div>
+      <div class="sub">request → confirmed booking · <span id="kpiBookingRateN">—</span></div>
+    </div>
+    <div class="kpi">
+      <div class="lbl">Completed consultations</div>
+      <div class="val" id="kpiCompleted">—</div>
+      <div class="sub">of <span id="kpiBookedTotal">—</span> bookings</div>
+    </div>
+    <div class="kpi">
+      <div class="lbl">Repeat bookings</div>
+      <div class="val"><span id="kpiRepeatRate">—</span><small> %</small></div>
+      <div class="sub"><span id="kpiRepeatN">—</span> clients came back</div>
+    </div>
+    <div class="kpi">
+      <div class="lbl">AI cost</div>
+      <div class="val"><small>$</small><span id="kpiAiCost">—</span></div>
+      <div class="sub">$<span id="kpiAiPerConsult">—</span> per consultation</div>
+    </div>
+  </div>
+
+  <div class="grid-2 mt-16">
+    <div class="tv-card">
+      <p class="title">Pilot funnel</p>
+      <div class="mono" style="font-size:11.5px; color:var(--tv-ghost); margin-bottom:16px;">from request to repeat booking</div>
+      <div class="funnel" id="funnel">
+        <div class="row"><div class="name">Requests</div><div class="bar"><i style="width:100%"></i></div><div class="n" data-k="leads">—</div></div>
+        <div class="row"><div class="name">Briefs built</div><div class="bar"><i style="width:0"></i></div><div class="n" data-k="briefs">—</div></div>
+        <div class="row"><div class="name">Match shown</div><div class="bar"><i style="width:0"></i></div><div class="n" data-k="matches">—</div></div>
+        <div class="row"><div class="name">Bookings</div><div class="bar"><i style="width:0"></i></div><div class="n" data-k="bookings">—</div></div>
+        <div class="row"><div class="name">Completed</div><div class="bar"><i style="width:0"></i></div><div class="n" data-k="completed">—</div></div>
+        <div class="row"><div class="name">Repeat bookings</div><div class="bar"><i style="width:0"></i></div><div class="n" data-k="repeat">—</div></div>
+      </div>
+    </div>
+
+    <div class="tv-card">
+      <p class="title">AI economics</p>
+      <div class="mono" style="font-size:11.5px; color:var(--tv-ghost); margin-bottom:16px;">brief · consultant matching · standardised summary</div>
+      <table class="tv" id="aiTable">
+        <thead><tr><th>Operation</th><th class="num">Calls</th><th class="num">Tokens</th><th class="num">Cost</th></tr></thead>
+        <tbody>
+          <tr><td>Brief from request</td><td class="num" data-k="briefCalls">—</td><td class="num" data-k="briefTokens">—</td><td class="num" data-k="briefCost">—</td></tr>
+          <tr><td>Consultant matching</td><td class="num" data-k="matchCalls">—</td><td class="num" data-k="matchTokens">—</td><td class="num" data-k="matchCost">—</td></tr>
+          <tr><td>Summary from notes</td><td class="num" data-k="summaryCalls">—</td><td class="num" data-k="summaryTokens">—</td><td class="num" data-k="summaryCost">—</td></tr>
+        </tbody>
+      </table>
+      <div class="disclaimer">Cost is computed from the actual tokens of each call. Pilot stop threshold: &gt; $2.00 per completed consultation.</div>
+    </div>
+  </div>
+
+  <div class="tv-card mt-16">
+    <p class="title">Recent bookings</p>
+    <div class="mono" style="font-size:11.5px; color:var(--tv-ghost); margin-bottom:10px;">visible with a staff token only</div>
+    <table class="tv">
+      <thead>
+        <tr><th>ID</th><th>Country</th><th>Capital</th><th>Consultant</th><th>Status</th><th class="num">Repeat</th><th class="num">AI, $</th></tr>
+      </thead>
+      <tbody id="bookingsBody">
+        <tr id="bookingRowTemplate" hidden>
+          <td class="mono" data-f="id"></td>
+          <td data-f="country"></td>
+          <td data-f="capital"></td>
+          <td data-f="consultant"></td>
+          <td><span class="status" data-f="status"></span></td>
+          <td class="num" data-f="repeat"></td>
+          <td class="num" data-f="aiCost"></td>
+        </tr>
+      </tbody>
+    </table>
+    <div id="emptyState" class="mono" style="font-size:12.5px; color:var(--tv-ghost); padding:18px 0 4px;">Enter a staff token and press Refresh to load data.</div>
+  </div>
+
+  <div class="disclaimer" id="healthLine">Educational concierge MVP. Data is synthetic and consultants are
+    demonstration profiles. Not investment advice.</div>
+</main>
 
 <script>
-const $ = s => document.querySelector(s);
-const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-$('#token').value = localStorage.getItem('em.token') || '';
-$('#load').onclick = load;
+const $ = id => document.getElementById(id);
+const tokenEl = $('staffToken');
+tokenEl.value = localStorage.getItem('em.token') || '';
 
-/* data-count включает набегающий счётчик из anim.js. */
-const stat = (n, l, hint, i = 0) => `<div class="stat reveal" data-i="${Math.min(i + 1, 6)}">
-  <div class="n" data-count>${esc(n)}</div><div class="l">${esc(l)}</div>${
-  hint ? `<div class="l dim" style="margin-top:4px">${esc(hint)}</div>` : ''}</div>`;
+const headers = () => {
+  const t = tokenEl.value.trim();
+  return t ? { 'x-staff-token': t } : {};
+};
+
+$('refreshBtn').addEventListener('click', load);
+
+function setEmpty(msg) {
+  const el = $('emptyState');
+  el.hidden = false;
+  el.textContent = msg;
+}
 
 async function load() {
-  const t = $('#token').value.trim();
-  localStorage.setItem('em.token', t);
-  const headers = t ? { 'x-staff-token': t } : {};
-  $('#out').innerHTML = '<div class="card muted">Загружаю…</div>';
-
+  localStorage.setItem('em.token', tokenEl.value.trim());
   try {
-    const r = await fetch('/api/metrics', { headers });
-    if (r.status === 401) { $('#out').innerHTML = '<div class="err">Неверный staff-токен.</div>'; return; }
+    const r = await fetch('/api/metrics', { headers: headers() });
+    if (r.status === 401) { setEmpty('Invalid staff token.'); return; }
     const m = await r.json();
-
-    $('#out').innerHTML = `
-      <div class="grid g3" style="margin-bottom:14px">
-        ${stat(m.requests, 'Заявок', '', 0)}
-        ${stat(m.booking_rate + '%', 'Consultation booking rate', `${m.bookings} броней`, 1)}
-        ${stat(m.completion_rate + '%', 'Завершённые консультации', `${m.completed} с итогом`, 2)}
-      </div>
-      <div class="grid g3" style="margin-bottom:14px">
-        ${stat(m.repeat_bookings, 'Повторные брони', '', 3)}
-        ${stat(m.briefs_failed, 'Брифов не собралось', `${m.briefs_ok} успешно`, 4)}
-        ${stat(m.refusals, 'Отказов модели', 'по политикам безопасности', 5)}
-      </div>
-
-      <div class="card io">
-        <h2>Экономика AI</h2>
-        <div class="kv"><span class="muted">Вызовов модели</span><b>${m.ai_calls}</b></div>
-        <div class="kv"><span class="muted">Входные / выходные токены</span><b>${m.tokens.input} / ${m.tokens.output}</b></div>
-        <div class="kv"><span class="muted">Кэш: чтение / запись</span><b>${m.tokens.read} / ${m.tokens.write}</b></div>
-        <div class="kv"><span class="muted">Доля чтений из кэша</span><b>${m.cache_hit_rate}%</b></div>
-        <div class="kv"><span class="muted">Оценка расходов</span><b>$${m.est_cost_usd}</b></div>
-        <div class="kv"><span class="muted">На одну заявку</span><b>$${m.est_cost_per_request_usd}</b></div>
-        ${m.cache_hit_rate === 0 && m.repeat_kind_calls > 0 ? `<div class="note warn">Кэш не читается,
-          хотя вызовы одного типа уже повторялись — значит системный префикс где-то меняется между
-          запросами. Проверьте <span class="mono">prompts.js</span>: в системный блок не должно
-          попадать ничего динамического.</div>`
-        : `<div class="note">Системные промпты помечены точкой кэширования: повторные вызовы
-          <b>одного типа</b> читают префикс из кэша примерно за 10% цены входных токенов.
-          ${m.repeat_kind_calls === 0 ? 'Пока каждый тип вызывался по одному разу — переиспользовать нечего, нулевая доля здесь нормальна.' : ''}</div>`}
-      </div>
-
-      <div class="card io">
-        <h2>Последние вызовы модели</h2>
-        <div id="calls" class="small muted">
-          <div class="sk sk-line w70"></div><div class="sk sk-line w85"></div><div class="sk sk-line w45"></div>
-        </div>
-      </div>`;
-
-    const rc = await fetch('/api/ai-calls', { headers });
-    const calls = await rc.json();
-    $('#calls').innerHTML = calls.length ? calls.slice(0, 20).map(c => `
-      <div class="kv">
-        <span><span class="badge">${esc(c.kind)}</span> <span class="dim mono">${esc(String(c.created_at).slice(0, 19).replace('T', ' '))}</span></span>
-        <b class="mono">${c.input_tokens}→${c.output_tokens} · кэш ${c.cache_read} · ${c.ms} мс${
-          c.stop_reason === 'refusal' ? ' · ОТКАЗ' : ''}</b>
-      </div>`).join('') : 'Вызовов пока не было.';
+    renderKpi(m);
+    renderFunnel(m);
+    renderAi(m);
+    await renderBookings();
+    $('updatedAt').textContent = 'updated ' + new Date().toISOString().slice(11, 16) + ' UTC';
   } catch (err) {
-    $('#out').innerHTML = `<div class="err">${esc(err.message)}</div>`;
+    setEmpty('Could not load metrics: ' + err.message);
   }
+  loadHealth();
+}
 
+function renderKpi(m) {
+  $('kpiBookingRate').textContent  = m.booking_rate;
+  $('kpiBookingRateN').textContent = `${m.requests_with_booking} of ${m.requests} requests`;
+  $('kpiCompleted').textContent    = m.completed;
+  $('kpiBookedTotal').textContent  = m.bookings;
+  $('kpiRepeatRate').textContent   = m.repeat_rate;
+  $('kpiRepeatN').textContent      = m.repeat_bookings;
+  $('kpiAiCost').textContent       = m.est_cost_usd.toFixed(2);
+  $('kpiAiPerConsult').textContent = m.est_cost_per_consultation_usd.toFixed(2);
+}
+
+function renderFunnel(m) {
+  const vals = {
+    leads: m.requests, briefs: m.briefs_ok, matches: m.matched_requests,
+    bookings: m.bookings, completed: m.completed, repeat: m.repeat_bookings
+  };
+  const max = vals.leads || 1;
+  document.querySelectorAll('#funnel .row').forEach(row => {
+    const k = row.querySelector('.n').dataset.k;
+    const v = vals[k] ?? 0;
+    row.querySelector('.n').textContent = v;
+    // A zero stays visually zero; anything above it keeps a 3% minimum so the
+    // bar is still visible on tiny counts.
+    row.querySelector('.bar i').style.width = v === 0 ? '0%' : Math.max(3, Math.round(v / max * 100)) + '%';
+  });
+}
+
+const fmtTokens = n => n >= 1000 ? Math.round(n / 1000) + 'k' : String(n);
+
+function renderAi(m) {
+  const k = m.by_kind || {};
+  const put = (prefix, rec) => {
+    document.querySelector(`#aiTable [data-k=${prefix}Calls]`).textContent  = rec ? rec.calls : 0;
+    document.querySelector(`#aiTable [data-k=${prefix}Tokens]`).textContent = rec ? fmtTokens(rec.tokens) : '0';
+    document.querySelector(`#aiTable [data-k=${prefix}Cost]`).textContent   = '$' + (rec ? rec.cost.toFixed(2) : '0.00');
+  };
+  put('brief', k.brief);
+  put('match', k.match);
+  put('summary', k.summary);
+}
+
+/* booking.status is 'booked' | 'completed' | 'cancelled' — mapped onto the
+   theme's status dot classes. */
+const STATUS = {
+  completed: ['ok', 'completed'],
+  booked:    ['pending', 'awaiting summary'],
+  cancelled: ['cancelled', 'cancelled']
+};
+
+async function renderBookings() {
+  const r = await fetch('/api/bookings', { headers: headers() });
+  if (r.status === 401) { setEmpty('Invalid staff token.'); return; }
+  const rows = await r.json();
+
+  const tpl = $('bookingRowTemplate');
+  document.querySelectorAll('#bookingsBody tr:not(#bookingRowTemplate)').forEach(el => el.remove());
+
+  if (!rows.length) { setEmpty('No bookings yet. Submit a request on the home page to create the first one.'); return; }
+  $('emptyState').hidden = true;
+
+  for (const b of rows) {
+    const tr = tpl.cloneNode(true);
+    tr.hidden = false;
+    tr.removeAttribute('id');
+    const set = (f, v) => tr.querySelector(`[data-f=${f}]`).textContent = v;
+    set('id', b.id);
+    set('country', b.request?.country || '—');
+    set('capital', b.request?.capital_band || '—');
+    set('consultant', b.consultant ? `${b.consultant.name} · ${b.consultant.license_id || 'no licence id'}` : b.consultant_id);
+    const [cls, label] = STATUS[b.status] || ['', b.status];
+    const st = tr.querySelector('[data-f=status]');
+    if (cls) st.classList.add(cls);
+    st.textContent = label;
+    set('repeat', b.is_repeat ? 'yes' : '—');
+    set('aiCost', b.ai_cost_usd.toFixed(2));
+    tpl.parentNode.appendChild(tr);
+  }
+}
+
+async function loadHealth() {
   try {
     const h = await (await fetch('/api/health')).json();
-    $('#health').innerHTML = `Хранилище: <b>${esc(h.storage)}</b> — ${esc(h.storage_note)}. ` +
-      `Модель: <b>${esc(h.model)}</b>, AI: <b>${esc(h.ai)}</b>.`;
+    const warn = h.problems.length ? ` Configuration: ${h.problems.join('; ')}.` : '';
+    $('healthLine').textContent =
+      `Storage: ${h.storage} — ${h.storage_note}. Model: ${h.model}, AI: ${h.ai}.${warn} ` +
+      'Educational concierge MVP. Data is synthetic and consultants are demonstration profiles. Not investment advice.';
   } catch {}
 }
 

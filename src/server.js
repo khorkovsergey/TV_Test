@@ -1,13 +1,13 @@
 /* =========================================================================
-   Expert Marketplace — concierge-MVP.
+   Expert Marketplace — concierge MVP.
 
-   Путь: заявка → AI-бриф → жёсткий фильтр + ранжирование → бронирование
-         → заметки консультанта → стандартизированный итог (стримингом).
+   Flow: request → AI brief → hard filter + ranking → booking
+         → consultant notes → standardised summary (streamed).
 
-   Границы пилота (осознанные, не «недоделки»):
-   · платежей нет — бронирование фиксирует слот, деньги вне контура
-   · реестра лицензий нет — статус консультанта помечен как непроверенный
-   · AI не даёт рекомендаций, только структурирует; дисклеймеры добавляет сервер
+   Deliberate pilot boundaries (not gaps):
+   · no payments — a booking holds a slot, money is settled outside
+   · no licence registry — consultant status is labelled unverified
+   · the model gives no advice, it structures; disclaimers are added by the server
    ========================================================================= */
 
 import express from 'express';
@@ -28,49 +28,59 @@ app.use(express.static(path.join(here, '..', 'public')));
 const PORT = process.env.PORT || 3000;
 const STAFF_TOKEN = process.env.STAFF_TOKEN || '';
 
-/* Простейшая защита внутренних экранов. Не заменяет аутентификацию —
-   на проде сюда встаёт нормальный SSO, здесь достаточно отсечь случайных. */
+/* Minimal gate on the internal screens. Not a substitute for authentication —
+   production would put SSO here; this keeps casual visitors out. */
 function staffOnly(req, res, next) {
-  if (!STAFF_TOKEN) return next();          // локально можно без токена
+  if (!STAFF_TOKEN) return next();          // locally you may run without a token
   const given = req.get('x-staff-token') || req.query.token;
   if (given === STAFF_TOKEN) return next();
-  res.status(401).json({ error: 'Нужен staff-токен' });
+  res.status(401).json({ error: 'Staff token required' });
 }
 
 const wrap = fn => (req, res) => fn(req, res).catch(err => fail(res, err));
 
+/* Claude Opus 5 rates: $5 / $25 per million tokens; cache reads ~0.1x and
+   cache writes ~1.25x of the input rate. One place, used by both endpoints. */
+function callCost(c) {
+  return ((c.input_tokens  | 0) / 1e6) * 5
+       + ((c.output_tokens | 0) / 1e6) * 25
+       + ((c.cache_read    | 0) / 1e6) * 0.5
+       + ((c.cache_write   | 0) / 1e6) * 6.25;
+}
+const tokensOf = c => (c.input_tokens | 0) + (c.output_tokens | 0) + (c.cache_read | 0) + (c.cache_write | 0);
+
 function fail(res, err) {
   if (err instanceof RefusalError) {
     return res.status(422).json({
-      error: 'Модель отклонила запрос по политикам безопасности',
+      error: 'The model declined this request under its safety policies',
       details: err.details || null
     });
   }
   if (err?.code === 'NO_KEY') {
-    return res.status(503).json({ error: 'ANTHROPIC_API_KEY не задан на сервере' });
+    return res.status(503).json({ error: 'ANTHROPIC_API_KEY is not set on the server' });
   }
   console.error('[error]', err);
-  res.status(500).json({ error: err?.message || 'Внутренняя ошибка' });
+  res.status(500).json({ error: err?.message || 'Internal error' });
 }
 
 /* ------------------------------------------------------------------ health */
 
-/* Отдаёт состояние конфигурации, но не сами секреты: длина и наличие — да,
-   значения — нет. Нужен, чтобы проверять деплой не заходя в дашборд. */
+/* Reports configuration state without leaking secrets: presence and token
+   length, never values. Lets you verify a deploy without opening the dashboard. */
 app.get('/api/health', wrap(async (_req, res) => {
   const problems = [];
-  if (db.MODE === 'memory') problems.push('DATABASE_URL не задан: данные исчезнут при рестарте');
-  if (!hasKey()) problems.push('ANTHROPIC_API_KEY не задан: AI-шаги вернут 503');
-  if (!STAFF_TOKEN) problems.push('STAFF_TOKEN не задан: кабинет консультанта и метрики открыты всем');
-  else if (STAFF_TOKEN.length < 12) problems.push('STAFF_TOKEN короче 12 символов — подберут перебором');
+  if (db.MODE === 'memory') problems.push('DATABASE_URL is not set: data will be lost on restart');
+  if (!hasKey()) problems.push('ANTHROPIC_API_KEY is not set: AI steps will return 503');
+  if (!STAFF_TOKEN) problems.push('STAFF_TOKEN is not set: consultant desk and metrics are open to anyone');
+  else if (STAFF_TOKEN.length < 12) problems.push('STAFF_TOKEN is shorter than 12 characters — guessable');
 
   res.json({
     ok: problems.length === 0,
     storage: db.MODE,
     storage_note: db.MODE === 'memory'
-      ? 'DATABASE_URL не задан — данные не переживут перезапуск'
-      : 'Postgres подключён',
-    ai: hasKey() ? 'ready' : 'ANTHROPIC_API_KEY не задан',
+      ? 'DATABASE_URL is not set — data will not survive a restart'
+      : 'Postgres connected',
+    ai: hasKey() ? 'ready' : 'ANTHROPIC_API_KEY is not set',
     model: MODEL,
     staff_protected: Boolean(STAFF_TOKEN),
     problems,
@@ -78,26 +88,28 @@ app.get('/api/health', wrap(async (_req, res) => {
   });
 }));
 
-/* ------------------------------------------------------------- заявка + бриф */
+/* ------------------------------------------------------- request and brief */
 
-const BANDS = ['до 500 тыс.', '500 тыс. – 3 млн', '3 – 15 млн', 'более 15 млн', 'не указываю'];
+/* Must stay identical to the <select> on the request form and to
+   CAPITAL_MIDPOINT in claude.js. */
+const CAPITAL_BANDS = ['under $50k', '$50k-$250k', '$250k-$1M', 'over $1M', 'prefer not to say'];
 
 app.post('/api/requests', wrap(async (req, res) => {
   const b = req.body || {};
   const errors = [];
-  if (!b.contact_name?.trim()) errors.push('Укажите имя');
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(b.contact_email || '')) errors.push('Укажите корректный email');
-  if (!b.country?.trim()) errors.push('Укажите страну');
-  if (!BANDS.includes(b.capital_band)) errors.push('Выберите диапазон капитала');
-  if ((b.goal_text || '').trim().length < 40) errors.push('Опишите задачу подробнее — минимум 40 символов');
-  if (b.consent !== true) errors.push('Нужно согласие на передачу контекста консультанту');
+  if (!b.contact_name?.trim()) errors.push('Please enter your name');
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(b.contact_email || '')) errors.push('Please enter a valid email');
+  if (!b.country?.trim()) errors.push('Please choose a country');
+  if (!CAPITAL_BANDS.includes(b.capital_band)) errors.push('Please choose a capital range');
+  if ((b.goal_text || '').trim().length < 40) errors.push('Tell us a little more — at least 40 characters');
+  if (b.consent !== true) errors.push('Consent is required to share your context with a consultant');
   if (errors.length) return res.status(400).json({ errors });
 
   const request = {
     contact_name:  String(b.contact_name).trim().slice(0, 120),
     contact_email: String(b.contact_email).trim().slice(0, 200),
     country:       String(b.country).trim().slice(0, 4).toUpperCase(),
-    language:      String(b.language || 'ru').trim().slice(0, 5),
+    language:      String(b.language || 'en').trim().slice(0, 5),
     capital_band:  b.capital_band,
     goal_text:     String(b.goal_text).trim().slice(0, 6000),
     consent:       true
@@ -105,14 +117,14 @@ app.post('/api/requests', wrap(async (req, res) => {
 
   const id = await db.createRequest(request);
 
-  // Бриф строим сразу: без него консультанту нечего показывать.
+  // The brief is built immediately: without it the consultant has nothing to read.
   let brief = null, briefError = null;
   try {
     brief = await buildBrief({ id, ...request });
   } catch (err) {
     briefError = err instanceof RefusalError
-      ? 'Модель отклонила запрос по политикам безопасности'
-      : (err?.code === 'NO_KEY' ? 'AI-ключ не настроен на сервере' : String(err?.message || err));
+      ? 'The model declined this request under its safety policies'
+      : (err?.code === 'NO_KEY' ? 'AI key is not configured on the server' : String(err?.message || err));
   }
   await db.setBrief(id, brief, briefError);
 
@@ -121,7 +133,7 @@ app.post('/api/requests', wrap(async (req, res) => {
 
 app.get('/api/requests/:id', wrap(async (req, res) => {
   const r = await db.getRequest(req.params.id);
-  if (!r) return res.status(404).json({ error: 'Заявка не найдена' });
+  if (!r) return res.status(404).json({ error: 'Request not found' });
   res.json(r);
 }));
 
@@ -129,11 +141,11 @@ app.get('/api/requests', staffOnly, wrap(async (_req, res) => {
   res.json(await db.listRequests());
 }));
 
-/* ---------------------------------------------------------------- подбор */
+/* ------------------------------------------------------------------- match */
 
 app.post('/api/requests/:id/match', wrap(async (req, res) => {
   const request = await db.getRequest(req.params.id);
-  if (!request) return res.status(404).json({ error: 'Заявка не найдена' });
+  if (!request) return res.status(404).json({ error: 'Request not found' });
 
   const all = await db.listConsultants();
   const candidates = hardFilter(request, all);
@@ -141,8 +153,8 @@ app.post('/api/requests/:id/match', wrap(async (req, res) => {
   if (candidates.length === 0) {
     return res.json({
       ranked: [],
-      note: 'Под жёсткий фильтр (юрисдикция, язык, диапазон капитала) не подошёл ни один консультант. ' +
-            'В пилоте ростер маленький — это ожидаемое состояние, а не ошибка.'
+      note: 'No consultant cleared the hard filter on jurisdiction, language and capital range. ' +
+            'The pilot roster is small, so this is an expected state rather than a failure.'
     });
   }
 
@@ -161,52 +173,65 @@ app.get('/api/consultants', wrap(async (_req, res) => {
   res.json(await db.listConsultants());
 }));
 
-/* ------------------------------------------------------------ бронирование */
+/* ----------------------------------------------------------------- booking */
 
 app.post('/api/bookings', wrap(async (req, res) => {
   const { request_id, consultant_id, slot } = req.body || {};
   if (!request_id || !consultant_id || !slot) {
-    return res.status(400).json({ error: 'Нужны request_id, consultant_id и slot' });
+    return res.status(400).json({ error: 'request_id, consultant_id and slot are required' });
   }
   const request = await db.getRequest(request_id);
-  if (!request) return res.status(404).json({ error: 'Заявка не найдена' });
+  if (!request) return res.status(404).json({ error: 'Request not found' });
   const consultant = await db.getConsultant(consultant_id);
-  if (!consultant) return res.status(404).json({ error: 'Консультант не найден' });
+  if (!consultant) return res.status(404).json({ error: 'Consultant not found' });
 
   const id = await db.createBooking(request_id, consultant_id, String(slot).slice(0, 40));
   res.status(201).json({ id, consultant: consultant.name, slot });
 }));
 
 app.get('/api/bookings', staffOnly, wrap(async (_req, res) => {
-  const [bookings, requests, consultants, consultations] = await Promise.all([
-    db.listBookings(), db.listRequests(200), db.listConsultants(), db.listConsultations()
+  const [bookings, requests, consultants, consultations, calls] = await Promise.all([
+    db.listBookings(), db.listRequests(200), db.listConsultants(),
+    db.listConsultations(), db.listAiCalls(1000)
   ]);
   const reqById = new Map(requests.map(r => [r.id, r]));
   const conById = new Map(consultants.map(c => [c.id, c]));
   const sumByBooking = new Map(consultations.map(c => [c.booking_id, c]));
+
+  // AI spend is attributed to the request, then surfaced on its bookings.
+  const costByRequest = {};
+  for (const c of calls) {
+    if (!c.request_id) continue;
+    costByRequest[c.request_id] = (costByRequest[c.request_id] || 0) + callCost(c);
+  }
+  const bookingsPerRequest = {};
+  for (const b of bookings) bookingsPerRequest[b.request_id] = (bookingsPerRequest[b.request_id] || 0) + 1;
+
   res.json(bookings.map(b => ({
     ...b,
     request: reqById.get(b.request_id) || null,
     consultant: conById.get(b.consultant_id) || null,
-    has_summary: sumByBooking.has(b.id)
+    has_summary: sumByBooking.has(b.id),
+    ai_cost_usd: Number((costByRequest[b.request_id] || 0).toFixed(4)),
+    is_repeat: (bookingsPerRequest[b.request_id] || 0) > 1
   })));
 }));
 
-/* -------------------------------------------- итог консультации (стриминг) */
+/* -------------------------------------------- consultation summary (stream) */
 
 app.post('/api/bookings/:id/summary', staffOnly, wrap(async (req, res) => {
   const booking = await db.getBooking(req.params.id);
-  if (!booking) return res.status(404).json({ error: 'Бронирование не найдено' });
+  if (!booking) return res.status(404).json({ error: 'Booking not found' });
 
   const notes = String(req.body?.notes || '').trim();
   if (notes.length < 30) {
-    return res.status(400).json({ error: 'Заметки слишком короткие — минимум 30 символов' });
+    return res.status(400).json({ error: 'Notes are too short — at least 30 characters' });
   }
 
   const request = await db.getRequest(booking.request_id);
   const brief = typeof request?.brief === 'string' ? JSON.parse(request.brief) : request?.brief;
 
-  // Server-Sent Events: отдаём текст по мере генерации.
+  // Server-Sent Events: text goes out as it is generated.
   res.writeHead(200, {
     'Content-Type': 'text/event-stream; charset=utf-8',
     'Cache-Control': 'no-cache, no-transform',
@@ -225,8 +250,8 @@ app.post('/api/bookings/:id/summary', staffOnly, wrap(async (req, res) => {
     send('done', { summary });
   } catch (err) {
     const message = err instanceof RefusalError
-      ? 'Модель отклонила запрос по политикам безопасности'
-      : (err?.code === 'NO_KEY' ? 'ANTHROPIC_API_KEY не задан на сервере' : String(err?.message || err));
+      ? 'The model declined this request under its safety policies'
+      : (err?.code === 'NO_KEY' ? 'ANTHROPIC_API_KEY is not set on the server' : String(err?.message || err));
     send('error', { message });
   }
   res.end();
@@ -234,18 +259,19 @@ app.post('/api/bookings/:id/summary', staffOnly, wrap(async (req, res) => {
 
 app.get('/api/bookings/:id/summary', staffOnly, wrap(async (req, res) => {
   const c = await db.getConsultation(req.params.id);
-  if (!c) return res.status(404).json({ error: 'Итог ещё не составлен' });
+  if (!c) return res.status(404).json({ error: 'No summary yet' });
   res.json(c);
 }));
 
-/* ---------------------------------------------------------------- метрики */
+/* ----------------------------------------------------------------- metrics */
 
-/* Метрики ровно те, что заявлены в гипотезе 07: booking rate, завершённые
-   консультации, повторные брони — плюс стоимость AI, без которой юнит-экономику
-   пилота не посчитать. */
+/* Exactly the metrics named in the hypothesis: booking rate, completed
+   consultations, repeat bookings — plus AI cost, without which the pilot's
+   unit economics cannot be computed. */
 app.get('/api/metrics', staffOnly, wrap(async (_req, res) => {
-  const [requests, bookings, consultations, calls] = await Promise.all([
-    db.listRequests(1000), db.listBookings(), db.listConsultations(), db.listAiCalls(1000)
+  const [requests, bookings, consultations, calls, matched] = await Promise.all([
+    db.listRequests(1000), db.listBookings(), db.listConsultations(),
+    db.listAiCalls(1000), db.countRequestsWithMatches()
   ]);
 
   const withBooking = new Set(bookings.map(b => b.request_id));
@@ -260,17 +286,25 @@ app.get('/api/metrics', staffOnly, wrap(async (_req, res) => {
     write:  a.write  + (c.cache_write   | 0)
   }), { input: 0, output: 0, read: 0, write: 0 });
 
-  // Тариф Claude Opus 5: $5 / $25 за миллион токенов; кэш-чтение ~0.1x,
-  // кэш-запись ~1.25x от входной ставки.
-  const usd = (tok.input / 1e6) * 5 + (tok.output / 1e6) * 25
-            + (tok.read / 1e6) * 0.5 + (tok.write / 1e6) * 6.25;
-
+  const usd = calls.reduce((a, c) => a + callCost(c), 0);
   const cacheTotal = tok.read + tok.write;
 
-  // Кэш переиспользуется только между вызовами ОДНОГО типа: у brief, match и
-  // summary разные системные промпты. Пока каждый тип вызывался по разу,
-  // нулевой hit rate — норма, а не симптом. Считаем повторы, чтобы страница
-  // метрик не поднимала ложную тревогу.
+  // Per-operation breakdown: which step of the flow actually costs money.
+  const byKind = {};
+  for (const c of calls) {
+    const k = byKind[c.kind] || (byKind[c.kind] = { calls: 0, tokens: 0, cost: 0 });
+    k.calls++;
+    k.tokens += tokensOf(c);
+    k.cost += callCost(c);
+  }
+  for (const k of Object.values(byKind)) k.cost = Number(k.cost.toFixed(4));
+
+  const completedCount = consultations.filter(c => c.summary_md).length;
+
+  // The cache is only reused between calls of the SAME kind: brief, match and
+  // summary have different system prompts. While each kind has run once, a zero
+  // hit rate is normal rather than a symptom — count repeats so the metrics page
+  // does not raise a false alarm.
   const perKind = {};
   for (const c of calls) perKind[c.kind] = (perKind[c.kind] || 0) + 1;
   const repeatKindCalls = Object.values(perKind).reduce((a, n) => a + Math.max(0, n - 1), 0);
@@ -279,19 +313,23 @@ app.get('/api/metrics', staffOnly, wrap(async (_req, res) => {
     requests: requests.length,
     briefs_ok: requests.filter(r => r.brief).length,
     briefs_failed: requests.filter(r => r.brief_error).length,
+    matched_requests: matched,
     bookings: bookings.length,
+    requests_with_booking: withBooking.size,
     booking_rate: requests.length ? Math.round(withBooking.size / requests.length * 100) : 0,
-    completed: consultations.filter(c => c.summary_md).length,
-    completion_rate: bookings.length
-      ? Math.round(consultations.filter(c => c.summary_md).length / bookings.length * 100) : 0,
+    completed: completedCount,
+    completion_rate: bookings.length ? Math.round(completedCount / bookings.length * 100) : 0,
     repeat_bookings: repeat,
+    repeat_rate: withBooking.size ? Math.round(repeat / withBooking.size * 100) : 0,
     ai_calls: calls.length,
     refusals: calls.filter(c => c.stop_reason === 'refusal').length,
     tokens: tok,
+    by_kind: byKind,
     cache_hit_rate: cacheTotal ? Math.round(tok.read / cacheTotal * 100) : 0,
     repeat_kind_calls: repeatKindCalls,
     est_cost_usd: Number(usd.toFixed(4)),
-    est_cost_per_request_usd: requests.length ? Number((usd / requests.length).toFixed(4)) : 0
+    est_cost_per_request_usd: requests.length ? Number((usd / requests.length).toFixed(4)) : 0,
+    est_cost_per_consultation_usd: completedCount ? Number((usd / completedCount).toFixed(4)) : 0
   });
 }));
 
@@ -304,10 +342,10 @@ app.get('/api/ai-calls', staffOnly, wrap(async (_req, res) => {
 const server = await (async () => {
   await db.init();
   return app.listen(PORT, () => {
-    console.log(`Expert Marketplace на порту ${PORT}`);
-    console.log(`  хранилище: ${db.MODE}${db.MODE === 'memory' ? ' (непостоянное — задайте DATABASE_URL)' : ''}`);
-    console.log(`  AI: ${hasKey() ? MODEL : 'ключ не задан, AI-шаги вернут 503'}`);
-    if (!STAFF_TOKEN) console.log('  STAFF_TOKEN не задан — внутренние экраны открыты');
+    console.log(`Expert Marketplace listening on ${PORT}`);
+    console.log(`  storage: ${db.MODE}${db.MODE === 'memory' ? ' (non-persistent — set DATABASE_URL)' : ''}`);
+    console.log(`  AI: ${hasKey() ? MODEL : 'no key set, AI steps will return 503'}`);
+    if (!STAFF_TOKEN) console.log('  STAFF_TOKEN not set — internal screens are open');
   });
 })();
 

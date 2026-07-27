@@ -1,115 +1,123 @@
-# Expert Marketplace — concierge-MVP
+# Expert Marketplace — concierge MVP
 
-Рабочий сервис под гипотезу 07 из PM-кейса: площадка связывает частного инвестора
-с лицензированным консультантом и передаёт консультанту **структурированный контекст**
-клиента, а после встречи собирает **стандартизированный итог**.
+A working service for hypothesis 07 of the PM case: the marketplace connects a private investor
+with a licensed consultant, hands the consultant a **structured context** of the client, and after
+the meeting assembles a **standardised summary**.
 
-Путь целиком: заявка → AI-бриф → жёсткий фильтр + ранжирование → бронирование →
-заметки консультанта → итог (стримингом) → метрики пилота.
+Full flow: request → AI brief → hard filter + ranking → booking → consultant notes →
+streamed summary → pilot metrics.
 
-## Почему именно concierge-MVP, а не полный продукт
+## Why a concierge MVP rather than a full product
 
-План валидации в кейсе (слайд 24) для этой ставки предписывает последовательность
-«legal/compliance red-flag scan → fake door → concierge-пилот на 20–30 ручных
-консультаций → unit economics». Область регулируемая: лицензии, юрисдикции,
-персональные финансовые данные. Поэтому сознательно **не реализованы**:
+The case's own validation plan prescribes, for this bet: legal/compliance red-flag scan →
+fake door → concierge pilot over 20-30 manual consultations → unit economics. The domain is
+regulated: licences, jurisdictions, personal financial data. So the following are **deliberately
+absent**:
 
-- платежи — бронь фиксирует слот, расчёты вне контура;
-- реестр лицензий — статус консультанта помечен как непроверенный везде, где он виден;
-- любые инвестиционные рекомендации от модели.
+- payments — a booking holds a slot, money is settled outside the platform;
+- a licence registry — consultant status is labelled unverified everywhere it appears;
+- any investment advice from the model.
 
-Это границы пилота, а не незаконченность.
+These are pilot boundaries, not unfinished work.
 
-## Где здесь Claude
+## Where Claude does the work
 
-| Шаг | Что делает модель | Как вызывается |
+| Step | What the model does | How it is called |
 |---|---|---|
-| Бриф | Превращает свободный рассказ клиента в структуру: суть, заявленная цель vs фактический вопрос, горизонт, уровень подготовки, темы, сигналы риска, чего не хватает | Structured output по JSON-схеме `BRIEF_SCHEMA` |
-| Подбор | Ранжирует уже отфильтрованный кодом короткий список и объясняет порядок | Structured output по `MATCH_SCHEMA`, `effort: high` |
-| Итог | Собирает из заметок консультанта Markdown фиксированной структуры из 5 разделов | Стриминг, SSE до браузера |
+| Brief | Turns the client's free-form story into structure: the request, stated goal vs actual question, horizon, experience level, topics, risk signals, what is missing | Structured output against `BRIEF_SCHEMA` |
+| Match | Ranks an already-filtered shortlist and explains the order | Structured output against `MATCH_SCHEMA`, `effort: high` |
+| Summary | Assembles the consultant's notes into Markdown with five fixed sections | Streamed, SSE through to the browser |
 
-Инженерные решения, а не украшения:
+Engineering decisions, not decoration:
 
-- **Жёсткие правила — обычным кодом.** Юрисдикция, язык и диапазон капитала
-  фильтруются в `hardFilter()`. Модель ранжирует то, что уже прошло фильтр, и не
-  может добавить консультанта вне списка — результат отсекается по allowlist.
-- **Кэш промптов.** Системные блоки стабильны и помечены `cache_control`. Всё
-  изменчивое уходит в user-сообщение, после точки кэша. Эффект виден на
-  `/metrics.html` в поле «доля чтений из кэша».
-- **Отказы модели обрабатываются.** `stop_reason` проверяется до чтения `content`,
-  включены серверные фолбэки — отклонённый запрос переигрывается на запасной
-  модели внутри того же вызова.
-- **Дисклеймер добавляет сервер**, а не модель: его нельзя убрать промптом.
-- **Аудит.** Каждый вызов пишется в `ai_calls`: модель, токены, кэш, длительность,
-  причина остановки. Отсюда считается стоимость на заявку.
+- **Hard rules live in code.** Jurisdiction, language and capital range are filtered in
+  `hardFilter()`. The model ranks what already passed, and anything it returns outside the input
+  list is dropped by an allowlist.
+- **Prompt caching.** System blocks are byte-stable and carry `cache_control`. Everything variable
+  goes into the user message, after the breakpoint. The effect is visible on `/metrics.html`.
+- **Refusals are handled.** `stop_reason` is checked before reading `content`, and server-side
+  fallbacks are enabled — a declined request is re-run on a fallback model inside the same call.
+- **The disclaimer is appended by the server**, not the model, so no prompt can remove it.
+- **Audit.** Every call is written to `ai_calls`: model, tokens, cache, duration, stop reason.
+  Cost per request and per consultation are derived from it.
 
-## Запуск локально
+## Running locally
 
 ```bash
 npm install
-cp .env.example .env        # впишите ANTHROPIC_API_KEY
+cp .env.example .env        # set ANTHROPIC_API_KEY
 npm start                   # http://localhost:3000
 ```
 
-Без `DATABASE_URL` сервис поднимается на хранилище в памяти — данные не переживут
-перезапуск. `/api/health` это показывает явно. Без `ANTHROPIC_API_KEY` сервис
-работает, но AI-шаги отвечают 503.
+Without `DATABASE_URL` the service starts on in-memory storage — data will not survive a restart,
+and `/api/health` says so plainly. Without `ANTHROPIC_API_KEY` the service runs but AI steps
+return 503.
 
-## Деплой на Railway
+## Deploying on Railway
 
-```bash
-railway login
-railway link                    # выбрать проект
-railway add --database postgres # DATABASE_URL подставится сам
-railway variables --set ANTHROPIC_API_KEY=<ваш ключ>
-railway variables --set STAFF_TOKEN=<любая длинная строка>
-railway up
-```
+Connect the repository as a service, add a PostgreSQL database, then set the service variables:
 
-`railway.json` уже задаёт healthcheck на `/api/health` и рестарт при падении.
-`PORT` Railway подставляет сам.
+| Variable | Value |
+|---|---|
+| `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` |
+| `ANTHROPIC_API_KEY` | your key |
+| `STAFF_TOKEN` | a long random string |
 
-## Экраны
+Set them on the **service**, not in the project's Shared Variables — shared variables require an
+explicit share and are easy to miss. `railway.json` already configures the healthcheck on
+`/api/health` and restart-on-failure. `PORT` is supplied by Railway.
 
-| Путь | Кто | Что |
+Verify without opening the dashboard: `/api/health` returns `ready_for_pilot: true` and an empty
+`problems` array when all three are in place.
+
+## Screens
+
+| Path | Who | What |
 |---|---|---|
-| `/` | клиент | заявка → бриф → подбор → бронирование |
-| `/staff.html` | консультант | брони с брифом, ввод заметок, генерация итога |
-| `/metrics.html` | площадка | booking rate, completion, повторные брони, стоимость AI |
+| `/` | client | request → brief → match → booking |
+| `/staff.html` | consultant | bookings with the brief, notes entry, summary generation |
+| `/metrics.html` | operator | booking rate, funnel, repeat bookings, AI cost |
 
-Внутренние экраны закрываются `STAFF_TOKEN`. Если он не задан — доступ открыт;
-так можно только локально.
+The internal screens are gated by `STAFF_TOKEN`. Without it they are open — acceptable locally only.
 
 ## API
 
 ```
-GET  /api/health                      состояние хранилища и AI
-POST /api/requests                    создать заявку, сразу собрать бриф
-GET  /api/requests/:id                заявка с брифом
-POST /api/requests/:id/match          фильтр + ранжирование
-GET  /api/consultants                 ростер
-POST /api/bookings                    забронировать слот
-POST /api/bookings/:id/summary        SSE-стрим итога (staff)
-GET  /api/bookings/:id/summary        сохранённый итог (staff)
-GET  /api/metrics                     метрики пилота (staff)
-GET  /api/ai-calls                    аудит вызовов модели (staff)
+GET  /api/health                      storage and AI state, configuration problems
+POST /api/requests                    create a request and build the brief
+GET  /api/requests/:id                request with its brief
+POST /api/requests/:id/match          hard filter + ranking
+GET  /api/consultants                 roster
+POST /api/bookings                    hold a slot
+POST /api/bookings/:id/summary        SSE stream of the summary (staff)
+GET  /api/bookings/:id/summary        stored summary (staff)
+GET  /api/metrics                     pilot metrics (staff)
+GET  /api/ai-calls                    model call audit (staff)
 ```
 
-## Проверено
+## Design
 
-Полный путь прогнан на реальном API: бриф собирается по схеме, ранжирование
-соблюдает правила промпта (заполняет «чего не закрывает», не выдумывает различий
-при разнице меньше 10 баллов), итог приходит стримингом со всеми пятью разделами
-и дисклеймером. Один полный цикл из трёх вызовов модели обошёлся примерно в **$0.09**.
+The UI uses `public/tv-theme.css` — the design system supplied in the project handoff package.
+System fonts only, nothing loaded from external hosts. Numbers use tabular figures throughout,
+and disclaimers appear on every screen.
 
-Замечание по метрике кэша: доля чтений равна нулю, пока каждый тип вызова
-происходил по одному разу — у брифа, подбора и итога разные системные промпты,
-переиспользовать нечего. Страница метрик поднимает тревогу только если вызовы
-одного типа уже повторялись, а чтений всё равно нет.
+## Verified
 
-## Ограничения
+The whole path has been run against the live API: the brief conforms to its schema, ranking obeys
+the prompt rules (it fills in "what they don't cover" and refuses to invent distinctions under a
+10-point gap), and the summary arrives streamed with all five sections plus the disclaimer.
+One full cycle of three model calls cost roughly **$0.09**.
 
-- Ростер консультантов демонстрационный, лицензии не верифицированы.
-- Слоты бронирования фиктивные, календаря нет.
-- Оценка стоимости считается по тарифу Claude Opus 5 и является приблизительной.
-- Не является инвестиционной рекомендацией.
+The hard filter is covered by a check across all 20 country × capital-band combinations; every
+combination returns at least one candidate against the demo roster.
+
+A note on the cache metric: the share read from cache stays at zero while each call kind has run
+only once — brief, match and summary have different system prompts, so there is nothing to reuse.
+The metrics page only raises a warning once calls of the same kind have repeated without any reads.
+
+## Limitations
+
+- The consultant roster is demonstration data and licences are not verified.
+- Booking slots are fictional; there is no calendar.
+- Cost is estimated from Claude Opus 5 list rates and is approximate.
+- Not investment advice.

@@ -1,136 +1,178 @@
-<!doctype html>
-<html lang="ru">
+<!DOCTYPE html>
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Expert Marketplace — кабинет консультанта</title>
-<link rel="stylesheet" href="/app.css">
-<script src="/anim.js" defer></script>
+<title>Expert Marketplace — consultant desk</title>
+<link rel="stylesheet" href="/tv-theme.css">
 </head>
 <body>
-<div class="wrap">
-  <div class="top">
-    <div class="brand"><span class="mark">EM</span> Expert Marketplace</div>
-    <nav>
-      <a href="/">Заявка</a>
-      <a href="/staff.html" class="on">Кабинет консультанта</a>
-      <a href="/metrics.html">Метрики</a>
-    </nav>
+
+<nav class="tv-nav">
+  <div class="tv-brand"><span class="mark">EM</span>Expert Marketplace</div>
+  <div class="links">
+    <a href="/">Request</a>
+    <a href="/staff.html" class="active">Consultant desk</a>
+    <a href="/metrics.html">Metrics</a>
+  </div>
+  <div class="spacer"></div>
+  <span class="tag tag-warn">CONCIERGE PILOT</span>
+</nav>
+
+<main class="tv-page">
+  <div class="tv-eyebrow">Expert Marketplace · Pilot</div>
+  <h1 class="tv-h1" style="margin-top:8px;">Consultant desk</h1>
+  <p class="tv-lead">Bookings with the client brief attached. After the meeting, paste your rough notes
+    and the service assembles a summary with the same structure for every consultation.</p>
+
+  <div class="tv-card mt-24" style="display:flex; gap:14px; align-items:flex-end; flex-wrap:wrap;">
+    <div class="field" style="margin:0; flex:0 1 320px;">
+      <label for="staffToken">Staff token</label>
+      <input type="password" id="staffToken" placeholder="If one is set on the server" autocomplete="off">
+    </div>
+    <button class="btn btn-primary" id="loadBtn">Load bookings</button>
+    <div class="spacer" style="flex:1;"></div>
+    <div class="mono" style="font-size:12px; color:var(--tv-faint);">
+      <span class="tag tag-fact">FACT · SERVER DATA</span>
+    </div>
   </div>
 
-  <h1>Кабинет консультанта</h1>
-  <p class="muted">Брони с брифом клиента. После встречи внесите черновые заметки — сервис соберёт
-    из них стандартизированный итог одинаковой структуры для всех консультаций.</p>
+  <div id="list" class="mt-16"></div>
 
-  <div class="card" id="auth">
-    <label style="margin:0"><span>Staff-токен (если задан на сервере)</span>
-      <input id="token" placeholder="оставьте пустым, если STAFF_TOKEN не настроен"></label>
-    <button class="primary" id="load">Загрузить брони</button>
-  </div>
-
-  <div id="list"></div>
-  <div class="foot">Итог составляется автоматически из ваших заметок и не является инвестиционной
-    рекомендацией. Ответственность за содержание несёт консультант.</div>
-</div>
+  <div class="disclaimer">Summaries are generated from your notes and are not investment advice.
+    The consultant is responsible for their content. Licence status is not automatically verified
+    in the pilot.</div>
+</main>
 
 <script>
-const $ = s => document.querySelector(s);
+const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const token = () => $('#token').value.trim();
-const hdr = () => token() ? { 'x-staff-token': token() } : {};
+const tokenEl = $('staffToken');
+tokenEl.value = localStorage.getItem('em.token') || '';
 
-$('#token').value = localStorage.getItem('em.token') || '';
-$('#load').onclick = load;
+const headers = () => {
+  const t = tokenEl.value.trim();
+  return t ? { 'x-staff-token': t } : {};
+};
+
+$('loadBtn').addEventListener('click', load);
+
+const STATUS = {
+  completed: ['ok', 'summary ready'],
+  booked:    ['pending', 'awaiting summary'],
+  cancelled: ['cancelled', 'cancelled']
+};
 
 async function load() {
-  localStorage.setItem('em.token', token());
-  $('#list').innerHTML = `<div class="card">
-    <div class="sk sk-line w45"></div><div class="sk sk-line w85"></div>
-    <div class="sk sk-line w70"></div><div class="sk sk-card" style="margin-top:12px"></div></div>`;
+  localStorage.setItem('em.token', tokenEl.value.trim());
+  $('list').innerHTML = '<div class="tv-card mono" style="color:var(--tv-ghost)">Loading…</div>';
   try {
-    const r = await fetch('/api/bookings', { headers: hdr() });
-    if (r.status === 401) { $('#list').innerHTML = '<div class="err">Неверный staff-токен.</div>'; return; }
-    const rows = await r.json();
-    if (!rows.length) {
-      $('#list').innerHTML = '<div class="card muted">Броней пока нет. Оставьте заявку на главной, чтобы появилась первая.</div>';
+    const r = await fetch('/api/bookings', { headers: headers() });
+    if (r.status === 401) {
+      $('list').innerHTML = '<div class="tv-card mono" style="color:var(--tv-red)">Invalid staff token.</div>';
       return;
     }
-    $('#list').innerHTML = rows.map((b, i) => card(b, i)).join('');
-    document.querySelectorAll('[data-gen]').forEach(b => b.onclick = () => generate(b.dataset.gen));
-    document.querySelectorAll('[data-show]').forEach(b => b.onclick = () => show(b.dataset.show));
+    const rows = await r.json();
+    if (!rows.length) {
+      $('list').innerHTML = `<div class="tv-card mono" style="color:var(--tv-ghost)">
+        No bookings yet. Submit a request on the home page to create the first one.</div>`;
+      return;
+    }
+    $('list').innerHTML = rows.map(card).join('');
+    document.querySelectorAll('[data-gen]').forEach(b => b.addEventListener('click', () => generate(b.dataset.gen)));
+    document.querySelectorAll('[data-show]').forEach(b => b.addEventListener('click', () => show(b.dataset.show)));
   } catch (err) {
-    $('#list').innerHTML = `<div class="err">${esc(err.message)}</div>`;
+    $('list').innerHTML = `<div class="tv-card mono" style="color:var(--tv-red)">${esc(err.message)}</div>`;
   }
 }
 
-function briefOf(request) {
-  if (!request?.brief) return null;
-  return typeof request.brief === 'string' ? JSON.parse(request.brief) : request.brief;
-}
+const briefOf = request => !request?.brief ? null
+  : (typeof request.brief === 'string' ? JSON.parse(request.brief) : request.brief);
 
-function card(b, i = 0) {
+function card(b) {
   const brief = briefOf(b.request);
-  const done = b.has_summary;
-  return `<div class="card lift reveal" data-i="${Math.min(i + 1, 6)}">
-    <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start">
+  const [cls, label] = STATUS[b.status] || ['', b.status];
+  const id = esc(b.id);
+
+  return `<div class="tv-card" style="margin-bottom:14px;">
+    <div style="display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap; align-items:flex-start;">
       <div>
-        <h2 style="margin-bottom:5px">${esc(b.request?.contact_name || 'Клиент')} → ${esc(b.consultant?.name || b.consultant_id)}</h2>
-        <div class="tags">
-          <span class="badge">${esc(b.slot)}</span>
-          <span class="badge ${done ? 'ok' : 'warn'}">${done ? 'итог готов' : 'ожидает итога'}</span>
-          <span class="badge">${esc(b.request?.country || '—')}</span>
-          <span class="badge">${esc(b.request?.capital_band || '—')}</span>
+        <p class="title">${esc(b.request?.contact_name || 'Client')} → ${esc(b.consultant?.name || b.consultant_id)}</p>
+        <div class="mono" style="font-size:12px; color:var(--tv-faint);">
+          ${esc(b.slot)} · ${esc(b.request?.country || '—')} · ${esc(b.request?.capital_band || '—')}
         </div>
       </div>
-      <span class="mono small dim">${esc(b.id)}</span>
+      <div style="text-align:right;">
+        <span class="status ${cls}">${esc(label)}</span>
+        <div class="mono" style="font-size:11.5px; color:var(--tv-ghost); margin-top:6px;">${id}</div>
+      </div>
     </div>
 
-    ${brief ? `<div style="margin-top:14px">
-      <div class="tags" style="margin-bottom:8px"><span class="badge ai">Бриф клиента</span></div>
-      <p><b>${esc(brief.summary)}</b></p>
-      <div class="kv"><span class="muted">Фактический вопрос</span><span>${esc(brief.actual_question)}</span></div>
-      <div class="kv"><span class="muted">Горизонт / подготовка</span><span>${esc(brief.horizon)} · ${esc(brief.knowledge_level)}</span></div>
-      ${brief.questions_for_consultant?.length ? `<div style="margin-top:10px"><h3>Уточнить в первую очередь</h3>
-        <ul class="clean">${brief.questions_for_consultant.map(q => `<li>${esc(q)}</li>`).join('')}</ul></div>` : ''}
-      ${brief.risk_signals?.length ? `<div class="note warn"><b>Сигналы риска:</b> ${brief.risk_signals.map(esc).join('; ')}</div>` : ''}
-    </div>` : `<div class="note warn" style="margin-top:12px">Бриф не собран. Исходный текст клиента:
-      <br>${esc(b.request?.goal_text || '—')}</div>`}
+    ${brief ? `<div class="tv-card accent mt-16">
+      <span class="tag tag-ai">AI · CLIENT BRIEF</span>
+      <p style="margin:10px 0 0; font-size:14.5px;"><b>${esc(brief.summary)}</b></p>
+      <table class="tv mt-16">
+        <tr><td style="color:var(--tv-faint); width:180px;">Actual question</td><td>${esc(brief.actual_question)}</td></tr>
+        <tr><td style="color:var(--tv-faint);">Horizon · experience</td><td class="mono">${esc(brief.horizon)} · ${esc(brief.knowledge_level)}</td></tr>
+      </table>
+      ${brief.questions_for_consultant?.length ? `<div class="mt-16">
+        <div class="tv-eyebrow">clarify first</div>
+        <ul style="margin:8px 0 0; padding-left:18px; color:var(--tv-muted); font-size:13.5px;">
+          ${brief.questions_for_consultant.map(q => `<li style="margin-bottom:5px">${esc(q)}</li>`).join('')}
+        </ul></div>` : ''}
+      ${brief.risk_signals?.length ? `<div class="mt-16"><span class="tag tag-warn">RISK SIGNALS</span>
+        <p style="margin:8px 0 0; font-size:13.5px; color:var(--tv-muted);">${esc(brief.risk_signals.join('; '))}</p></div>` : ''}
+    </div>` : `<div class="tv-card mt-16" style="border-color:var(--tv-orange);">
+      <span class="tag tag-warn">NO BRIEF</span>
+      <p style="margin:10px 0 0; font-size:13.5px; color:var(--tv-muted);">${esc(b.request?.goal_text || '—')}</p>
+    </div>`}
 
-    <div style="margin-top:16px">
-      <label><span>Черновые заметки после встречи (минимум 30 символов)</span>
-        <textarea id="n_${esc(b.id)}" placeholder="Что обсудили, что зафиксировали, о чём договорились, что клиент делает дальше."></textarea></label>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="primary" data-gen="${esc(b.id)}">Собрать итог</button>
-        ${done ? `<button data-show="${esc(b.id)}">Показать сохранённый итог</button>` : ''}
-      </div>
-      <div id="e_${esc(b.id)}"></div>
-      <div class="stream" id="o_${esc(b.id)}" style="margin-top:12px"></div>
+    <div class="field mt-16">
+      <label for="n_${id}">Rough notes after the meeting</label>
+      <div class="hint">30 characters minimum · used verbatim, nothing is invented</div>
+      <textarea id="n_${id}" placeholder="What you discussed, what you noted, what you agreed, what the client does next."></textarea>
+    </div>
+
+    <div class="row" style="flex-wrap:wrap; gap:10px;">
+      <button class="btn btn-primary" data-gen="${id}">Generate summary</button>
+      ${b.has_summary ? `<button class="btn btn-secondary" data-show="${id}">Show saved summary</button>` : ''}
+      <span class="mono" style="font-size:12px; color:var(--tv-ghost);" id="e_${id}"></span>
+    </div>
+
+    <div class="tv-card accent mt-16" id="w_${id}" hidden>
+      <span class="tag tag-ai">AI · STANDARDISED SUMMARY</span>
+      <pre id="o_${id}" style="white-space:pre-wrap; font-family:var(--tv-font); font-size:14px;
+        line-height:1.6; margin:12px 0 0; color:var(--tv-text);"></pre>
     </div>
   </div>`;
 }
 
-/* Стриминг итога: сервер отдаёт SSE, читаем поток и дописываем текст по кускам. */
+/* Streamed summary: the server sends SSE, we append text chunk by chunk. */
 async function generate(id) {
-  const notes = $('#n_' + id).value.trim();
-  const out = $('#o_' + id), err = $('#e_' + id);
-  err.innerHTML = '';
-  if (notes.length < 30) { err.innerHTML = '<div class="err">Заметки слишком короткие — минимум 30 символов.</div>'; return; }
+  const notes = $('n_' + id).value.trim();
+  const wrap = $('w_' + id), out = $('o_' + id), err = $('e_' + id);
+  const btn = document.querySelector(`[data-gen="${id}"]`);
+  err.textContent = '';
 
-  out.classList.add('live');
-  out.innerHTML = '<span class="cursor"></span>';
-  UX.busy(document.querySelector(`[data-gen="${id}"]`), true);
+  if (notes.length < 30) { err.textContent = 'Notes are too short — at least 30 characters.'; return; }
+
+  wrap.hidden = false;
+  out.textContent = '';
+  btn.disabled = true;
+  btn.textContent = 'Generating…';
   let text = '';
 
   try {
     const r = await fetch(`/api/bookings/${id}/summary`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...hdr() },
+      headers: { 'Content-Type': 'application/json', ...headers() },
       body: JSON.stringify({ notes })
     });
     if (!r.ok && r.headers.get('content-type')?.includes('json')) {
       const d = await r.json();
-      err.innerHTML = `<div class="err">${esc(d.error || 'ошибка')}</div>`;
-      out.innerHTML = ''; return;
+      err.textContent = d.error || 'error';
+      wrap.hidden = true;
+      return;
     }
 
     const reader = r.body.getReader();
@@ -147,24 +189,25 @@ async function generate(id) {
         const raw = /^data: (.+)$/m.exec(part)?.[1];
         if (!ev || !raw) continue;
         const data = JSON.parse(raw);
-        if (ev === 'delta') { text += data.text; out.innerHTML = esc(text) + '<span class="cursor"></span>'; }
+        if (ev === 'delta') { text += data.text; out.textContent = text; }
         if (ev === 'done')  { out.textContent = data.summary; load(); }
-        if (ev === 'error') { err.innerHTML = `<div class="err">${esc(data.message)}</div>`; out.textContent = text; }
+        if (ev === 'error') { err.textContent = data.message; out.textContent = text; }
       }
     }
   } catch (e) {
-    err.innerHTML = `<div class="err">${esc(e.message)}</div>`;
+    err.textContent = e.message;
   } finally {
-    out.classList.remove('live');
-    UX.busy(document.querySelector(`[data-gen="${id}"]`), false);
+    btn.disabled = false;
+    btn.textContent = 'Generate summary';
   }
 }
 
 async function show(id) {
-  const out = $('#o_' + id);
-  const r = await fetch(`/api/bookings/${id}/summary`, { headers: hdr() });
+  const wrap = $('w_' + id), out = $('o_' + id);
+  wrap.hidden = false;
+  const r = await fetch(`/api/bookings/${id}/summary`, { headers: headers() });
   const d = await r.json();
-  out.textContent = r.ok ? d.summary_md : (d.error || 'нет итога');
+  out.textContent = r.ok ? d.summary_md : (d.error || 'no summary');
 }
 
 load();
