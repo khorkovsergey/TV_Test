@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="/tv-theme.css">
 <link rel="stylesheet" href="/portal.css">
 <script src="/ia.js"></script>
+<script src="/features.js"></script>
 <script src="/home.js"></script>
 <script src="/quotes.js"></script>
 <script src="/hub.js"></script>
@@ -32,6 +33,7 @@
     <a href="/community" class="active">Community</a>
   </div>
   <div class="right">
+    <a class="new-launch" href="/new" title="Product innovations — what is new in this prototype">NEW <span class="n" id="newCount">8</span></a>
     <button class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
     <span style="font-size:14px;color:var(--tv-muted)">Sign in</span>
     <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
@@ -49,6 +51,10 @@
   </div>
 
   <div id="modules"></div>
+
+  <!-- §NEW-08 on the community surface: the reward loop belongs where the
+       contribution happens, not on a store page nobody opens. -->
+  <div class="mt-24" id="communityPromos" style="display:flex;flex-direction:column;gap:8px"></div>
 
   <h2 class="mt-32" id="everything" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">Everything in this section</h2>
   <div style="font-size:13px;color:var(--tv-faint);margin-top:6px">
@@ -175,6 +181,20 @@ Hub.nextStep(document.getElementById('next'), {
   url: '/charts',
   why: 'An opinion becomes useful the moment you can see what the price actually did.'
 });
+</script>
+<script>
+(function () {
+  const Fx = window.Features;
+  const box = document.getElementById('communityPromos');
+  if (!Fx || !box) return;
+  box.innerHTML =
+    Fx.promo('NEW-08', 'community', { title: 'One reward loop instead of four links', line: 'Ideas, teaching, referrals and Pine work earn against visible rules, with history and progress.' }) +
+    Fx.promo('NEW-07', 'community', { query: 'from=community', title: 'Licensed experts, not course sellers', line: 'Verified by regulator and jurisdiction, matched to country, capital and question.' });
+  box.addEventListener('click', e => {
+    const a = e.target.closest('[data-fid]');
+    if (a) Fx.track('strategic_feature_opened', Fx.byId(a.dataset.fid), { surface: 'community' });
+  });
+})();
 </script>
 </body>
 </html>

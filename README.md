@@ -115,6 +115,25 @@ A note on the cache metric: the share read from cache stays at zero while each c
 only once — brief, match and summary have different system prompts, so there is nothing to reuse.
 The metrics page only raises a warning once calls of the same kind have repeated without any reads.
 
+## The wider portal, and where it is documented
+
+The marketplace is one hypothesis of the case; it now sits inside a full portal prototype with six
+sections, three complexity modes, a live market layer and a strategic-feature registry.
+
+| Document | What it covers |
+|---|---|
+| [`docs/current-state-audit.md`](docs/current-state-audit.md) | What the stand contained before the architecture work |
+| [`docs/information-architecture-migration.md`](docs/information-architecture-migration.md) | The six-section regroup and the route map |
+| [`docs/implementation-summary.md`](docs/implementation-summary.md) | The architecture release |
+| [`docs/presentation-feature-gap-audit.md`](docs/presentation-feature-gap-audit.md) | Which ideas from the case a reviewer could actually find — and which were missing |
+| [`docs/strategic-feature-registry.md`](docs/strategic-feature-registry.md) | The registry behind every badge, card and promo |
+| [`docs/strategic-feature-visibility-map.md`](docs/strategic-feature-visibility-map.md) | Where each feature is reachable from, and the placement rules |
+| [`docs/phase-3-implementation-summary.md`](docs/phase-3-implementation-summary.md) | The feature-visibility release |
+| [`docs/phase-3-remaining-backlog.md`](docs/phase-3-remaining-backlog.md) | What was deliberately left undone, and why |
+
+Two front doors for a reviewer: **`/new`** (what is new here, and what is only an idea) and
+**`/showcase`** (every idea, its status, the user problem, the metric and the route).
+
 ## Limitations
 
 - The consultant roster is demonstration data and licences are not verified.

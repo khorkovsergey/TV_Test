@@ -90,6 +90,55 @@
 @media (max-width:1100px){.routes{grid-template-columns:repeat(2,1fr)}.stubs{grid-template-columns:1fr}}
 
 /* =======================================================================
+   Метки стратегических фич (§VIS-002).
+
+   Один компонент на весь портал. Метка несёт текст, а не только цвет:
+   различать NEW и CONCEPT по оттенку — значит не сообщить ничего человеку
+   с дальтонизмом и ничего не сообщить в чёрно-белой распечатке кейса.
+   ======================================================================= */
+.fbadge{display:inline-flex;align-items:center;font-family:var(--tv-mono);font-size:9px;letter-spacing:.07em;
+  border-radius:4px;padding:2px 6px;white-space:nowrap;vertical-align:middle}
+.fbadge-new{color:#26A69A;background:#0D2B27;border:1px solid #1B4A42}
+.fbadge-beta{color:#5B8DFF;background:var(--tv-blue-dim);border:1px solid var(--tv-blue-line)}
+.fbadge-concept{color:var(--tv-orange);background:var(--tv-orange-dim);border:1px solid #4a3510}
+.fbadge-premium{color:#B48CFF;background:#221340;border:1px solid #3C2A66}
+.fbadge-improved{color:var(--tv-faint);background:var(--tv-ink-2);border:1px solid var(--tv-ink-3)}
+
+/* Компактный вход в «Product innovations» в шапке (§VIS-004). Это не седьмой
+   раздел: кнопка ведёт на /new и не занимает место в навигационной модели. */
+.new-launch{display:inline-flex;align-items:center;gap:6px;background:#0D2B27;border:1px solid #1B4A42;
+  color:#26A69A;border-radius:var(--tv-r-pill);padding:6px 12px;font-size:12.5px;font-weight:700;
+  font-family:var(--tv-font);cursor:pointer;white-space:nowrap}
+.new-launch:hover{filter:brightness(1.2);color:#26A69A}
+.new-launch .n{font-family:var(--tv-mono);font-size:9.5px;background:#26A69A;color:#04120f;border-radius:3px;padding:0 4px}
+
+/* Карточка фичи — на /new, в showcase и в блоке на главной. */
+.fcard{background:var(--tv-ink);border:1px solid var(--tv-ink-3);border-radius:var(--tv-r);padding:18px;
+  display:flex;flex-direction:column;gap:8px;color:inherit}
+.fcard:hover{border-color:var(--tv-blue-line);color:inherit}
+.fcard .top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.fcard .ic{font-size:18px;color:var(--tv-blue)}
+.fcard h3{font-size:16px;font-weight:700;color:var(--tv-white);margin:0;line-height:1.3}
+.fcard .prob{font-size:12.5px;color:var(--tv-faint);line-height:1.5}
+.fcard .sol{font-size:13px;color:var(--tv-text);line-height:1.5}
+.fcard .meta{font-family:var(--tv-mono);font-size:10px;color:var(--tv-ghost);margin-top:auto;padding-top:8px;
+  border-top:1px solid var(--tv-line)}
+.fcard .cta{font-size:13px;font-weight:700;color:var(--tv-blue)}
+
+/* Showcase — режим демонстрации кейса (§VIS-007). Ничего не отнимает у
+   обычного посетителя: включается флагом и выключается кнопкой. */
+.showcase-bar{position:fixed;right:20px;bottom:88px;z-index:9200;background:var(--tv-ink);
+  border:1px solid var(--tv-blue-line);border-radius:12px;padding:12px 14px;max-width:290px;
+  box-shadow:0 14px 40px rgba(0,0,0,.55)}
+.showcase-bar b{display:block;color:#fff;font-size:13px;margin-bottom:4px}
+.showcase-bar span{font-size:12px;color:var(--tv-muted);line-height:1.45}
+.showcase-bar .row{margin-top:10px;gap:8px}
+body.showcase .fbadge{transform:scale(1.08)}
+.case-note{display:none;font-size:12px;color:#9db4ff;background:var(--tv-blue-dim);
+  border:1px dashed var(--tv-blue-line);border-radius:8px;padding:8px 10px;margin-top:8px;line-height:1.45}
+body.showcase .case-note{display:block}
+
+/* =======================================================================
    Режим интерфейса: Simple · Standard · Pro.
 
    §7.4 — навигационная модель одинакова во всех режимах, меняются плотность,
@@ -309,3 +358,26 @@ body[data-ui-mode="pro"]      [data-only~="pro"]{display:revert}
 .expert .who .n{font-size:15px;font-weight:700;color:var(--tv-white)}
 .expert .who .lic{font-family:var(--tv-mono);font-size:11px;color:var(--tv-faint);margin-top:4px}
 @media (max-width:960px){.cards-4{grid-template-columns:repeat(2,1fr)}.market-row{grid-template-columns:repeat(2,1fr)}.portal-footer .cols{grid-template-columns:repeat(2,1fr)}.portal-hero h1{font-size:40px}}
+
+
+/* --- contextual feature promo (§VIS-006) -------------------------------- */
+/* One component for every surface a strategic feature has to appear on, so
+   eight placements cannot drift into eight different designs. */
+.fpromo{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--tv-line);
+  border-radius:8px;background:linear-gradient(90deg,rgba(41,98,255,.07),transparent 70%);
+  text-decoration:none;transition:border-color .15s,transform .15s}
+.fpromo:hover{border-color:#2962FF;transform:translateX(2px)}
+.fpromo .ic{font-size:20px;color:#5B8DFF;flex:0 0 auto}
+.fpromo .txt{display:flex;flex-direction:column;gap:3px;min-width:0}
+.fpromo .txt b{font-size:13.5px;font-weight:600;color:var(--tv-white);display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.fpromo .txt span{font-size:12px;color:var(--tv-faint);line-height:1.45}
+.fpromo .go{margin-left:auto;color:var(--tv-ghost);font-size:16px;flex:0 0 auto}
+.fpromo:hover .go{color:#5B8DFF}
+
+/* Floating showcase control — a demo aid, never part of the product. */
+.sc-fab{position:fixed;left:16px;bottom:16px;z-index:80;display:flex;align-items:center;gap:8px;
+  padding:8px 13px;border-radius:20px;border:1px solid var(--tv-line);background:var(--tv-panel);
+  color:var(--tv-muted);font-size:12px;font-weight:600;cursor:pointer;box-shadow:0 6px 22px rgba(0,0,0,.4)}
+.sc-fab:hover{border-color:#2962FF;color:var(--tv-white)}
+.sc-fab.on{border-color:#F7931A;color:#F7931A}
+.sc-fab .dot{width:7px;height:7px;border-radius:50%;background:currentColor}

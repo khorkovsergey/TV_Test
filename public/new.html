@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Trade — test an idea, then act</title>
+<title>Product innovations — what is new here</title>
 <link rel="stylesheet" href="/tv-theme.css">
 <link rel="stylesheet" href="/portal.css">
 <script src="/ia.js"></script>
@@ -15,7 +15,7 @@
 <script src="/nav.js"></script>
 <script src="/copilot.js" defer></script>
 </head>
-<body data-section="trade">
+<body>
 
 <div class="mock-strip">
   UNAFFILIATED CASE-STUDY MOCKUP · NOT A REAL PLATFORM · NOT INVESTMENT ADVICE
@@ -28,7 +28,7 @@
     <a href="/overview">Overview</a>
     <a href="/research">Research</a>
     <a href="/capital">Capital</a>
-    <a href="/trade" class="active">Trade</a>
+    <a href="/trade">Trade</a>
     <a href="/learn">Learn</a>
     <a href="/community">Community</a>
   </div>
@@ -41,28 +41,40 @@
 </nav>
 
 <main class="tv-page" style="max-width:1180px">
+
   <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap">
     <div>
-      <div class="tv-eyebrow">Trade</div>
-      <h1 class="tv-h1" style="margin-top:8px">Test an idea without risk, or place a trade</h1>
-      <p class="tv-lead" style="margin-top:10px">Practice comes first here on purpose: the safe default for anyone who has never traded, and a fast path for anyone who has.</p>
+      <div class="tv-eyebrow">Product innovations</div>
+      <h1 class="tv-h1" style="margin-top:8px">What is new here, and what is only an idea</h1>
+      <p class="tv-lead" style="margin-top:10px">Eight strategic bets and five reworked journeys.
+        Every card says which it is: something that works in this prototype, or a concept shown
+        honestly as a concept. A stand that dresses an idea up as a feature is worse than one with
+        fewer features.</p>
     </div>
-    <span class="tag tag-ai" id="modeBadge">Simple mode</span>
+    <button class="btn btn-secondary" id="toggleShowcase" style="padding:9px 16px">Showcase mode</button>
   </div>
 
-  <div id="modules"></div>
+  <div class="row mt-16" id="legend" style="gap:8px;flex-wrap:wrap"></div>
 
-  <h2 class="mt-32" id="everything" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">Everything in this section</h2>
+  <h2 class="mt-32" id="available" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">
+    Available now — you can use these</h2>
   <div style="font-size:13px;color:var(--tv-faint);margin-top:6px">
-    Grouped once, with what this prototype implements. Deeper tools are marked, never hidden —
-    switching mode changes what comes first, not what you may reach.
-  </div>
-  <div class="stubs mt-16" id="shelf"></div>
+    Working flows with saved state, analytics and honest failure. Click any card to try it.</div>
+  <div class="stubs mt-16" id="workingCards"></div>
 
-  <div class="mt-32" id="next"></div>
+  <h2 class="mt-32" id="concepts" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">
+    Strategic concepts — shown, not claimed</h2>
+  <div style="font-size:13px;color:var(--tv-faint);margin-top:6px">
+    Each has a demo that shows the mechanism. None pretends to be a finished product.</div>
+  <div class="stubs mt-16" id="conceptCards"></div>
+
+  <h2 class="mt-32" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">
+    Reworked journeys</h2>
+  <div class="stubs mt-16" id="coreCards"></div>
 
   <div class="disclaimer">
-    Market data is delayed and comes from a free public source. Nothing on this page is investment advice.
+    Statuses are the prototype's own: NEW means it works here, CONCEPT means the idea is demonstrated
+    but not built, PREMIUM means a paid tier shown as a concept. Nothing on this page is investment advice.
   </div>
 </main>
 
@@ -124,52 +136,44 @@
 <script>
 document.getElementById('askCopilot')?.addEventListener('click', () => document.querySelector('.cp-fab')?.click());
 
-const H = window.Hub, P = window.Portal;
+const Fx = window.Features, P = window.Portal;
 
-Hub.mount('trade', mode => `
-  <div class="tv-card mt-24" id="start">
-    <div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
-      <p class="title" style="margin:0">Start here — eight steps</p><span class="tag tag-warn">PILOT FLOW</span>
-    </div>
-    <div class="stub-steps" style="margin-top:12px">
-      <span>1 · choose a market</span><span>2 · choose an instrument</span><span>3 · understand the risk</span>
-      <span>4 · practice or real</span><span>5 · choose a broker</span><span>6 · connect an account</span>
-      <span>7 · place the trade</span><span>8 · review the result</span>
-    </div>
-    <div class="row mt-16" style="gap:8px;flex-wrap:wrap">
-      <a class="btn btn-primary" href="#practice" style="padding:9px 16px">Start with practice</a>
-      <a class="btn btn-quiet" href="/learn#trading" style="padding:9px 16px">Learn the vocabulary</a>
-    </div>
-    <div class="mono" style="font-size:10.5px;color:var(--tv-ghost);margin-top:11px">
-      no broker integration exists on this stand, and none will on a case-study prototype
-    </div>
-  </div>
+function card(f, surface) {
+  return `<a class="fcard" href="${f.route}" data-fid="${f.id}">
+    <div class="top"><span class="ic">${f.icon}</span>${Fx.badge(f.status)}</div>
+    <h3>${f.name}</h3>
+    <div class="prob">Problem: ${f.problem}</div>
+    <div class="sol">${f.solution}</div>
+    <div class="case-note">Case hypothesis ${f.id} · metric: ${f.metric}</div>
+    <div class="meta">for ${f.audience} · depth ${f.depth}/5</div>
+    <div class="cta">See how it works →</div>
+  </a>`;
+}
 
-  <h2 class="mt-32" id="practice" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">Practice</h2>
-  <div class="stubs mt-16">
-    ${H.pilotCard({ title: 'Paper trading', what: 'A virtual balance with commissions and leverage simulated, so a decision costs attention rather than money.', actions: [{ label: 'Learn it in the Academy', url: '/learn/academy', primary: true }] })}
-    ${H.pilotCard({ title: 'Bar replay & scenarios', what: 'Replay a past period bar by bar and act as if it were live — the cheapest way to find out whether a rule survives contact with the market.', actions: [{ label: 'Open the workspace', url: '/charts' }] })}
-    ${H.pilotCard({ title: 'Decision journal', what: 'Why you entered, what you expected, what happened. The part most platforms leave out and most people need most.', actions: [{ label: 'Saved research', url: '/capital#saved' }] })}
-  </div>
+const counts = {};
+for (const f of Fx.ALL) counts[f.status] = (counts[f.status] || 0) + 1;
+document.getElementById('legend').innerHTML =
+  Object.keys(Fx.BADGE).filter(s => counts[s]).map(s => Fx.badge(s) + ` <span class="mono src">${counts[s]}</span>`).join(' &nbsp; ');
 
-  <h2 class="mt-32" id="brokers" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">Brokers</h2>
-  <div class="stubs mt-16">
-    ${H.pilotCard({ title: 'Catalogue', what: 'Filter by country, availability, asset classes, commissions, ratings, reviews, integrations and data delay — with the limitations stated, not buried.', note: 'ratings on the real platform are partly commercial; a prototype should not imitate that' })}
-    ${H.pilotCard({ title: 'Comparison', what: 'Commissions, spread, available markets, order types, leverage, supported countries, integration and support quality, side by side.', actions: [{ label: 'How matching works elsewhere', url: '/community/experts' }] })}
-    ${H.pilotCard({ title: 'Connected accounts', what: 'Status, permissions, available markets, balances, errors and reconnection — the boring screen that decides whether people trust the connection.' })}
-  </div>
+document.getElementById('workingCards').innerHTML = Fx.strategic().filter(f => f.status === 'new' || f.status === 'beta').map(f => card(f)).join('');
+document.getElementById('conceptCards').innerHTML = Fx.concepts().map(f => card(f)).join('');
+document.getElementById('coreCards').innerHTML = Fx.core().map(f => card(f)).join('');
 
-  <h2 class="mt-32" id="terminal" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">Terminal</h2>
-  <div class="stubs mt-16">
-    ${H.pilotCard({ title: 'Order ticket and positions', what: 'Order ticket, positions, active orders, history, trading from the chart, risk controls and connection status.', actions: [{ label: 'The chart it lives in', url: '/charts', primary: true }] })}
-  </div>
-`);
-
-Hub.nextStep(document.getElementById('next'), {
-  label: 'Learn what you are about to do',
-  url: '/learn/academy',
-  why: 'Six short steps on live data, ending in a trade with no money at risk. The order that keeps beginners out of trouble.'
+document.addEventListener('click', e => {
+  const a = e.target.closest('[data-fid]');
+  if (a) Fx.track('strategic_feature_opened', Fx.byId(a.dataset.fid), { surface: 'whatsNew' });
 });
+
+document.getElementById('toggleShowcase').addEventListener('click', () => {
+  const on = !Fx.isShowcase();
+  Fx.setShowcase(on);
+  document.body.classList.toggle('showcase', on);
+  P?.track('showcase_opened', { on });
+  location.href = on ? '/showcase' : '/new';
+});
+
+for (const f of Fx.ALL) Fx.track('strategic_feature_impression', f, { surface: 'whatsNew' });
+P?.track('whats_new_opened', { features: Fx.ALL.length });
 </script>
 </body>
 </html>

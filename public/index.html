@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="/portal.css">
 <link rel="stylesheet" href="/backgrounds.css">
 <script src="/ia.js"></script>
+<script src="/features.js"></script>
 <script src="/home.js"></script>
 <script src="/quotes.js"></script>
 <script src="/nav.js"></script>
@@ -33,6 +34,7 @@
     <a href="/community">Community</a>
   </div>
   <div class="right">
+    <a class="new-launch" href="/new" title="Product innovations — what is new in this prototype">NEW <span class="n" id="newCount">8</span></a>
     <button class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
     <span style="font-size:14px;color:var(--tv-muted)">Sign in</span>
     <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
@@ -71,6 +73,17 @@
   <button class="btn btn-quiet mt-16" id="moreRoutes" hidden style="padding:9px 16px">
     Show <span id="moreRoutesCount">4</span> more tasks
   </button>
+
+  <!-- §VIS-005 — the strategic features get a place of their own on the home
+       page. Clean architecture hid them; a labelled block brings them back
+       without returning to a menu with everything on the first level. -->
+  <h2 class="mt-32" id="whats-new" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">
+    New ways to use the platform</h2>
+  <div class="row mt-16" style="gap:10px;flex-wrap:wrap;align-items:center">
+    <span style="font-size:13px;color:var(--tv-faint)">Four that work here, three shown as concepts.</span>
+    <a href="/new" style="font-size:13px;font-weight:700">All product innovations →</a>
+  </div>
+  <div class="stubs mt-16" id="featureCards"></div>
 
   <!-- ONE market brief instead of a quote section per asset class. -->
   <div class="grid-2 mt-32" style="grid-template-columns:1.5fr 1fr;align-items:start" id="markets">
@@ -503,6 +516,38 @@ $('moreRoutes')?.addEventListener('click', () => {
 
 document.addEventListener('ui-mode-changed', applyMode);
 
+/* --------------------------------------------------- strategic features */
+
+const Fx = window.Features;
+
+function renderFeatures() {
+  const primary = ['NEW-01', 'NEW-02', 'NEW-05', 'NEW-07'].map(Fx.byId);
+  const secondary = ['NEW-06', 'NEW-03', 'NEW-08'].map(Fx.byId);
+  const card = f => `<a class="fcard" href="${f.route}" data-fid="${f.id}">
+      <div class="top"><span class="ic">${f.icon}</span>${Fx.badge(f.status)}</div>
+      <h3>${f.shortName}</h3>
+      <div class="prob">${f.problem}</div>
+      <div class="case-note">Case hypothesis ${f.id} · ${f.metric}</div>
+      <div class="cta">Open →</div></a>`;
+
+  $('featureCards').innerHTML = primary.map(card).join('') +
+    `<div class="tv-card" style="grid-column:1/-1;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+       <span class="mono" style="font-size:10.5px;color:var(--tv-ghost);letter-spacing:.08em">ALSO IN THE CASE</span>
+       ${secondary.map(f => `<a class="preset" href="${f.route}" data-fid="${f.id}">${f.icon} ${f.shortName} ${Fx.badge(f.status)}</a>`).join('')}
+     </div>`;
+
+  for (const f of primary.concat(secondary)) Fx.track('strategic_feature_impression', f, { surface: 'home' });
+}
+
+document.addEventListener('click', e => {
+  const a = e.target.closest('[data-fid]');
+  if (a) {
+    Fx.track('strategic_feature_opened', Fx.byId(a.dataset.fid), { surface: 'home' });
+    P.meaningful('strategic_feature', { feature: a.dataset.fid });
+  }
+});
+
+renderFeatures();
 renderChips();
 renderFeed('editors');
 renderTrail();

@@ -298,6 +298,21 @@
     return list.map(a => ({ ...a, status: 'live', level: 'simple', door: 'Action', group: 'Actions' }));
   }
 
+  /* §8 — the strategic features are searchable by their own name, by the
+     problem they solve and by the words a person would actually type
+     ("who can help me", "explain this rating"). A feature nobody can find
+     is a feature that does not exist. */
+  function featureItems() {
+    const Fx = window.Features;
+    if (!Fx) return [];
+    return Fx.ALL.map(f => ({
+      id: 'feat-' + f.id, label: f.shortName, desc: f.problem,
+      url: f.route, status: f.status === 'concept' ? 'mapped' : 'live',
+      level: 'simple', door: 'Feature', group: 'Product innovations',
+      keywords: `${f.id} ${f.name} ${f.shortName} ${f.problem} ${f.solution} ${f.audience} ${f.searchTerms || ''}`
+    }));
+  }
+
   function score(item, q) {
     const label = item.label.toLowerCase();
     const hay = `${label} ${(item.desc || '').toLowerCase()} ${(item.keywords || '').toLowerCase()} ${(item.door || '').toLowerCase()}`;
@@ -333,12 +348,13 @@
 
     function render() {
       const q = input.value.trim().toLowerCase();
-      const pool = actions().concat(IA.allItems(), instruments);
+      const pool = actions().concat(featureItems(), IA.allItems(), instruments);
 
       results = (q
         ? pool.map(i => ({ i, s: score(i, q) })).filter(x => x.s >= 0)
             .sort((a, b) => b.s - a.s || a.i.label.length - b.i.label.length).map(x => x.i)
-        : actions().slice(0, 8).concat(IA.allItems().filter(i => i.status === 'live' && i.door !== 'Company').slice(0, 14))
+        : actions().slice(0, 6).concat(featureItems().slice(0, 4),
+            IA.allItems().filter(i => i.status === 'live' && i.door !== 'Company').slice(0, 12))
       ).slice(0, 40);
 
       cursor = 0;
@@ -465,11 +481,44 @@
 
   /* -------------------------------------------------------------- boot */
 
+  /* §12 — showcase mode is a reviewer's aid: it turns on the case notes that
+     say which hypothesis a block is testing. It is off by default, it is
+     obviously a demo control, and it never changes what the product does. */
+  function mountShowcase() {
+    const Fx = window.Features;
+    if (!Fx || document.querySelector('.sc-fab')) return;
+    const on = Fx.isShowcase();
+    if (on) document.body.classList.add('showcase');
+    const b = h(`<button class="sc-fab ${on ? 'on' : ''}" aria-pressed="${on}"
+      title="Show the case note under each block — which hypothesis it tests and which metric would judge it">
+      <span class="dot"></span><span class="lbl">${on ? 'Case notes on' : 'Case notes'}</span></button>`);
+    b.addEventListener('click', () => {
+      const next = !document.body.classList.contains('showcase');
+      Fx.setShowcase(next);
+      document.body.classList.toggle('showcase', next);
+      b.classList.toggle('on', next);
+      b.setAttribute('aria-pressed', String(next));
+      b.querySelector('.lbl').textContent = next ? 'Case notes on' : 'Case notes';
+      P()?.track?.('showcase_toggled', { on: next, route: location.pathname });
+    });
+    document.body.appendChild(b);
+  }
+
+  /* The counter next to NEW comes from the registry — a hard-coded 8 in twenty
+     files is a promise that goes stale the first time a feature is added. */
+  function paintNewCount() {
+    const Fx = window.Features;
+    const el = document.getElementById('newCount');
+    if (Fx && el) el.textContent = String(Fx.strategic().length);
+  }
+
   function init() {
     buildPanels();
     buildModeSwitch();
     wireSearch();
     wireAvatar();
+    mountShowcase();
+    paintNewCount();
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
     document.addEventListener('ui-mode-changed', repaintPanels);
   }

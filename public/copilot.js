@@ -82,7 +82,13 @@
   .cp-input input:focus{border-color:#2962FF}
   .cp-input button{background:#2962FF;border:none;border-radius:999px;width:38px;height:38px;color:#fff;font-size:15px;cursor:pointer}
   .cp-input button:disabled{opacity:.5;cursor:default}
-  .cp-disc{font-family:Consolas,monospace;font-size:9px;color:#50535E;padding:0 16px 12px;text-align:center}
+  .cp-esc{margin-top:auto;padding:10px 14px;border-top:1px solid var(--tv-line);background:rgba(41,98,255,.05)}
+.cp-esc .t{font-size:10px;letter-spacing:.08em;color:var(--tv-ghost);font-family:var(--tv-mono, monospace)}
+.cp-esc a{display:flex;gap:8px;align-items:center;margin-top:6px;font-size:12.5px;color:var(--tv-white);text-decoration:none}
+.cp-esc a:hover{color:#5B8DFF}
+.cp-esc a b{font-weight:600}
+.cp-esc a span.s{color:var(--tv-faint);font-size:11.5px}
+.cp-disc{font-family:Consolas,monospace;font-size:9px;color:#50535E;padding:0 16px 12px;text-align:center}
   .cp-dots{display:inline-flex;gap:4px;vertical-align:middle}
   .cp-dots i{width:5px;height:5px;border-radius:50%;background:#5B8DFF;animation:cpb 1s infinite}
   .cp-dots i:nth-child(2){animation-delay:.15s}.cp-dots i:nth-child(3){animation-delay:.3s}
@@ -115,6 +121,7 @@
           <div class="cp-note">I can explain moves, compare instruments, link news to the chart, set up alerts and help with Pine Script. I see the page you are on — not your money, and not your positions.</div>
           <div class="cp-suggests"></div>
         </div>
+        <div class="cp-esc"></div>
         <div class="cp-input"><input type="text" placeholder="Ask about markets…" aria-label="Ask about markets"><button aria-label="Send">➤</button></div>
         <div class="cp-disc">AI ANSWERS · NOT INVESTMENT ADVICE</div>
       </aside>`);
@@ -131,6 +138,28 @@
       b.addEventListener('click', () => send(s));
       sugg.appendChild(b);
     });
+
+    /* §NEW-07 on the copilot surface — the moment an AI answer is not enough
+       is the moment a person wants a human. Escalation lives here, permanently,
+       not as a paywall that appears after the third question. */
+    const esc_ = panel.querySelector('.cp-esc');
+    const Fx = window.Features;
+    if (Fx) {
+      esc_.innerHTML = '<div class="t">WHEN AI IS NOT ENOUGH</div>' +
+        [['NEW-07', 'Talk to a licensed expert', 'verified adviser, you choose what is shared'],
+         ['NEW-06', 'AI Private', 'multi-step research, premium tier']]
+          .map(([id, title, sub]) => {
+            const f = Fx.byId(id);
+            if (!f) return '';
+            Fx.track('strategic_feature_impression', f, { surface: 'copilot' });
+            return `<a href="${f.route}?from=copilot" data-fid="${f.id}"><span>${f.icon}</span>
+              <span><b>${title}</b> ${Fx.badge(f.status)}<br><span class="s">${sub}</span></span></a>`;
+          }).join('');
+      esc_.addEventListener('click', e => {
+        const a = e.target.closest('[data-fid]');
+        if (a) Fx.track('strategic_feature_opened', Fx.byId(a.dataset.fid), { surface: 'copilot' });
+      });
+    }
 
     const body = panel.querySelector('.cp-body');
     const input = panel.querySelector('input');

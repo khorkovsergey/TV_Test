@@ -10,6 +10,7 @@
 <link rel="stylesheet" href="/backgrounds.css">
 <script src="/academy.js"></script>
 <script src="/ia.js"></script>
+<script src="/features.js"></script>
 <script src="/home.js"></script>
 <script src="/nav.js"></script>
 <script src="/copilot.js" defer></script>
@@ -32,6 +33,7 @@
     <a href="/community">Community</a>
   </div>
   <div class="right">
+    <a class="new-launch" href="/new" title="Product innovations — what is new in this prototype">NEW <span class="n" id="newCount">8</span></a>
     <button class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
     <span style="font-size:14px;color:var(--tv-muted)">Sign in</span>
     <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
@@ -83,6 +85,9 @@
     </div>
     <div class="disclaimer" style="border:none;padding-top:10px;">Expert tracks are opinions of their
       authors, editorially reviewed. Static placeholders in this pilot.</div>
+    <!-- §NEW-07 on the academy surface: the natural end of self-teaching is a
+         question a course cannot answer. That is where a licensed human belongs. -->
+    <div class="mt-16" id="academyPromos" style="display:flex;flex-direction:column;gap:8px"></div>
   </div>
 
   <!-- Value-first CTA: only appears once there is something worth saving -->
@@ -300,6 +305,20 @@ $('resetBtn').addEventListener('click', () => {
 });
 
 render();
+</script>
+<script>
+(function () {
+  const Fx = window.Features;
+  const box = document.getElementById('academyPromos');
+  if (!Fx || !box) return;
+  box.innerHTML =
+    Fx.promo('NEW-07', 'academy', { query: 'from=academy', title: 'When a course is not the answer', line: 'A licensed adviser, matched to your country and the question you actually have — not a course seller.' }) +
+    Fx.promo('NEW-08', 'academy', { title: 'Teaching earns rewards', line: 'Lessons, ideas and referrals feed one visible loop instead of four disconnected links.' });
+  box.addEventListener('click', e => {
+    const a = e.target.closest('[data-fid]');
+    if (a) Fx.track('strategic_feature_opened', Fx.byId(a.dataset.fid), { surface: 'academy' });
+  });
+})();
 </script>
 </body>
 </html>

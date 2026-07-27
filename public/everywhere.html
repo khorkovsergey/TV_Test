@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>TradingView Everywhere — research that survives the door</title>
+<link rel="stylesheet" href="/tv-theme.css">
+<link rel="stylesheet" href="/portal.css">
+<script src="/ia.js"></script>
+<script src="/features.js"></script>
+<script src="/home.js"></script>
+<script src="/quotes.js"></script>
+<script src="/nav.js"></script>
+<script src="/copilot.js" defer></script>
+</head>
+<body>
+
+<div class="mock-strip">
+  UNAFFILIATED CASE-STUDY MOCKUP · NOT A REAL PLATFORM · NOT INVESTMENT ADVICE
+</div>
+
+<nav class="portal-nav">
+  <div class="logo"><a href="/"><img src="/assets/tv-logo-white.svg" alt="Platform"></a></div>
+  <div class="search"><svg class="g" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="M11 11l4 4"/></svg>Search or ask: &ldquo;why is BTC up?&rdquo;</div>
+  <div class="menu">
+    <a href="/overview">Overview</a>
+    <a href="/research">Research</a>
+    <a href="/capital">Capital</a>
+    <a href="/trade">Trade</a>
+    <a href="/learn">Learn</a>
+    <a href="/community">Community</a>
+  </div>
+  <div class="right">
+    <a class="new-launch" href="/new" title="Product innovations — what is new in this prototype">NEW <span class="n" id="newCount">8</span></a>
+    <button class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
+    <span style="font-size:14px;color:var(--tv-muted)">Sign in</span>
+    <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
+  </div>
+</nav>
+
+<main class="tv-page" style="max-width:1180px">
+  <div class="row" style="gap:10px;align-items:center;flex-wrap:wrap">
+    <span class="tv-eyebrow">Product innovations · TradingView Everywhere</span><span id="badge"></span>
+  </div>
+  <h1 class="tv-h1" style="margin-top:8px">Research that survives the door</h1>
+  <p class="tv-lead" style="margin-top:10px">Most research starts somewhere else — a chat card, an article, an embedded chart — and every one of those entrances throws the context away. These three demos carry it through.</p>
+  <div class="case-note">Case hypothesis NEW-03 · metric: external context restored · entry to research action</div>
+
+  <div class="row mt-16" style="gap:10px;flex-wrap:wrap">
+    <span class="tag tag-warn">CONCEPT · THE MECHANISM IS REAL, THE PARTNERS ARE NOT</span>
+    <span class="mono src">each button below is a genuine deep link — open one and watch what arrives with you</span>
+  </div>
+
+  <div class="stubs mt-24">
+    <div class="tv-card">
+      <div class="mono" style="font-size:10px;letter-spacing:.08em;color:#5B8DFF">ENTRY 1 · MESSENGER</div>
+      <p class="title mt-16" style="margin-bottom:4px">A price card in a chat</p>
+      <div style="font-size:13px;color:var(--tv-muted);line-height:1.5">Someone forwards a card about
+        bitcoin. Tapping it usually lands on a generic front page. Here it opens the asset, on the same
+        timeframe, with the question waiting in the Copilot.</div>
+      <a class="btn btn-primary mt-16" style="padding:9px 16px" data-demo="messenger"
+         href="/symbols/BTCUSD?from=messenger&amp;range=1D&amp;q=why%20is%20bitcoin%20moving%20today">Open as if from a chat →</a>
+    </div>
+    <div class="tv-card">
+      <div class="mono" style="font-size:10px;letter-spacing:.08em;color:#5B8DFF">ENTRY 2 · ARTICLE</div>
+      <p class="title mt-16" style="margin-bottom:4px">An article about inflation</p>
+      <div style="font-size:13px;color:var(--tv-muted);line-height:1.5">"Continue research" from a story
+        should not mean "start over". It opens the event and the instruments it touches.</div>
+      <a class="btn btn-primary mt-16" style="padding:9px 16px" data-demo="article"
+         href="/overview?from=article&amp;event=cpi&amp;q=what%20does%20inflation%20do%20to%20gold">Continue from an article →</a>
+    </div>
+    <div class="tv-card">
+      <div class="mono" style="font-size:10px;letter-spacing:.08em;color:#5B8DFF">ENTRY 3 · EMBED</div>
+      <p class="title mt-16" style="margin-bottom:4px">An embedded chart on a blog</p>
+      <div style="font-size:13px;color:var(--tv-muted);line-height:1.5">The reader selected a period on a
+        widget. Opening the full research keeps that period instead of resetting to the default.</div>
+      <a class="btn btn-primary mt-16" style="padding:9px 16px" data-demo="embed"
+         href="/charts?symbol=XAUUSD&amp;range=1M&amp;from=embed">Open the full chart →</a>
+    </div>
+  </div>
+
+  <div class="tv-card mt-24">
+    <p class="title">What travels, and what does not</p>
+    <div class="q-wrap mt-16"><table class="q-table">
+      <thead><tr><th>Carried</th><th>How</th><th>Why it matters</th></tr></thead><tbody>
+      <tr><td>Symbol</td><td class="mono">/symbols/BTCUSD</td><td>the page opens on the thing being read about</td></tr>
+      <tr><td>Timeframe</td><td class="mono">?range=1M</td><td>a chart reset to default loses the author's point</td></tr>
+      <tr><td>Event</td><td class="mono">?event=cpi</td><td>the reason the reader clicked at all</td></tr>
+      <tr><td>The question</td><td class="mono">?q=…</td><td>it lands in the Copilot instead of being retyped</td></tr>
+      <tr><td>Source</td><td class="mono">?from=messenger</td><td>so acquisition can be measured per channel</td></tr>
+      <tr><td style="color:var(--tv-orange)">Nothing personal</td><td>—</td><td>a deep link is a public URL: it carries context, never identity</td></tr>
+      </tbody></table></div>
+  </div>
+  <div class="disclaimer">A concept demonstration. No partner integration exists; the deep links are genuine and land inside this prototype. Nothing here is investment advice.</div>
+</main>
+
+<footer class="portal-footer">
+  <div class="cols" style="grid-template-columns:repeat(6,1fr)">
+    <div class="col"><b>Company</b>
+      <div><a href="#about-prototype">About this prototype</a></div>
+      <div><a href="/sitemap#company">About</a></div>
+      <div><a href="/sitemap#company">Blog</a></div>
+      <div><a href="/sitemap#company">Careers</a></div>
+      <div><a href="/sitemap#company">Media kit</a></div>
+    </div>
+    <div class="col"><b>Product &amp; plans</b>
+      <div><a href="/sitemap#company">Features</a></div>
+      <div><a href="/sitemap#company">Pricing</a></div>
+      <div><a href="/sitemap#company">Market data</a></div>
+      <div><a href="/sitemap#company">Apps</a></div>
+      <div><a href="/sitemap#company">Gift plans</a></div>
+    </div>
+    <div class="col"><b>For business</b>
+      <div><a href="/sitemap#business">Widgets</a></div>
+      <div><a href="/sitemap#business">Charting libraries</a></div>
+      <div><a href="/sitemap#business">Broker integration</a></div>
+      <div><a href="/sitemap#business">Advertising</a></div>
+      <div><a href="/sitemap#business">Partner program</a></div>
+    </div>
+    <div class="col"><b>Support</b>
+      <div><a href="/learn#help">Help centre</a></div>
+      <div><a href="/api/health">Status</a></div>
+      <div><a href="/sitemap#policies">Security</a></div>
+      <div><a href="/sitemap#policies">Accessibility</a></div>
+    </div>
+    <div class="col"><b>Legal</b>
+      <div><a href="/sitemap#policies">Terms</a></div>
+      <div><a href="/sitemap#policies">Privacy</a></div>
+      <div><a href="/sitemap#policies">Cookies</a></div>
+      <div><a href="#about-prototype">Disclaimer</a></div>
+    </div>
+    <div class="col"><b>Community extras</b>
+      <div><a href="/community#rewards">Store</a></div>
+      <div><a href="/community#rewards">Refer a friend</a></div>
+      <div><a href="/sitemap#company">Wall of Love</a></div>
+      <div><a href="/sitemap#policies">House rules</a></div>
+    </div>
+  </div>
+  <div class="cols" style="margin-top:22px;grid-template-columns:1fr">
+    <div style="font-size:13px"><a href="/sitemap"><b>Full site map — every destination, where it went and whether it works here →</b></a></div>
+  </div>
+  <div class="cols" style="margin-top:18px;grid-template-columns:1fr">
+    <div class="disclaimer" id="about-prototype" style="border-top:none;padding-top:0;margin-top:0">
+      Unaffiliated case-study prototype built for an internal product review. Not a real platform,
+      not operated by or endorsed by any company whose branding appears here. Market data is delayed
+      and comes from a free public source; the Experts flow and the Copilot are the only functional
+      services. Nothing here is investment advice.
+    </div>
+  </div>
+</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+const Fx = window.Features, P = window.Portal;
+$('badge').innerHTML = Fx.badge('concept');
+if (Fx.isShowcase()) document.body.classList.add('showcase');
+document.getElementById('askCopilot')?.addEventListener('click', () => document.querySelector('.cp-fab')?.click());
+document.addEventListener('click', e => {
+    const a = e.target.closest('[data-demo]');
+    if (a) P?.track('external_context_demo_opened', { demo: a.dataset.demo });
+  });
+Fx.track('strategic_feature_impression', Fx.byId('NEW-03'), { surface: 'conceptPage' });
+</script>
+</body>
+</html>

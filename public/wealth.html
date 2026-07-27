@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Personal Wealth Hub — all of your capital, not just the traded part</title>
+<link rel="stylesheet" href="/tv-theme.css">
+<link rel="stylesheet" href="/portal.css">
+<script src="/ia.js"></script>
+<script src="/features.js"></script>
+<script src="/home.js"></script>
+<script src="/quotes.js"></script>
+<script src="/nav.js"></script>
+<script src="/copilot.js" defer></script>
+</head>
+<body data-section="capital">
+
+<div class="mock-strip">
+  UNAFFILIATED CASE-STUDY MOCKUP · NOT A REAL PLATFORM · NOT INVESTMENT ADVICE
+</div>
+
+<nav class="portal-nav">
+  <div class="logo"><a href="/"><img src="/assets/tv-logo-white.svg" alt="Platform"></a></div>
+  <div class="search"><svg class="g" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="M11 11l4 4"/></svg>Search or ask: &ldquo;why is BTC up?&rdquo;</div>
+  <div class="menu">
+    <a href="/overview">Overview</a>
+    <a href="/research">Research</a>
+    <a href="/capital" class="active">Capital</a>
+    <a href="/trade">Trade</a>
+    <a href="/learn">Learn</a>
+    <a href="/community">Community</a>
+  </div>
+  <div class="right">
+    <a class="new-launch" href="/new" title="Product innovations — what is new in this prototype">NEW <span class="n" id="newCount">8</span></a>
+    <button class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
+    <span style="font-size:14px;color:var(--tv-muted)">Sign in</span>
+    <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
+  </div>
+</nav>
+
+<main class="tv-page" style="max-width:1180px">
+
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap">
+    <div>
+      <div class="row" style="gap:10px;align-items:center"><span class="tv-eyebrow">Capital · Personal Wealth Hub</span><span id="badge"></span></div>
+      <h1 class="tv-h1" style="margin-top:8px">All of your capital, not just the traded part</h1>
+      <p class="tv-lead" style="margin-top:10px">A platform that only sees the instruments you look at
+        cannot tell you whether you are taking too much risk, holding too much idle cash, or drifting
+        away from a goal. This is the other half of the picture.</p>
+      <div class="case-note">Case hypothesis NEW-05 · metric: wealth profile created · scenario saved</div>
+    </div>
+    <button class="btn btn-quiet" id="resetProfile" style="padding:9px 16px" hidden>Start over</button>
+  </div>
+
+  <!-- The whole thing is a prototype over numbers you type in: no bank, no
+       broker, no custody. Saying so once, loudly, is the price of asking
+       anyone to type in what they own. -->
+  <div class="row mt-16" style="gap:10px;flex-wrap:wrap">
+    <span class="tag tag-warn">PROTOTYPE · NOTHING IS CONNECTED</span>
+    <span class="mono src">figures stay in this browser, are never sent anywhere, and are cleared by the button above</span>
+  </div>
+
+  <!-- ---------------------------------------------------------- builder -->
+  <div id="builder" class="tv-card mt-24">
+    <div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <p class="title" style="margin:0">Build your wealth profile</p>
+      <span class="mono src" id="stepLabel">step 1 of 4</span>
+    </div>
+    <div style="display:flex;gap:5px;margin-top:12px" id="stepBar"></div>
+
+    <div id="step1" class="wstep">
+      <div style="font-size:13.5px;color:var(--tv-muted);margin-top:16px">What is invested in markets right now?</div>
+      <div class="filters mt-16">
+        <div class="f"><label for="wStocks">Stocks &amp; ETFs</label><input type="number" id="wStocks" placeholder="0" min="0"></div>
+        <div class="f"><label for="wCrypto">Crypto</label><input type="number" id="wCrypto" placeholder="0" min="0"></div>
+        <div class="f"><label for="wBonds">Bonds</label><input type="number" id="wBonds" placeholder="0" min="0"></div>
+        <div class="f"><label for="wOther">Other market assets</label><input type="number" id="wOther" placeholder="0" min="0"></div>
+      </div>
+    </div>
+
+    <div id="step2" class="wstep" hidden>
+      <div style="font-size:13.5px;color:var(--tv-muted);margin-top:16px">And what is sitting still?</div>
+      <div class="filters mt-16">
+        <div class="f"><label for="wCash">Cash on hand</label><input type="number" id="wCash" placeholder="0" min="0"></div>
+        <div class="f"><label for="wDeposit">Deposits</label><input type="number" id="wDeposit" placeholder="0" min="0"></div>
+        <div class="f"><label for="wDepRate">Deposit rate, %</label><input type="number" id="wDepRate" placeholder="0" step="0.1"></div>
+        <div class="f"><label for="wCurrency">Main currency</label>
+          <select id="wCurrency"><option>USD</option><option>EUR</option><option>GBP</option><option>Other</option></select></div>
+      </div>
+      <div class="term-note">Cash and deposits are capital too. Leaving them out is how a portfolio
+        looks diversified while most of the money sits in one place earning nothing.</div>
+    </div>
+
+    <div id="step3" class="wstep" hidden>
+      <div style="font-size:13.5px;color:var(--tv-muted);margin-top:16px">What is the money for?</div>
+      <div class="filters mt-16">
+        <div class="f"><label for="gName">Goal</label><input type="text" id="gName" placeholder="e.g. a flat, a buffer, retirement"></div>
+        <div class="f"><label for="gAmount">Amount needed</label><input type="number" id="gAmount" placeholder="0" min="0"></div>
+        <div class="f"><label for="gYears">Horizon, years</label><input type="number" id="gYears" placeholder="5" min="1"></div>
+        <div class="f"><label for="gRisk">Risk you accept</label>
+          <select id="gRisk"><option value="low">Low — keep it safe</option><option value="medium" selected>Medium</option><option value="high">High — I can sit through a fall</option></select></div>
+      </div>
+    </div>
+
+    <div id="step4" class="wstep" hidden>
+      <div style="font-size:13.5px;color:var(--tv-muted);margin-top:16px">That is everything the model needs.</div>
+      <div id="preview" class="stats mt-16"></div>
+    </div>
+
+    <div class="row mt-24" style="gap:10px;flex-wrap:wrap">
+      <button class="btn btn-quiet" id="back" hidden style="padding:9px 16px">Back</button>
+      <button class="btn btn-primary" id="next" style="padding:9px 16px">Continue</button>
+      <span class="mono src" id="hint">nothing leaves this browser</span>
+    </div>
+  </div>
+
+  <!-- ----------------------------------------------------------- report -->
+  <div id="report" hidden>
+    <div class="stats mt-24" id="totals"></div>
+
+    <div class="grid-2 mt-24" style="grid-template-columns:1.4fr 1fr;align-items:start">
+      <div class="tv-card">
+        <div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <p class="title" style="margin:0">What the numbers say</p><span class="tag tag-fact">FACT · YOUR INPUT</span>
+        </div>
+        <div id="findings" style="display:flex;flex-direction:column;gap:12px;margin-top:14px"></div>
+        <div class="mono" style="font-size:10.5px;color:var(--tv-ghost);margin-top:14px">
+          arithmetic over the figures you typed — observations, never a recommendation to buy or sell
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="tv-card" id="eventsCard">
+          <div class="row" style="justify-content:space-between"><p class="title" style="margin:0">Events that touch your capital</p></div>
+          <div id="wEvents" style="margin-top:10px"></div>
+        </div>
+        <div class="tv-card">
+          <div class="row" style="justify-content:space-between"><p class="title" style="margin:0">Need a human?</p><span id="expertBadge"></span></div>
+          <div style="font-size:13px;color:var(--tv-muted);margin-top:6px">A licensed adviser, matched to
+            your country, capital band and question. You choose exactly what context is shared.</div>
+          <a class="btn btn-primary mt-16" href="/community/experts?from=wealth" id="toExperts" data-fid="NEW-07" style="padding:9px 16px">Find an expert</a>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="mt-32" id="scenarios" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">Scenarios</h2>
+    <div style="font-size:13px;color:var(--tv-faint);margin-top:6px">
+      What changes if you move money — before and after, side by side.</div>
+
+    <div class="tv-card mt-16">
+      <div class="filters">
+        <div class="f"><label for="sMove">Move this share of cash</label>
+          <select id="sMove"><option value="10">10%</option><option value="25">25%</option><option value="50">50%</option></select></div>
+        <div class="f"><label for="sInto">Into</label>
+          <select id="sInto"><option value="etf">A diversified ETF</option><option value="bonds">Bonds</option><option value="crypto">Crypto</option></select></div>
+        <div class="f"><label>&nbsp;</label><button class="btn btn-primary" id="runScenario" style="padding:9px 16px">Run scenario</button></div>
+        <div class="f"><label>&nbsp;</label><button class="btn btn-quiet" id="saveScenario" style="padding:9px 16px" disabled>Save scenario</button></div>
+      </div>
+      <div id="scenarioOut" class="mt-16"></div>
+    </div>
+
+    <div id="savedBox" class="mt-16" hidden>
+      <div class="mono" style="font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--tv-faint)">Saved scenarios</div>
+      <div id="savedList" class="mt-16" style="display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+
+    <div class="tv-card accent mt-32">
+      <div class="mono" style="font-size:10.5px;color:#5B8DFF;letter-spacing:.08em">NEXT LOGICAL STEP</div>
+      <div style="font-size:14.5px;font-weight:700;color:var(--tv-white);margin-top:8px" id="nextLabel">Look at what you could move into</div>
+      <div style="font-size:12.5px;color:var(--tv-muted);margin-top:6px;line-height:1.5">
+        A scenario is arithmetic. The next question is which instrument, and that is a screener job —
+        your scenario travels with you.</div>
+      <a class="btn btn-primary mt-16" href="/screeners" id="toScreener" style="padding:9px 16px">Continue to the screener →</a>
+    </div>
+  </div>
+
+  <div class="disclaimer">
+    A prototype over figures you type in. No bank, broker or custodian is connected, nothing is sent
+    anywhere, and none of the observations here is investment advice or a recommendation to buy or
+    sell anything.
+  </div>
+</main>
+
+<footer class="portal-footer">
+  <div class="cols" style="grid-template-columns:repeat(6,1fr)">
+    <div class="col"><b>Company</b>
+      <div><a href="#about-prototype">About this prototype</a></div>
+      <div><a href="/sitemap#company">About</a></div>
+      <div><a href="/sitemap#company">Blog</a></div>
+      <div><a href="/sitemap#company">Careers</a></div>
+      <div><a href="/sitemap#company">Media kit</a></div>
+    </div>
+    <div class="col"><b>Product &amp; plans</b>
+      <div><a href="/sitemap#company">Features</a></div>
+      <div><a href="/sitemap#company">Pricing</a></div>
+      <div><a href="/sitemap#company">Market data</a></div>
+      <div><a href="/sitemap#company">Apps</a></div>
+      <div><a href="/sitemap#company">Gift plans</a></div>
+    </div>
+    <div class="col"><b>For business</b>
+      <div><a href="/sitemap#business">Widgets</a></div>
+      <div><a href="/sitemap#business">Charting libraries</a></div>
+      <div><a href="/sitemap#business">Broker integration</a></div>
+      <div><a href="/sitemap#business">Advertising</a></div>
+      <div><a href="/sitemap#business">Partner program</a></div>
+    </div>
+    <div class="col"><b>Support</b>
+      <div><a href="/learn#help">Help centre</a></div>
+      <div><a href="/api/health">Status</a></div>
+      <div><a href="/sitemap#policies">Security</a></div>
+      <div><a href="/sitemap#policies">Accessibility</a></div>
+    </div>
+    <div class="col"><b>Legal</b>
+      <div><a href="/sitemap#policies">Terms</a></div>
+      <div><a href="/sitemap#policies">Privacy</a></div>
+      <div><a href="/sitemap#policies">Cookies</a></div>
+      <div><a href="#about-prototype">Disclaimer</a></div>
+    </div>
+    <div class="col"><b>Community extras</b>
+      <div><a href="/community#rewards">Store</a></div>
+      <div><a href="/community#rewards">Refer a friend</a></div>
+      <div><a href="/sitemap#company">Wall of Love</a></div>
+      <div><a href="/sitemap#policies">House rules</a></div>
+    </div>
+  </div>
+  <div class="cols" style="margin-top:22px;grid-template-columns:1fr">
+    <div style="font-size:13px"><a href="/sitemap"><b>Full site map — every destination, where it went and whether it works here →</b></a></div>
+  </div>
+  <div class="cols" style="margin-top:18px;grid-template-columns:1fr">
+    <div class="disclaimer" id="about-prototype" style="border-top:none;padding-top:0;margin-top:0">
+      Unaffiliated case-study prototype built for an internal product review. Not a real platform,
+      not operated by or endorsed by any company whose branding appears here. Market data is delayed
+      and comes from a free public source; the Experts flow and the Copilot are the only functional
+      services. Nothing here is investment advice.
+    </div>
+  </div>
+</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+const P = window.Portal, Fx = window.Features;
+const K = 'wealth_profile', KS = 'wealth_scenarios';
+
+$('badge').innerHTML = Fx.badge('new');
+$('expertBadge').innerHTML = Fx.badge('new');
+if (Fx.isShowcase()) document.body.classList.add('showcase');
+
+const money = v => Number.isFinite(v)
+  ? v.toLocaleString('en-US', { maximumFractionDigits: 0 }) : '—';
+const pct = v => Number.isFinite(v) ? v.toFixed(1) + '%' : '—';
+const num = id => { const v = parseFloat($(id).value); return Number.isFinite(v) && v >= 0 ? v : 0; };
+
+const load = () => { try { return JSON.parse(localStorage.getItem(K) || 'null'); } catch { return null; } };
+const save = p => { try { localStorage.setItem(K, JSON.stringify(p)); } catch {} };
+const loadScen = () => { try { return JSON.parse(localStorage.getItem(KS) || '[]'); } catch { return []; } };
+const saveScen = s => { try { localStorage.setItem(KS, JSON.stringify(s.slice(-8))); } catch {} };
+
+/* --------------------------------------------------------------- model */
+
+/* Deliberately simple arithmetic, and named as such. A prototype that produced
+   a confident risk score from four numbers would be the exact thing the case
+   argues against. */
+function analyse(p) {
+  const market = p.stocks + p.crypto + p.bonds + p.other;
+  const idle = p.cash + p.deposit;
+  const total = market + idle;
+  const idleShare = total ? idle / total * 100 : 0;
+  const cryptoShare = total ? p.crypto / total * 100 : 0;
+  const biggest = Math.max(p.stocks, p.crypto, p.bonds, p.other, p.cash, p.deposit);
+  const concentration = total ? biggest / total * 100 : 0;
+  const goalCover = p.goalAmount ? total / p.goalAmount * 100 : null;
+  const yearsToGoal = p.goalYears || null;
+  return { market, idle, total, idleShare, cryptoShare, concentration, goalCover, yearsToGoal };
+}
+
+function findings(p, a) {
+  const out = [];
+  if (a.idleShare >= 40) out.push(['IDLE CAPITAL', 'var(--tv-orange)',
+    `<b style="color:var(--tv-white)">${pct(a.idleShare)}</b> of your capital is cash and deposits.
+     At a ${p.depRate || 0}% deposit rate that is the part doing the least work — worth a decision,
+     not necessarily a change.`]);
+  else if (a.idleShare > 0) out.push(['IDLE CAPITAL', '#5B8DFF',
+    `${pct(a.idleShare)} sits in cash and deposits — a normal buffer at this level.`]);
+
+  if (a.concentration >= 50) out.push(['CONCENTRATION', 'var(--tv-orange)',
+    `One position accounts for <b style="color:var(--tv-white)">${pct(a.concentration)}</b> of everything you hold.
+     Diversification is the only thing in investing that is close to free.`]);
+  else out.push(['CONCENTRATION', 'var(--tv-green)',
+    `Largest single holding is ${pct(a.concentration)} of the total — no single point of failure at that level.`]);
+
+  if (a.cryptoShare >= 25) out.push(['VOLATILITY', 'var(--tv-orange)',
+    `Crypto is ${pct(a.cryptoShare)} of your capital. Historically this class has fallen 70%+ and taken
+     years to recover; that is survivable at a small share and not at a large one.`]);
+
+  if (a.goalCover != null) {
+    const ok = a.goalCover >= 100;
+    out.push(['GOAL', ok ? 'var(--tv-green)' : '#5B8DFF',
+      ok ? `You already hold ${pct(a.goalCover)} of "${p.goalName || 'your goal'}".`
+         : `You hold <b style="color:var(--tv-white)">${pct(a.goalCover)}</b> of "${p.goalName || 'your goal'}"
+            with ${a.yearsToGoal || '?'} years to go. The gap is ${money(Math.max(0, p.goalAmount - a.total))} ${p.currency}.`]);
+  }
+  if (p.risk === 'low' && a.cryptoShare > 10) out.push(['MISMATCH', 'var(--tv-orange)',
+    `You said you want low risk, and a quarter of the capital is in the most volatile class here.
+     Worth reconciling one against the other.`]);
+  return out;
+}
+
+/* ------------------------------------------------------------- builder */
+
+let step = 1;
+const STEPS = 4;
+
+function paintSteps() {
+  $('stepBar').innerHTML = Array.from({ length: STEPS }, (_, i) =>
+    `<i style="flex:1;height:4px;border-radius:2px;background:${i < step ? 'var(--tv-blue)' : 'var(--tv-ink-2)'}"></i>`).join('');
+  $('stepLabel').textContent = `step ${step} of ${STEPS}`;
+  for (let i = 1; i <= STEPS; i++) $('step' + i).hidden = i !== step;
+  $('back').hidden = step === 1;
+  $('next').textContent = step === STEPS ? 'Build my profile' : 'Continue';
+}
+
+function collect() {
+  return {
+    stocks: num('wStocks'), crypto: num('wCrypto'), bonds: num('wBonds'), other: num('wOther'),
+    cash: num('wCash'), deposit: num('wDeposit'), depRate: num('wDepRate'),
+    currency: $('wCurrency').value,
+    goalName: $('gName').value.trim(), goalAmount: num('gAmount'), goalYears: num('gYears'),
+    risk: $('gRisk').value, createdAt: new Date().toISOString()
+  };
+}
+
+function paintPreview() {
+  const p = collect(), a = analyse(p);
+  $('preview').innerHTML = [
+    ['In markets', money(a.market) + ' ' + p.currency],
+    ['Cash & deposits', money(a.idle) + ' ' + p.currency],
+    ['Total capital', money(a.total) + ' ' + p.currency],
+    ['Goal', p.goalName || '—']
+  ].map(([k, v]) => `<div class="st"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
+}
+
+$('next').addEventListener('click', () => {
+  if (step < STEPS) { step++; paintSteps(); if (step === STEPS) paintPreview(); return; }
+  const p = collect();
+  if (analyse(p).total <= 0) { $('hint').textContent = 'enter at least one figure above'; return; }
+  save(p);
+  P?.track('wealth_profile_created', { total_bands: analyse(p).total > 100000 ? 'over_100k' : 'under_100k', currency: p.currency });
+  P?.meaningful('wealth_profile_created');
+  Fx.track('strategic_feature_completed', Fx.byId('NEW-05'), { surface: 'wealthHub' });
+  render(p);
+});
+$('back').addEventListener('click', () => { if (step > 1) { step--; paintSteps(); } });
+$('resetProfile').addEventListener('click', () => {
+  try { localStorage.removeItem(K); localStorage.removeItem(KS); } catch {}
+  location.reload();
+});
+
+/* -------------------------------------------------------------- report */
+
+let current = null;
+
+function render(p) {
+  current = p;
+  const a = analyse(p);
+  $('builder').hidden = true;
+  $('report').hidden = false;
+  $('resetProfile').hidden = false;
+
+  $('totals').innerHTML = [
+    ['Total capital', money(a.total) + ' ' + p.currency],
+    ['In markets', pct(100 - a.idleShare)],
+    ['Idle', pct(a.idleShare)],
+    ['Largest holding', pct(a.concentration)]
+  ].map(([k, v]) => `<div class="st"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
+
+  $('findings').innerHTML = findings(p, a).map(([tag, colour, text]) =>
+    `<div><span class="mono" style="font-size:10.5px;color:${colour}">${tag}</span>
+      <div style="font-size:13.5px;color:var(--tv-text);line-height:1.55;margin-top:4px">${text}</div></div>`).join('');
+
+  /* The macro bridge the case asks for: an event, and what of YOUR capital it
+     reaches — not a generic calendar entry. */
+  const touched = [];
+  if (p.deposit || p.cash) touched.push('cash and deposits (rate decisions move what they earn)');
+  if (p.bonds) touched.push('bonds (their price moves opposite to rates)');
+  if (p.crypto) touched.push('crypto (historically the most rate-sensitive class here)');
+  $('wEvents').innerHTML = `
+    <div class="mono" style="font-size:10.5px;color:var(--tv-orange);letter-spacing:.08em">IN 18H 22M · HIGH IMPACT</div>
+    <div style="font-size:13.5px;color:var(--tv-white);font-weight:700;margin-top:6px">FOMC rate decision</div>
+    <div style="font-size:12.5px;color:var(--tv-muted);margin-top:6px;line-height:1.5">
+      Of what you hold, this reaches: ${touched.length ? touched.join('; ') : 'nothing you have entered'}.</div>
+    <a class="next-step" href="/symbols/US10Y" style="margin-top:10px">See the 10-year yield <b>→</b></a>`;
+
+  renderSaved();
+}
+
+/* ------------------------------------------------------------ scenario */
+
+function scenario(p, share, into) {
+  const a = analyse(p);
+  const moved = p.cash * (share / 100);
+  const after = { ...p, cash: p.cash - moved };
+  if (into === 'etf') after.stocks = p.stocks + moved;
+  if (into === 'bonds') after.bonds = p.bonds + moved;
+  if (into === 'crypto') after.crypto = p.crypto + moved;
+  const b = analyse(after);
+  return { moved, before: a, after: b, into, share };
+}
+
+$('runScenario').addEventListener('click', () => {
+  if (!current) return;
+  const share = Number($('sMove').value), into = $('sInto').value;
+  const s = scenario(current, share, into);
+  const row = (k, before, after, better) => {
+    const changed = before !== after;
+    const colour = !changed ? 'var(--tv-muted)' : better ? 'var(--tv-green)' : 'var(--tv-orange)';
+    return `<tr><td>${k}</td><td class="num">${before}</td><td class="num" style="color:${colour}">${after}</td></tr>`;
+  };
+  const label = { etf: 'a diversified ETF', bonds: 'bonds', crypto: 'crypto' }[into];
+
+  $('scenarioOut').innerHTML = `
+    <div style="font-size:13.5px;color:var(--tv-text)">Moving <b style="color:var(--tv-white)">${money(s.moved)} ${current.currency}</b>
+      (${share}% of cash) into ${label}:</div>
+    <div class="q-wrap mt-16"><table class="q-table">
+      <thead><tr><th>Measure</th><th class="num">Before</th><th class="num">After</th></tr></thead><tbody>
+      ${row('Idle capital', pct(s.before.idleShare), pct(s.after.idleShare), s.after.idleShare < s.before.idleShare)}
+      ${row('Largest holding', pct(s.before.concentration), pct(s.after.concentration), s.after.concentration <= s.before.concentration)}
+      ${row('Crypto share', pct(s.before.cryptoShare), pct(s.after.cryptoShare), into !== 'crypto')}
+      ${row('Liquidity (cash)', money(current.cash), money(current.cash - s.moved), false)}
+      ${current.goalAmount ? row('Goal coverage', pct(s.before.goalCover), pct(s.after.goalCover), false) : ''}
+      </tbody></table></div>
+    <div class="mono" style="font-size:10.5px;color:var(--tv-ghost);margin-top:12px">
+      Arithmetic on the figures you entered. It says what the proportions become — not what will
+      happen, and not what you should do. Liquidity falls in every case: that is the trade.</div>`;
+
+  $('saveScenario').disabled = false;
+  $('saveScenario').dataset.payload = JSON.stringify({ share, into, at: new Date().toISOString(),
+    idle: [s.before.idleShare, s.after.idleShare], conc: [s.before.concentration, s.after.concentration] });
+  P?.track('wealth_scenario_run', { share, into });
+  Fx.track('strategic_feature_started', Fx.byId('NEW-05'), { surface: 'wealthHub', action: 'scenario' });
+});
+
+$('saveScenario').addEventListener('click', () => {
+  const s = JSON.parse($('saveScenario').dataset.payload || 'null');
+  if (!s) return;
+  const list = loadScen(); list.push(s); saveScen(list);
+  renderSaved();
+  $('saveScenario').disabled = true;
+  P?.track('wealth_scenario_saved', { share: s.share, into: s.into });
+  P?.meaningful('wealth_scenario_saved');
+});
+
+function renderSaved() {
+  const list = loadScen();
+  $('savedBox').hidden = list.length === 0;
+  $('savedList').innerHTML = list.map(s => `
+    <div class="mover-row">
+      <span class="s">${s.share}% → ${s.into}</span>
+      <span style="flex:1;font-size:12.5px;color:var(--tv-muted)">idle ${s.idle[0].toFixed(1)}% → ${s.idle[1].toFixed(1)}% ·
+        concentration ${s.conc[0].toFixed(1)}% → ${s.conc[1].toFixed(1)}%</span>
+      <span class="mono" style="font-size:10.5px;color:var(--tv-ghost)">${new Date(s.at).toUTCString().slice(5, 17)}</span>
+    </div>`).join('');
+  /* The scenario travels: the screener opens on the class you were moving into. */
+  const last = list[list.length - 1];
+  if (last) {
+    const cls = { etf: 'stocks', bonds: 'rates', crypto: 'crypto' }[last.into] || '';
+    $('toScreener').href = '/screeners' + (cls ? '?cls=' + cls : '');
+    $('nextLabel').textContent = `Find something to move that ${last.share}% into`;
+  }
+}
+
+/* ---------------------------------------------------------------- boot */
+
+const existing = load();
+if (existing) render(existing);
+else paintSteps();
+
+$('toExperts').addEventListener('click', () =>
+  Fx.track('strategic_feature_opened', Fx.byId('NEW-07'), { surface: 'wealthHub' }));
+
+Fx.track('strategic_feature_impression', Fx.byId('NEW-05'), { surface: 'wealthHub' });
+P?.track('section_opened', { section: 'wealth' });
+</script>
+</body>
+</html>

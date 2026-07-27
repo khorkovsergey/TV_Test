@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="/tv-theme.css">
 <link rel="stylesheet" href="/portal.css">
 <script src="/ia.js"></script>
+<script src="/features.js"></script>
 <script src="/home.js"></script>
 <script src="/quotes.js"></script>
 <script src="/nav.js"></script>
@@ -36,6 +37,7 @@
     <a href="/community">Community</a>
   </div>
   <div class="right">
+    <a class="new-launch" href="/new" title="Product innovations — what is new in this prototype">NEW <span class="n" id="newCount">8</span></a>
     <button class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
     <span style="font-size:14px;color:var(--tv-muted)">Sign in</span>
     <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
@@ -109,6 +111,11 @@
           <div class="mono" style="font-size:10px;letter-spacing:.08em;color:#5B8DFF">HOW THIS RATING WAS FORMED</div>
           <div id="ratingBox" style="margin-top:8px"></div>
         </div>
+      </div>
+
+      <div class="tv-card" id="featureRail">
+        <div class="mono" style="font-size:10px;letter-spacing:.08em;color:#5B8DFF">GO DEEPER ON THIS INSTRUMENT</div>
+        <div id="railCards" style="display:flex;flex-direction:column;gap:8px;margin-top:10px"></div>
       </div>
 
       <div class="tv-card">
@@ -462,8 +469,25 @@ $('addWatch').addEventListener('click', () => {
   $('addWatch').disabled = true;
 });
 
+/* §VIS-006 — the features that belong on an asset page, and only those. */
+const Fx = window.Features;
+function renderFeatureRail() {
+  const list = ['NEW-02', 'NEW-07', 'NEW-06'].map(Fx.byId);
+  document.getElementById('railCards').innerHTML = list.map(f => `
+    <a class="next-step" href="${f.route}${f.id === 'NEW-07' ? '?from=asset&symbol=' + encodeURIComponent(symbol) : ''}" data-fid="${f.id}">
+      <span>${f.icon} ${f.shortName} ${Fx.badge(f.status)}
+        <span style="display:block;font-size:11.5px;color:var(--tv-faint);margin-top:3px">${f.audience}</span></span>
+      <b>→</b></a>`).join('');
+  for (const f of list) Fx.track('strategic_feature_impression', f, { surface: 'assetHub' });
+}
+document.addEventListener('click', e => {
+  const a = e.target.closest('#railCards [data-fid]');
+  if (a) Fx.track('strategic_feature_opened', Fx.byId(a.dataset.fid), { surface: 'assetHub' });
+});
+
 (async () => {
   renderTrail();
+  renderFeatureRail();
   renderTabs();
   renderEventChip();
   renderActionBar(null);

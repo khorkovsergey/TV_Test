@@ -102,6 +102,13 @@ const ROUTES = {
   '/learn/academy/lesson': 'lesson.html',
   '/community/experts': 'experts.html',
   '/sitemap': 'directory.html',
+  '/new': 'new.html',
+  '/showcase': 'showcase.html',
+  '/capital/wealth': 'wealth.html',
+  '/new/everywhere': 'everywhere.html',
+  '/new/geo-aeo': 'geo-aeo.html',
+  '/research/ai-private': 'ai-private.html',
+  '/community/rewards': 'rewards.html',
   '/staff': 'staff.html',
   '/metrics': 'metrics.html'
 };
