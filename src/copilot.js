@@ -53,16 +53,22 @@ instruments move, compare them, connect news and events to the chart, help set
 up charts and alerts, and help with Pine Script.
 
 How you answer:
+- Always answer the question itself, in words, every single time. A tool call
+  is never a substitute for the answer — the buttons are an extra offer on top
+  of a reply that already stands on its own.
 - Under 120 words. No preamble, no restating the question.
 - Reply in the language the user wrote in.
 - Lead with the answer, then the reasoning.
-- When a concrete next step fits, call the matching tool instead of describing
-  the step in prose.
+- Only after you have answered, if a concrete next step genuinely helps, call
+  the matching tool. If the question is conceptual ("what is X", "why does Y
+  happen"), answering is enough — do not reach for a tool at all.
 
 Sourcing:
-- Search the web before making any claim about a specific price move, news
-  event, or number. Say plainly when you could not find a source rather than
-  filling the gap from memory.
+- If the question touches a specific price move, a dated event, a number, or
+  recent news, search the web before you answer. Do not answer such questions
+  from memory.
+- For timeless conceptual questions no search is needed.
+- Say plainly when you looked and found nothing, rather than filling the gap.
 - Never present an unverified recollection as a fact.
 
 Hard limits:
@@ -271,7 +277,9 @@ export async function ask({ messages, context }) {
     convo.push({ role: 'user', content: results });
   }
 
-  await logAiCall({
+  /* Logged once at the end so the wrap-up call below is counted too — the
+     metrics page must show what a turn actually cost, not part of it. */
+  const audit = () => logAiCall({
     kind: 'copilot',
     model: (final || produced.at(-1))?.model || MODEL,
     stop_reason: (final || produced.at(-1))?.stop_reason,
@@ -280,13 +288,38 @@ export async function ask({ messages, context }) {
   });
 
   if (refused) {
+    await audit();
     return {
       text: 'I can\'t help with that one — it falls outside what this assistant is allowed to answer.',
       sources: [], actions: [], refused: true
     };
   }
 
-  const raw = final ? textOf(final) : '';
+  let raw = final ? textOf(final) : '';
+
+  /* The model can spend every round on tool calls and never write a word — the
+     user would get an empty bubble. Ask once more with tools switched off so a
+     reply always comes back in words. */
+  if (!raw) {
+    const wrap = await anthropic().beta.messages.create({
+      model: MODEL,
+      max_tokens: MAX_TOKENS,
+      betas: [FALLBACK_BETA],
+      fallbacks: 'default',
+      system,
+      messages: [...convo, {
+        role: 'user',
+        content: 'Answer my question now, in plain text. Do not call any tools.'
+      }]
+    });
+    const u = usageOf(wrap);
+    for (const k of Object.keys(totals)) totals[k] += u[k];
+    produced.push(wrap);
+    if (wrap.stop_reason !== 'refusal') raw = textOf(wrap);
+  }
+
+  await audit();
+
   const { text, filtered } = stripAdvice(raw || 'I could not produce an answer for that. Try rephrasing?');
   const sources = sourcesOf(produced);
 
