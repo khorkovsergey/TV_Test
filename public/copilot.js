@@ -143,7 +143,7 @@
     function renderAnswer(data, question) {
       const sourced = Array.isArray(data.sources) && data.sources.length;
       const msg = h(`<div class="cp-msg ai">
-        <span class="cp-tag ${sourced ? '' : 'bare'}">${sourced ? 'AI · SOURCED' : 'AI · NO SOURCES FOUND'}</span>
+        <span class="cp-tag ${sourced ? '' : 'bare'}">${sourced ? 'AI · SOURCED' : 'AI · MODEL KNOWLEDGE'}</span>
         <div class="cp-text"></div>
         <div class="cp-actions"></div>
         ${sourced ? '<div class="src">sources: ' + esc(data.sources.join(' · ')) + '</div>' : ''}
