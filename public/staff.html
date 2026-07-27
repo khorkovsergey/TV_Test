@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Expert Marketplace — кабинет консультанта</title>
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand"><span class="mark">EM</span> Expert Marketplace</div>
+    <nav>
+      <a href="/">Заявка</a>
+      <a href="/staff.html" class="on">Кабинет консультанта</a>
+      <a href="/metrics.html">Метрики</a>
+    </nav>
+  </div>
+
+  <h1>Кабинет консультанта</h1>
+  <p class="muted">Брони с брифом клиента. После встречи внесите черновые заметки — сервис соберёт
+    из них стандартизированный итог одинаковой структуры для всех консультаций.</p>
+
+  <div class="card" id="auth">
+    <label style="margin:0"><span>Staff-токен (если задан на сервере)</span>
+      <input id="token" placeholder="оставьте пустым, если STAFF_TOKEN не настроен"></label>
+    <button class="primary" id="load">Загрузить брони</button>
+  </div>
+
+  <div id="list"></div>
+  <div class="foot">Итог составляется автоматически из ваших заметок и не является инвестиционной
+    рекомендацией. Ответственность за содержание несёт консультант.</div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const token = () => $('#token').value.trim();
+const hdr = () => token() ? { 'x-staff-token': token() } : {};
+
+$('#token').value = localStorage.getItem('em.token') || '';
+$('#load').onclick = load;
+
+async function load() {
+  localStorage.setItem('em.token', token());
+  $('#list').innerHTML = '<div class="card muted">Загружаю…</div>';
+  try {
+    const r = await fetch('/api/bookings', { headers: hdr() });
+    if (r.status === 401) { $('#list').innerHTML = '<div class="err">Неверный staff-токен.</div>'; return; }
+    const rows = await r.json();
+    if (!rows.length) {
+      $('#list').innerHTML = '<div class="card muted">Броней пока нет. Оставьте заявку на главной, чтобы появилась первая.</div>';
+      return;
+    }
+    $('#list').innerHTML = rows.map(card).join('');
+    document.querySelectorAll('[data-gen]').forEach(b => b.onclick = () => generate(b.dataset.gen));
+    document.querySelectorAll('[data-show]').forEach(b => b.onclick = () => show(b.dataset.show));
+  } catch (err) {
+    $('#list').innerHTML = `<div class="err">${esc(err.message)}</div>`;
+  }
+}
+
+function briefOf(request) {
+  if (!request?.brief) return null;
+  return typeof request.brief === 'string' ? JSON.parse(request.brief) : request.brief;
+}
+
+function card(b) {
+  const brief = briefOf(b.request);
+  const done = b.has_summary;
+  return `<div class="card">
+    <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start">
+      <div>
+        <h2 style="margin-bottom:5px">${esc(b.request?.contact_name || 'Клиент')} → ${esc(b.consultant?.name || b.consultant_id)}</h2>
+        <div class="tags">
+          <span class="badge">${esc(b.slot)}</span>
+          <span class="badge ${done ? 'ok' : 'warn'}">${done ? 'итог готов' : 'ожидает итога'}</span>
+          <span class="badge">${esc(b.request?.country || '—')}</span>
+          <span class="badge">${esc(b.request?.capital_band || '—')}</span>
+        </div>
+      </div>
+      <span class="mono small dim">${esc(b.id)}</span>
+    </div>
+
+    ${brief ? `<div style="margin-top:14px">
+      <div class="tags" style="margin-bottom:8px"><span class="badge ai">Бриф клиента</span></div>
+      <p><b>${esc(brief.summary)}</b></p>
+      <div class="kv"><span class="muted">Фактический вопрос</span><span>${esc(brief.actual_question)}</span></div>
+      <div class="kv"><span class="muted">Горизонт / подготовка</span><span>${esc(brief.horizon)} · ${esc(brief.knowledge_level)}</span></div>
+      ${brief.questions_for_consultant?.length ? `<div style="margin-top:10px"><h3>Уточнить в первую очередь</h3>
+        <ul class="clean">${brief.questions_for_consultant.map(q => `<li>${esc(q)}</li>`).join('')}</ul></div>` : ''}
+      ${brief.risk_signals?.length ? `<div class="note warn"><b>Сигналы риска:</b> ${brief.risk_signals.map(esc).join('; ')}</div>` : ''}
+    </div>` : `<div class="note warn" style="margin-top:12px">Бриф не собран. Исходный текст клиента:
+      <br>${esc(b.request?.goal_text || '—')}</div>`}
+
+    <div style="margin-top:16px">
+      <label><span>Черновые заметки после встречи (минимум 30 символов)</span>
+        <textarea id="n_${esc(b.id)}" placeholder="Что обсудили, что зафиксировали, о чём договорились, что клиент делает дальше."></textarea></label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="primary" data-gen="${esc(b.id)}">Собрать итог</button>
+        ${done ? `<button data-show="${esc(b.id)}">Показать сохранённый итог</button>` : ''}
+      </div>
+      <div id="e_${esc(b.id)}"></div>
+      <div class="stream" id="o_${esc(b.id)}" style="margin-top:12px"></div>
+    </div>
+  </div>`;
+}
+
+/* Стриминг итога: сервер отдаёт SSE, читаем поток и дописываем текст по кускам. */
+async function generate(id) {
+  const notes = $('#n_' + id).value.trim();
+  const out = $('#o_' + id), err = $('#e_' + id);
+  err.innerHTML = '';
+  if (notes.length < 30) { err.innerHTML = '<div class="err">Заметки слишком короткие — минимум 30 символов.</div>'; return; }
+
+  out.innerHTML = '<span class="cursor"></span>';
+  let text = '';
+
+  try {
+    const r = await fetch(`/api/bookings/${id}/summary`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...hdr() },
+      body: JSON.stringify({ notes })
+    });
+    if (!r.ok && r.headers.get('content-type')?.includes('json')) {
+      const d = await r.json();
+      err.innerHTML = `<div class="err">${esc(d.error || 'ошибка')}</div>`;
+      out.innerHTML = ''; return;
+    }
+
+    const reader = r.body.getReader();
+    const dec = new TextDecoder();
+    let buf = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      const parts = buf.split('\n\n');
+      buf = parts.pop();
+      for (const part of parts) {
+        const ev = /^event: (.+)$/m.exec(part)?.[1];
+        const raw = /^data: (.+)$/m.exec(part)?.[1];
+        if (!ev || !raw) continue;
+        const data = JSON.parse(raw);
+        if (ev === 'delta') { text += data.text; out.innerHTML = esc(text) + '<span class="cursor"></span>'; }
+        if (ev === 'done')  { out.textContent = data.summary; load(); }
+        if (ev === 'error') { err.innerHTML = `<div class="err">${esc(data.message)}</div>`; out.textContent = text; }
+      }
+    }
+  } catch (e) {
+    err.innerHTML = `<div class="err">${esc(e.message)}</div>`;
+  }
+}
+
+async function show(id) {
+  const out = $('#o_' + id);
+  const r = await fetch(`/api/bookings/${id}/summary`, { headers: hdr() });
+  const d = await r.json();
+  out.textContent = r.ok ? d.summary_md : (d.error || 'нет итога');
+}
+
+load();
+</script>
+</body>
+</html>

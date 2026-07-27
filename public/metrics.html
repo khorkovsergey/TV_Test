@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Expert Marketplace — метрики пилота</title>
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand"><span class="mark">EM</span> Expert Marketplace</div>
+    <nav>
+      <a href="/">Заявка</a>
+      <a href="/staff.html">Кабинет консультанта</a>
+      <a href="/metrics.html" class="on">Метрики</a>
+    </nav>
+  </div>
+
+  <h1>Метрики пилота</h1>
+  <p class="muted">Те показатели, что заявлены в гипотезе: booking rate, завершённые консультации,
+    повторные брони. Плюс стоимость AI — без неё юнит-экономику концьерж-пилота не посчитать.</p>
+
+  <div class="card">
+    <div class="row" style="align-items:end">
+      <label style="margin:0"><span>Staff-токен</span><input id="token" placeholder="если задан на сервере"></label>
+      <button class="primary" id="load" style="height:38px">Обновить</button>
+    </div>
+  </div>
+
+  <div id="out"></div>
+  <div class="foot" id="health"></div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+$('#token').value = localStorage.getItem('em.token') || '';
+$('#load').onclick = load;
+
+const stat = (n, l, hint) => `<div class="stat"><div class="n">${esc(n)}</div><div class="l">${esc(l)}</div>${
+  hint ? `<div class="l dim" style="margin-top:4px">${esc(hint)}</div>` : ''}</div>`;
+
+async function load() {
+  const t = $('#token').value.trim();
+  localStorage.setItem('em.token', t);
+  const headers = t ? { 'x-staff-token': t } : {};
+  $('#out').innerHTML = '<div class="card muted">Загружаю…</div>';
+
+  try {
+    const r = await fetch('/api/metrics', { headers });
+    if (r.status === 401) { $('#out').innerHTML = '<div class="err">Неверный staff-токен.</div>'; return; }
+    const m = await r.json();
+
+    $('#out').innerHTML = `
+      <div class="grid g3" style="margin-bottom:14px">
+        ${stat(m.requests, 'Заявок')}
+        ${stat(m.booking_rate + '%', 'Consultation booking rate', `${m.bookings} броней`)}
+        ${stat(m.completion_rate + '%', 'Завершённые консультации', `${m.completed} с итогом`)}
+      </div>
+      <div class="grid g3" style="margin-bottom:14px">
+        ${stat(m.repeat_bookings, 'Повторные брони')}
+        ${stat(m.briefs_failed, 'Брифов не собралось', `${m.briefs_ok} успешно`)}
+        ${stat(m.refusals, 'Отказов модели', 'по политикам безопасности')}
+      </div>
+
+      <div class="card">
+        <h2>Экономика AI</h2>
+        <div class="kv"><span class="muted">Вызовов модели</span><b>${m.ai_calls}</b></div>
+        <div class="kv"><span class="muted">Входные / выходные токены</span><b>${m.tokens.input} / ${m.tokens.output}</b></div>
+        <div class="kv"><span class="muted">Кэш: чтение / запись</span><b>${m.tokens.read} / ${m.tokens.write}</b></div>
+        <div class="kv"><span class="muted">Доля чтений из кэша</span><b>${m.cache_hit_rate}%</b></div>
+        <div class="kv"><span class="muted">Оценка расходов</span><b>$${m.est_cost_usd}</b></div>
+        <div class="kv"><span class="muted">На одну заявку</span><b>$${m.est_cost_per_request_usd}</b></div>
+        ${m.cache_hit_rate === 0 && m.repeat_kind_calls > 0 ? `<div class="note warn">Кэш не читается,
+          хотя вызовы одного типа уже повторялись — значит системный префикс где-то меняется между
+          запросами. Проверьте <span class="mono">prompts.js</span>: в системный блок не должно
+          попадать ничего динамического.</div>`
+        : `<div class="note">Системные промпты помечены точкой кэширования: повторные вызовы
+          <b>одного типа</b> читают префикс из кэша примерно за 10% цены входных токенов.
+          ${m.repeat_kind_calls === 0 ? 'Пока каждый тип вызывался по одному разу — переиспользовать нечего, нулевая доля здесь нормальна.' : ''}</div>`}
+      </div>
+
+      <div class="card">
+        <h2>Последние вызовы модели</h2>
+        <div id="calls" class="small muted">Загружаю…</div>
+      </div>`;
+
+    const rc = await fetch('/api/ai-calls', { headers });
+    const calls = await rc.json();
+    $('#calls').innerHTML = calls.length ? calls.slice(0, 20).map(c => `
+      <div class="kv">
+        <span><span class="badge">${esc(c.kind)}</span> <span class="dim mono">${esc(String(c.created_at).slice(0, 19).replace('T', ' '))}</span></span>
+        <b class="mono">${c.input_tokens}→${c.output_tokens} · кэш ${c.cache_read} · ${c.ms} мс${
+          c.stop_reason === 'refusal' ? ' · ОТКАЗ' : ''}</b>
+      </div>`).join('') : 'Вызовов пока не было.';
+  } catch (err) {
+    $('#out').innerHTML = `<div class="err">${esc(err.message)}</div>`;
+  }
+
+  try {
+    const h = await (await fetch('/api/health')).json();
+    $('#health').innerHTML = `Хранилище: <b>${esc(h.storage)}</b> — ${esc(h.storage_note)}. ` +
+      `Модель: <b>${esc(h.model)}</b>, AI: <b>${esc(h.ai)}</b>.`;
+  } catch {}
+}
+
+load();
+</script>
+</body>
+</html>
