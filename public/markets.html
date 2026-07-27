@@ -177,18 +177,28 @@ let snap = null;
 let activeClass = new URLSearchParams(location.search).get('cls') || 'all';
 let sortKey = 'changePct', sortDir = -1;
 
-const COLUMNS = [
-  { k: 'symbol',    label: 'Symbol',   num: false },
-  { k: 'name',      label: 'Name',     num: false },
-  { k: 'price',     label: 'Price',    num: true },
-  { k: 'change',    label: 'Change',   num: true },
-  { k: 'changePct', label: 'Chg %',    num: true },
-  { k: 'w1',        label: '1W',       num: true },
-  { k: 'm1',        label: '1M',       num: true },
-  { k: 'volume',    label: 'Volume',   num: true },
-  { k: 'range',     label: '52w range',num: false },
-  { k: 'spark',     label: '1 month',  num: false }
+/* §7.1 asks Simple for fewer metrics and §7.3 asks Pro for density, so the
+   column set follows the mode. Every column stays available one switch away —
+   this is about what is offered first, not about what may be seen. */
+const ALL_COLUMNS = [
+  { k: 'symbol',    label: 'Symbol',   num: false, min: 'simple' },
+  { k: 'name',      label: 'Name',     num: false, min: 'simple' },
+  { k: 'price',     label: 'Price',    num: true,  min: 'simple' },
+  { k: 'changePct', label: 'Chg %',    num: true,  min: 'simple' },
+  { k: 'spark',     label: '1 month',  num: false, min: 'simple' },
+  { k: 'change',    label: 'Change',   num: true,  min: 'standard' },
+  { k: 'w1',        label: '1W',       num: true,  min: 'standard' },
+  { k: 'm1',        label: '1M',       num: true,  min: 'standard' },
+  { k: 'range',     label: '52w range',num: false, min: 'standard' },
+  { k: 'volume',    label: 'Volume',   num: true,  min: 'pro' }
 ];
+const ORDER = { simple: 0, standard: 1, pro: 2 };
+let COLUMNS = ALL_COLUMNS;
+function pickColumns() {
+  const m = P?.mode?.() || 'simple';
+  COLUMNS = ALL_COLUMNS.filter(c => ORDER[c.min] <= ORDER[m]);
+  if (!COLUMNS.some(c => c.k === sortKey)) sortKey = 'changePct';
+}
 
 const val = (i, k) => k === 'w1' ? i.perf?.w1 : k === 'm1' ? i.perf?.m1 : i[k];
 
@@ -352,7 +362,15 @@ function renderShelf() {
       </div>`).join('') + '</div>';
 }
 
+pickColumns();
 renderShelf();
+
+/* The table redraws with the mode: fewer columns in Simple, everything in Pro. */
+document.addEventListener('ui-mode-changed', () => {
+  pickColumns();
+  if (snap) { renderHead(); renderRows(); }
+  P?.track?.('markets_columns_changed', { mode: P.mode(), columns: COLUMNS.length });
+});
 
 load().then(() => {
   P?.track('markets_opened', { instruments: snap.universe, failed: (snap.failed || []).length });

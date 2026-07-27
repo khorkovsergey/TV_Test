@@ -89,6 +89,54 @@
 
 @media (max-width:1100px){.routes{grid-template-columns:repeat(2,1fr)}.stubs{grid-template-columns:1fr}}
 
+/* =======================================================================
+   Режим интерфейса: Simple · Standard · Pro.
+
+   §7.4 — навигационная модель одинакова во всех режимах, меняются плотность,
+   вкладки, панели и подсказки. Поэтому переключатель правит ОДИН атрибут на
+   <body>, а вся разница в интервалах и размерах выражена здесь: тогда смена
+   режима видна на любой странице, а не только там, где есть свой скрипт.
+   ======================================================================= */
+
+body[data-ui-mode="simple"]{   --den-gap:20px; --den-pad:22px; --den-font:15px }
+body[data-ui-mode="standard"]{ --den-gap:14px; --den-pad:18px; --den-font:14.5px }
+body[data-ui-mode="pro"]{      --den-gap:8px;  --den-pad:12px; --den-font:13.5px }
+
+body[data-ui-mode] .tv-card{padding:var(--den-pad)}
+body[data-ui-mode] .stubs,
+body[data-ui-mode] .cards-4,
+body[data-ui-mode] .movers,
+body[data-ui-mode] .grid-2,
+body[data-ui-mode] .routes{gap:var(--den-gap)}
+body[data-ui-mode] .q-table td{padding:calc(var(--den-pad) * .55) 12px;font-size:var(--den-font)}
+body[data-ui-mode] .brief-row{padding:calc(var(--den-pad) * .6) 18px}
+body[data-ui-mode="pro"] .tv-page{max-width:1400px}
+body[data-ui-mode="pro"] .mover-row{padding:5px 0}
+
+/* Simple объясняет термины прямо в тексте; Standard и Pro — нет.
+   §7.1 против §7.3: минимум пояснений по умолчанию для профессионала. */
+.term{border-bottom:1px dotted var(--tv-faint);cursor:help}
+body[data-ui-mode="standard"] .term,
+body[data-ui-mode="pro"] .term{border-bottom:none;cursor:inherit}
+.term-note{display:none;font-size:12px;color:var(--tv-faint);line-height:1.5;margin-top:6px}
+body[data-ui-mode="simple"] .term-note{display:block}
+
+/* Что показывать только в своём режиме. Это НЕ блокировка доступа: всё, что
+   скрыто здесь, остаётся достижимым через раздел, карту сайта и ⌘K. */
+[data-only]{display:none}
+body[data-ui-mode="simple"]   [data-only~="simple"],
+body[data-ui-mode="standard"] [data-only~="standard"],
+body[data-ui-mode="pro"]      [data-only~="pro"]{display:revert}
+
+/* «Расширенные возможности» — раскрывающийся блок вместо стены (§7.1). */
+.advanced{border:1px solid var(--tv-ink-3);border-radius:var(--tv-r);margin-top:14px;background:var(--tv-ink)}
+.advanced > summary{cursor:pointer;padding:12px 16px;font-size:13px;font-weight:700;color:var(--tv-text);list-style:none}
+.advanced > summary::-webkit-details-marker{display:none}
+.advanced > summary::before{content:"▸ ";color:var(--tv-blue)}
+.advanced[open] > summary::before{content:"▾ "}
+.advanced > summary:hover{color:#fff}
+.advanced .body{padding:0 16px 14px}
+
 /* ---------- Chart workspace: progressive complexity ----------
    Отдельный префикс .work-, потому что .chart-shell уже занят уроком Академии
    и у него другая сетка. Переиспользуем только то, что действительно общее:

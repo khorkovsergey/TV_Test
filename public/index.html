@@ -45,7 +45,7 @@
      below go back to solid black. -->
 <section class="bg-section bg-home">
   <div class="bg-inner" style="max-width:1180px;margin:0 auto;padding:72px 24px 78px">
-    <a class="tag tag-ai" href="/learn/academy#modePill" style="white-space:nowrap" title="What beginner mode changes">BEGINNER MODE · ON</a>
+    <a class="tag tag-ai" id="modeChip" href="/learn#modes" style="white-space:nowrap" title="What this mode changes">SIMPLE MODE · ON</a>
     <h1 class="tv-h1" style="font-size:44px;max-width:560px;line-height:1.1;margin-top:14px">What do you want to do today?</h1>
     <p class="tv-lead" style="margin-top:14px;max-width:520px;color:#C9CEDA">Pick a task — we set up the data, the chart and the next step. No account needed to start.</p>
   </div>
@@ -66,6 +66,12 @@
     <a class="route bg-card bg-dashboard" href="/charts" data-route="skip_portal"><div class="ic" style="color:#9db4ff">PRO?</div><h3>Skip the portal</h3><p>The full professional workspace is one click away — and clearly separated from browsing.</p><div class="go" style="color:#9db4ff">Open Supercharts ↗</div></a>
   </div>
 
+  <!-- Folded, not removed: Simple starts with four tasks and this opens the
+       rest. Switching to Standard or Pro opens them permanently. -->
+  <button class="btn btn-quiet mt-16" id="moreRoutes" hidden style="padding:9px 16px">
+    Show <span id="moreRoutesCount">4</span> more tasks
+  </button>
+
   <!-- ONE market brief instead of a quote section per asset class. -->
   <div class="grid-2 mt-32" style="grid-template-columns:1.5fr 1fr;align-items:start" id="markets">
     <!-- Live: the day's largest moves across all six asset classes, fetched
@@ -73,12 +79,15 @@
          back to numbers that would look exactly as convincing. -->
     <div class="tv-card" style="padding:0;overflow:hidden" id="brief">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid var(--tv-ink-3);flex-wrap:wrap;gap:8px">
-        <p class="title" style="margin:0">Today's brief · biggest moves</p>
+        <p class="title" style="margin:0">Today's brief · <span class="term" title="The instruments that changed most since yesterday's close">biggest moves</span></p>
         <span id="briefTag" class="tag tag-fact">FACT · MARKET DATA</span>
       </div>
       <div id="briefRows">
         <div class="brief-row" style="grid-template-columns:1fr"><span style="color:var(--tv-faint);font-size:13px">Loading live quotes…</span></div>
       </div>
+      <div class="term-note" style="padding:0 18px 10px">A move is the change since the previous
+        day's closing price. A big one is worth a look, not a decision — the reason behind it matters
+        more than its size.</div>
       <div style="padding:11px 18px;border-top:1px solid var(--tv-ink-3);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
         <span class="mono src" id="briefSource"></span>
         <a href="/markets" style="font-size:13px;font-weight:700">All 49 instruments →</a>
@@ -140,7 +149,10 @@
 
     <div class="tv-card" id="watchlist">
       <div class="row" style="justify-content:space-between"><p class="title" style="margin:0">Track my instruments</p><span class="tag tag-fact">FACT · YOUR LIST</span></div>
-      <div style="font-size:13.5px;color:var(--tv-muted)">Tap what you want to follow, then save the list.</div>
+      <div style="font-size:13.5px;color:var(--tv-muted)">Tap what you want to follow, then save the
+        <span class="term" title="A saved list of instruments you want to keep an eye on">watchlist</span>.</div>
+      <div class="term-note">A watchlist is just a saved list. It costs nothing, commits you to
+        nothing, and it is what makes the next visit start where this one ended.</div>
       <div class="chips" id="chips"></div>
       <div class="row mt-16" style="flex-wrap:wrap;gap:8px">
         <button class="btn btn-primary" id="saveWatchlist" style="padding:9px 16px">Save watchlist</button>
@@ -457,10 +469,45 @@ async function loadBrief() {
   }
 }
 
+/* ------------------------------------------------------------ the mode */
+
+/* §7.1 — Simple shows four routes and one main call to action; the rest fold
+   into "Advanced". §7.2 and §7.3 open them up. Nothing is blocked: the folded
+   block is one click away, and every route is in ⌘K and the site map. */
+const SIMPLE_ROUTES = ['understand_market', 'research_asset', 'learn', 'track_instruments'];
+
+function applyMode() {
+  const mode = P.mode();
+  const routes = [...document.querySelectorAll('.routes [data-route]')];
+
+  routes.forEach(r => {
+    const keep = mode !== 'simple' || SIMPLE_ROUTES.includes(r.dataset.route);
+    r.style.display = keep ? '' : 'none';
+  });
+
+  const hidden = routes.filter(r => r.style.display === 'none');
+  $('moreRoutes').hidden = hidden.length === 0;
+  $('moreRoutesCount').textContent = hidden.length;
+
+  /* In Simple the secondary button steps aside so there is one obvious action;
+     in Pro the brief gets the extra columns instead of the explanations. */
+  $('guestCta').style.display = mode === 'simple' ? 'none' : '';
+  $('modeChip').textContent = mode.toUpperCase() + ' MODE · ON';
+}
+
+$('moreRoutes')?.addEventListener('click', () => {
+  document.querySelectorAll('.routes [data-route]').forEach(r => { r.style.display = ''; });
+  $('moreRoutes').hidden = true;
+  P.track('advanced_routes_revealed', { mode: P.mode() });
+});
+
+document.addEventListener('ui-mode-changed', applyMode);
+
 renderChips();
 renderFeed('editors');
 renderTrail();
 loadBrief();
+applyMode();
 </script>
 </body>
 </html>

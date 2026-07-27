@@ -192,6 +192,7 @@ window.Portal = (function () {
     if (!next) return mode();
     const from = mode();
     try { localStorage.setItem(K_MODE, next); } catch {}
+    applyBodyMode();
     if (from !== next) {
       const props = { from, to: next, mode: next, source: source || 'pill' };
       track('mode_switch', props);
@@ -292,8 +293,16 @@ window.Portal = (function () {
     return p === '/' || p.endsWith('/index.html') || p.endsWith('/classic.html');
   };
 
+  /* The mode has to be on <body> before anything is painted: the density rules
+     in portal.css hang off it, so a page without its own mode script still
+     changes when the visitor switches. */
+  function applyBodyMode() {
+    if (document.body) document.body.dataset.uiMode = mode();
+  }
+
   function init() {
     variant();          // mirrors the cookie on the very first paint
+    applyBodyMode();
     wireRoutes();
     if (isHome()) armBounce();
   }

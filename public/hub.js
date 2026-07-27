@@ -39,14 +39,21 @@ window.Hub = (function () {
     el.innerHTML = section.groups.map(g => {
       const now = g.items.filter(i => (order[i.level] ?? 0) <= max);
       const later = g.items.filter(i => (order[i.level] ?? 0) > max);
+
+      /* §7.1 — the deeper rows fold into "Advanced" instead of standing as a
+         wall next to the simple ones. Folded, not removed: one click opens it,
+         and they stay in the section, the site map and ⌘K regardless. */
+      const advanced = later.length ? `
+        <details class="advanced">
+          <summary>Advanced — ${later.length} more ${later.length === 1 ? 'tool' : 'tools'},
+            shown first in ${esc(MODE_LABEL[later[0].level] || '')} mode</summary>
+          <div class="body">${later.map(itemRow).join('')}</div>
+        </details>` : '';
+
       return `<div class="tv-card">
         <div class="mono" style="font-size:10px;letter-spacing:.08em;color:#5B8DFF">${esc(g.name.toUpperCase())}</div>
-        <div style="display:flex;flex-direction:column;margin-top:10px">
-          ${now.map(itemRow).join('')}
-          ${later.length ? `<div class="mono" style="font-size:10px;color:var(--tv-ghost);margin-top:12px;padding-top:10px;border-top:1px dashed var(--tv-ink-3)">
-              DEEPER — SHOWN FIRST IN ${esc((MODE_LABEL[later[0].level] || '').toUpperCase())} MODE, REACHABLE NOW
-            </div>${later.map(itemRow).join('')}` : ''}
-        </div>
+        <div style="display:flex;flex-direction:column;margin-top:10px">${now.map(itemRow).join('')}</div>
+        ${advanced}
       </div>`;
     }).join('');
   }
