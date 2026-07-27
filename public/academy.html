@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Academy — learn on the live market</title>
+<link rel="stylesheet" href="/tv-theme.css">
+<link rel="stylesheet" href="/portal.css">
+<script src="/academy.js"></script>
+</head>
+<body>
+
+<div class="mock-strip">
+  UNAFFILIATED CASE-STUDY MOCKUP · NOT A REAL PLATFORM · NOT INVESTMENT ADVICE
+</div>
+
+<nav class="portal-nav">
+  <div class="logo"><a href="/"><img src="/assets/tv-logo-white.svg" alt="Platform"></a></div>
+  <div class="search"><svg class="g" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="M11 11l4 4"/></svg>Search</div>
+  <div class="menu">
+    <a href="/">Products</a>
+    <a href="#" data-advanced>Community</a>
+    <a href="#" data-advanced>Markets</a>
+    <a href="/experts.html">Experts</a>
+    <a href="/academy.html" class="active">Academy</a>
+  </div>
+  <div class="right">
+    <span class="mode-pill" id="modePill" title="Interface complexity mode">
+      <span data-mode="beginner">Beginner</span><span data-mode="standard">Standard</span>
+    </span>
+    <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
+  </div>
+</nav>
+
+<main class="tv-page">
+  <div class="tv-eyebrow">Academy · <span id="modeLabel">Beginner mode</span></div>
+  <h1 class="tv-h1" style="margin-top:8px;">Learn on the live market</h1>
+  <p class="tv-lead">Six short steps on real data and real platform tools: from “what is trading” to
+    your first risk-free trade. Advanced features unlock as you progress.</p>
+
+  <!-- Track progress -->
+  <div class="tv-card mt-24" style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;">
+    <div style="flex:1;min-width:260px;">
+      <div class="row" style="justify-content:space-between;">
+        <div style="font-size:14px;font-weight:700;color:var(--tv-white);">Your track</div>
+        <div class="mono" style="font-size:12px;color:var(--tv-faint);">
+          <span id="doneCount">0</span> of 6 · <span id="minsLeft">≈ 49 min left</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:5px;margin-top:12px;" id="trackBar"></div>
+    </div>
+    <a class="btn btn-primary" id="continueBtn" href="/lesson.html">Continue</a>
+  </div>
+
+  <!-- Lessons -->
+  <div class="track" id="track"></div>
+
+  <!-- Expert tracks -->
+  <div class="section" style="padding:36px 0 0;max-width:none;">
+    <div class="head"><h2>Expert tracks</h2><span class="tag tag-warn">OPINION · REVIEWED</span></div>
+    <div class="grid-2 mt-16" style="grid-template-columns:1fr 1fr 1fr;">
+      <div class="mentor"><div class="ava"></div><div><div style="font-size:14px;font-weight:700;color:var(--tv-white);">The mindful investor</div><div class="mono" style="font-size:11px;color:var(--tv-faint);margin-top:3px;">@long_view · 5 lessons</div></div></div>
+      <div class="mentor"><div class="ava"></div><div><div style="font-size:14px;font-weight:700;color:var(--tv-white);">Crypto without panic</div><div class="mono" style="font-size:11px;color:var(--tv-faint);margin-top:3px;">@onchain · 4 lessons</div></div></div>
+      <div class="mentor"><div class="ava"></div><div><div style="font-size:14px;font-weight:700;color:var(--tv-white);">Your first chart</div><div class="mono" style="font-size:11px;color:var(--tv-faint);margin-top:3px;">@chart_basics · 6 lessons</div></div></div>
+    </div>
+    <div class="disclaimer" style="border:none;padding-top:10px;">Expert tracks are opinions of their
+      authors, editorially reviewed. Static placeholders in this pilot.</div>
+  </div>
+
+  <!-- Value-first CTA: only appears once there is something worth saving -->
+  <div class="tv-card accent mt-24" id="saveCta" hidden
+       style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+    <div style="font-size:13.5px;color:var(--tv-text);flex:1;min-width:260px;">
+      You have completed <b id="ctaCount" style="color:var(--tv-white);">0</b> lessons. Create an
+      account so your progress is not lost — <b style="color:var(--tv-white);">after</b> the value,
+      not before it.
+    </div>
+    <button class="btn btn-primary" id="saveBtn" style="white-space:nowrap;">Save my progress</button>
+  </div>
+
+  <!-- Hand-off to Experts once the track is done -->
+  <div class="tv-card accent mt-24" id="expertsCta" hidden>
+    <span class="tag tag-fact">TRACK COMPLETE</span>
+    <p class="title mt-16" style="margin-bottom:6px;">You now have the vocabulary for a real conversation</p>
+    <p style="font-size:13.5px;color:var(--tv-muted);margin:0;">A licensed consultant can take it from
+      here — matched to your country, capital and question.</p>
+    <a class="btn btn-primary mt-16" href="/experts.html?from=academy">Talk to a consultant</a>
+  </div>
+
+  <div class="row mt-24" style="gap:10px;flex-wrap:wrap;">
+    <button class="btn btn-quiet" id="resetBtn">Reset my progress</button>
+    <span class="mono" style="font-size:11px;color:var(--tv-ghost);">progress is stored in this browser only</span>
+  </div>
+
+  <div class="disclaimer">Education content is not investment advice. Lessons use sample market data
+    for illustration; nothing here is a recommendation to buy or sell anything.</div>
+</main>
+
+<footer class="portal-footer">
+  <div class="cols">
+    <div class="col"><b>Products</b><div>Supercharts</div><div>Screeners</div></div>
+    <div class="col"><b>Community</b><div>Ideas</div><div>Scripts</div></div>
+    <div class="col"><b>Academy</b><div><a href="/academy.html">Learning track</a></div><div>Expert tracks</div></div>
+    <div class="col"><b>Experts</b><div><a href="/experts.html">Find a consultant</a></div></div>
+    <div class="col"><b>More</b><div>Pricing</div><div>Help center</div></div>
+  </div>
+  <div class="cols" style="margin-top:26px;grid-template-columns:1fr;">
+    <div class="disclaimer" style="border-top:none;padding-top:0;margin-top:0;">
+      Unaffiliated case-study prototype built for an internal product review. Not operated by or
+      endorsed by any company whose branding appears here.
+    </div>
+  </div>
+</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* Steps 4 and 5 are the activation moments the hypothesis measures, so they do
+   real (if stubbed) work rather than being decorative. */
+const INLINE_ACTIONS = {
+  4: { label: 'Add BTCUSD to my watchlist', event: 'watchlist_created', value: 'watchlist',
+       done: 'BTCUSD is in your watchlist.' },
+  5: { label: 'Alert me if BTCUSD moves 5%', event: 'alert_created', value: 'alert',
+       done: 'Alert armed for BTCUSD.' },
+  6: { label: 'Place a paper trade', event: 'paper_trade_placed', value: 'paper_trade',
+       done: 'Paper trade placed — no money at risk.' }
+};
+
+function render() {
+  const A = window.Academy;
+  const done = A.completed();
+  const current = A.currentId();
+
+  // Segmented progress bar, one segment per lesson.
+  $('trackBar').innerHTML = A.LESSONS.map(l => {
+    const st = A.stateOf(l.id);
+    const bg = st === 'done' ? 'var(--tv-green)'
+             : st === 'current' ? 'var(--tv-blue)' : 'var(--tv-ink-2)';
+    return `<div style="flex:1;height:6px;border-radius:3px;background:${bg};"></div>`;
+  }).join('');
+
+  $('doneCount').textContent = done.length;
+  const left = A.LESSONS.filter(l => !A.isDone(l.id)).reduce((a, l) => a + l.mins, 0);
+  $('minsLeft').textContent = left ? `≈ ${left} min left` : 'track complete';
+
+  // Continue button points at whatever is actually next.
+  const cont = $('continueBtn');
+  if (current === null) {
+    cont.textContent = 'Track complete';
+    cont.classList.replace('btn-primary', 'btn-secondary');
+    cont.href = '/experts.html?from=academy';
+  } else {
+    cont.textContent = `Continue · step ${current}`;
+    cont.href = hrefFor(current);
+  }
+
+  $('track').innerHTML = A.LESSONS.map(l => {
+    const st = A.stateOf(l.id);
+    const caption =
+      st === 'done'    ? 'COMPLETED'
+    : st === 'current' ? `NOW · STEP ${l.id} OF 6`
+    : st === 'locked'  ? `UNLOCKS AFTER STEP ${l.id - 1}`
+    : `STEP ${l.id} OF 6`;
+    const width = st === 'done' ? 100 : st === 'current' ? 50 : 0;
+    const action = INLINE_ACTIONS[l.id];
+
+    return `<div class="lesson ${st}" data-lesson="${l.id}"
+                 ${st === 'locked' ? 'aria-disabled="true"' : ''}>
+      <div class="st">${caption}</div>
+      <h3>${l.id} · ${esc(l.title)}</h3>
+      <div class="d">${l.mins} min · ${esc(l.desc)}</div>
+      <div class="bar"><i style="width:${width}%"></i></div>
+      ${st !== 'locked' && st !== 'done' && action
+        ? `<button class="btn btn-primary" style="margin-top:14px" data-act="${l.id}">${esc(action.label)}</button>`
+        : ''}
+      ${st !== 'locked' && st !== 'done' && !action && !l.interactive
+        ? `<button class="btn btn-secondary" style="margin-top:14px" data-read="${l.id}">Mark as read</button>`
+        : ''}
+      ${st !== 'locked' && st !== 'done' && l.interactive
+        ? `<a class="btn btn-primary" style="margin-top:14px" href="/lesson.html">Open the lesson →</a>`
+        : ''}
+      ${st === 'done' && action ? `<div class="mono" style="font-size:11px;color:var(--tv-green);margin-top:12px">${esc(action.done)}</div>` : ''}
+    </div>`;
+  }).join('');
+
+  // Value-first: the save prompt only exists once something is worth saving.
+  $('saveCta').hidden = done.length === 0;
+  $('ctaCount').textContent = done.length;
+  $('expertsCta').hidden = current !== null;
+
+  $('modeLabel').textContent = A.mode() === 'beginner' ? 'Beginner mode' : 'Standard mode';
+
+  wire();
+}
+
+const hrefFor = id => (window.Academy.LESSONS.find(l => l.id === id)?.interactive ? '/lesson.html' : '#');
+
+function wire() {
+  // Reading lessons complete in place.
+  document.querySelectorAll('[data-read]').forEach(b => b.onclick = e => {
+    e.stopPropagation();
+    window.Academy.complete(+b.dataset.read);
+    render();
+  });
+
+  // Activation steps: fire the event the hypothesis measures, then complete.
+  document.querySelectorAll('[data-act]').forEach(b => b.onclick = e => {
+    e.stopPropagation();
+    const id = +b.dataset.act;
+    const a = INLINE_ACTIONS[id];
+    window.Academy.track(a.event, { lesson_id: id, symbol: 'BTCUSD' });
+    window.Academy.firstValueAction(a.value);
+    window.Academy.complete(id);
+    render();
+  });
+
+  // Clicking an interactive card opens the lesson.
+  document.querySelectorAll('.lesson.current, .lesson.available').forEach(card => {
+    const l = window.Academy.LESSONS.find(x => x.id === +card.dataset.lesson);
+    if (!l?.interactive) return;
+    card.onclick = ev => { if (!ev.target.closest('button,a')) location.href = '/lesson.html'; };
+  });
+}
+
+$('modePill').addEventListener('click', e => {
+  const next = e.target.dataset.mode;
+  if (next) { window.Academy.setMode(next); render(); }
+});
+
+$('saveBtn').addEventListener('click', () => {
+  window.Academy.track('save_progress_clicked', { completed: window.Academy.completed().length });
+  alert('Pilot stub: this is where account creation would happen — after the value, not before it.');
+});
+
+$('resetBtn').addEventListener('click', () => {
+  window.Academy.reset();
+  render();
+});
+
+render();
+</script>
+</body>
+</html>
