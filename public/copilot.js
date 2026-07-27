@@ -10,7 +10,8 @@
   function getContext() {
     const path = location.pathname;
     const page =
-      path === '/' || path.endsWith('index.html') ? 'portal_home' :
+      path === '/' || path.endsWith('index.html') || path.endsWith('classic.html') ? 'portal_home' :
+      path.includes('charts') ? 'chart_workspace' :
       path.includes('academy') ? 'academy' :
       path.includes('lesson') ? 'chart_lesson' :
       path.includes('experts') ? 'experts' :
@@ -37,6 +38,7 @@
     portal_home: ['What moved markets today?', 'Explain the BTC move', 'Set an alert before the next CPI'],
     academy: ['Quiz me on lesson 2', 'Why do prices bounce off levels?', 'What should I learn next?'],
     chart_lesson: ['Explain this drop on the chart', 'Compare BTC vs ETH here', 'Set an alert at this level'],
+    chart_workspace: ['Explain the move on this chart', 'Compare it with ETH', 'Set an alert at this level'],
     experts: ['What should I ask a consultant?', 'Explain what a licence means here'],
     portal: ['Explain the move', 'Compare instruments', 'Help me with Pine Script']
   };
@@ -92,6 +94,9 @@
   function track(event, props) {
     console.log('[analytics]', event, props || {});
     if (window.Academy?.track) window.Academy.track(event, props);
+    // Portal counts the same interaction towards the home funnel; it does not
+    // re-log the event, so nothing is double-counted.
+    if (window.Portal?.observe) window.Portal.observe(event, props);
   }
 
   function init() {

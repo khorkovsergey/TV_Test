@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Supercharts — chart workspace</title>
+<link rel="stylesheet" href="/tv-theme.css">
+<link rel="stylesheet" href="/portal.css">
+<script src="/home.js"></script>
+<script src="/copilot.js" defer></script>
+</head>
+<body>
+
+<div class="mock-strip">
+  UNAFFILIATED CASE-STUDY MOCKUP · NOT A REAL PLATFORM · NOT INVESTMENT ADVICE
+</div>
+
+<!-- This page exists to make the Portal/Chart boundary explicit: browsing and
+     the professional workspace are different products with different rules.
+     The chart engine itself is out of scope for the pilot, and the panel on
+     the right says so rather than faking depth. -->
+
+<nav class="portal-nav">
+  <div class="logo"><a href="/"><img src="/assets/tv-logo-white.svg" alt="Platform"></a></div>
+  <div class="search"><svg class="g" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="M11 11l4 4"/></svg>Search</div>
+  <div class="menu">
+    <a href="/">Home</a>
+    <a href="/#markets">Markets</a>
+    <a href="/#ideas">Ideas</a>
+    <a href="/academy.html">Academy</a>
+    <a href="/experts.html">Experts</a>
+  </div>
+  <div class="right">
+    <a class="btn btn-secondary" href="/charts.html" style="padding:8px 16px;border-color:var(--tv-blue-line);color:#5B8DFF">Open Supercharts ↗</a>
+    <span style="font-size:14px;color:var(--tv-muted)">Sign in</span>
+    <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
+  </div>
+</nav>
+
+<div class="toolbar">
+  <div class="sym" id="sym">BTCUSD</div>
+  <div style="font-size:13px;color:var(--tv-text)" id="range">1D · Line</div>
+  <span class="tag tag-fact">FACT · MARKET DATA · SAMPLE</span>
+  <div class="mono" style="font-size:11px;color:var(--tv-faint)" id="compare"></div>
+  <div style="flex:1"></div>
+  <a href="/" style="font-size:13px;font-weight:700">← back to the portal</a>
+</div>
+
+<div class="chart-shell">
+  <div class="toolrail" id="toolrail"></div>
+
+  <div class="chart-area">
+    <!-- Sample series: this shell is not wired to a quote feed. -->
+    <svg viewBox="0 0 760 430" role="img" aria-label="Sample price chart">
+      <line x1="0" y1="72"  x2="760" y2="72"  stroke="#1F2430"/>
+      <line x1="0" y1="144" x2="760" y2="144" stroke="#1F2430"/>
+      <line x1="0" y1="216" x2="760" y2="216" stroke="#1F2430"/>
+      <line x1="0" y1="288" x2="760" y2="288" stroke="#1F2430"/>
+      <line x1="0" y1="360" x2="760" y2="360" stroke="#1F2430"/>
+      <polyline points="0,340 60,326 120,338 180,306 240,318 300,286 360,296 420,262 480,274 540,238 600,248 660,208 720,190 760,176"
+                fill="none" stroke="#089981" stroke-width="2.2"/>
+      <text x="12" y="30" fill="#787B86" font-family="Consolas,monospace" font-size="12" id="chartLabel">sample data</text>
+    </svg>
+  </div>
+
+  <aside class="lesson-panel">
+    <div class="head">
+      <div style="font-size:14px;font-weight:700;color:var(--tv-white)">Portal ↔ Chart</div>
+      <span class="tag tag-warn">PILOT STUB</span>
+    </div>
+    <div class="body">
+      <div class="task">
+        <h3>Two products, one door</h3>
+        <p>The portal is for browsing and deciding: a brief, ideas, events, the Academy.
+           This workspace is for working: full toolset, no marketing modules, no feeds.
+           The new IA gives it exactly one entrance — the button in the header — so a
+           beginner is never dropped into it by accident.</p>
+      </div>
+
+      <div style="font-size:12.5px;color:var(--tv-muted);line-height:1.55">
+        What would live here in production: the real chart engine, drawing tools,
+        indicators, layouts, alerts and broker order entry. None of it is part of
+        this case-study stand.
+      </div>
+
+      <div style="flex:1"></div>
+      <div class="row" style="flex-wrap:wrap;gap:8px">
+        <a class="btn btn-primary" href="/academy.html" style="padding:9px 16px">Learn the chart first</a>
+        <a class="btn btn-quiet" href="/" style="padding:9px 16px">Back to tasks</a>
+      </div>
+      <div class="disclaimer" style="margin-top:6px">Sample data for illustration. Not investment advice.</div>
+    </div>
+  </aside>
+</div>
+
+<script>
+const params = new URLSearchParams(location.search);
+
+function ls(k, fallback) {
+  try { const v = localStorage.getItem(k); return v === null ? fallback : v; } catch { return fallback; }
+}
+function lsJson(k, fallback) {
+  try { return JSON.parse(localStorage.getItem(k) || 'null') ?? fallback; } catch { return fallback; }
+}
+
+/* The symbol can arrive three ways: a link from the portal, a Copilot action
+   that stored it, or nothing at all. */
+const symbol = (params.get('symbol') || ls('active_symbol', '') || 'BTCUSD').toUpperCase();
+const range  = params.get('range') || ls('chart_range', '') || '1D';
+const compare = lsJson('compare_symbols', []).filter(s => s && s.toUpperCase() !== symbol);
+
+document.getElementById('sym').textContent = symbol;
+document.getElementById('range').textContent = range + ' · Line';
+document.getElementById('chartLabel').textContent = symbol + ' — sample data';
+document.getElementById('compare').textContent = compare.length ? 'compared with ' + compare.join(', ') : '';
+
+try { localStorage.setItem('active_symbol', symbol); } catch {}
+
+/* The full rail, all of it inert — showing the tools without pretending they work. */
+document.getElementById('toolrail').innerHTML =
+  Array.from({ length: 8 }, () => '<button class="t" disabled aria-label="Chart tool — not part of the pilot"></button>').join('') +
+  '<div class="cap">workspace stub</div>';
+
+window.Portal.track('chart_workspace_opened', { symbol, range, compare_count: compare.length });
+</script>
+</body>
+</html>

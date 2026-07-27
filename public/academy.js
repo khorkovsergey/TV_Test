@@ -107,7 +107,13 @@ window.Academy = (function () {
   /* Pilot-grade: log to the console and keep a local buffer so the events can
      be inspected without a analytics backend. Swap the body for a real sink. */
   function track(event, props) {
-    const rec = { event, ts: new Date().toISOString(), ...(props || {}) };
+    // The home A/B flag rides on every event: without it the Academy funnel
+    // cannot be split by the variant the visitor landed on.
+    const rec = {
+      event, ts: new Date().toISOString(),
+      home_variant: window.Portal?.variant?.() || ls.get('home_variant', 'task'),
+      ...(props || {})
+    };
     // eslint-disable-next-line no-console
     console.log('[analytics]', event, rec);
     const buf = ls.get(K_EVENTS, []);

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Platform — home (classic)</title>
+<link rel="stylesheet" href="/tv-theme.css">
+<link rel="stylesheet" href="/portal.css">
+<script src="/home.js"></script>
+<script src="/copilot.js" defer></script>
+</head>
+<body>
+
+<!-- A/B CONTROL. This is the promo home the task-based home is measured against,
+     kept byte-for-byte as it shipped: the old hero, the old five-menu nav, the
+     pricing-first buttons, the duplicated quote and idea sections. Restyling it
+     to the new IA would destroy the comparison, so it is deliberately excluded
+     from the site-wide nav change. Only the analytics script was added, so the
+     control reports the same events as the variant. -->
+
+<div class="mock-strip">
+  UNAFFILIATED CASE-STUDY MOCKUP · NOT A REAL PLATFORM · NOT INVESTMENT ADVICE
+</div>
+
+<nav class="portal-nav">
+  <div class="logo"><img src="/assets/tv-logo-white.svg" alt="Platform"></div>
+  <div class="search"><svg class="g" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="M11 11l4 4"/></svg>Search</div>
+  <div class="menu">
+    <a href="#">Products</a>
+    <a href="#">Community</a>
+    <a href="#">Markets</a>
+    <a href="/experts.html" class="active">Experts</a>
+    <a href="/academy.html">Academy</a>
+  </div>
+  <div class="right">
+    <span style="font-size:14px;color:var(--tv-muted)">Sign in</span>
+    <span class="btn btn-primary" style="padding:9px 16px">Get started</span>
+    <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
+  </div>
+</nav>
+
+<div class="portal-hero">
+  <h1>Look first.<br>Then leap.</h1>
+  <p>The all-in-one platform millions of traders and investors trust</p>
+  <div class="cta">
+    <span class="btn btn-primary" style="padding:13px 28px">Get started</span>
+    <span class="btn btn-secondary" style="padding:13px 28px">See plans</span>
+  </div>
+  <div class="ph" style="max-width:1180px;margin:44px auto 0;height:240px;display:flex;align-items:center;justify-content:center;font-family:var(--tv-mono);font-size:12px;color:var(--tv-ghost)">platform hero visual</div>
+</div>
+
+<div class="section">
+  <div class="tv-eyebrow" style="color:var(--tv-blue)">Products</div>
+  <div class="cards-4">
+    <div class="tv-card"><p class="title">Supercharts</p><div style="font-size:13.5px;color:var(--tv-muted)">Advanced charting across every market</div><div class="ph" style="height:74px;margin-top:16px"></div></div>
+    <div class="tv-card"><p class="title">Screeners</p><div style="font-size:13.5px;color:var(--tv-muted)">Filter thousands of instruments</div><div class="ph" style="height:74px;margin-top:16px"></div></div>
+    <div class="tv-card" style="border-color:var(--tv-blue-line);background:var(--tv-blue-dim)">
+      <div class="row" style="justify-content:space-between"><p class="title" style="margin:0">Academy</p><span class="tag tag-warn">NEW</span></div>
+      <div style="font-size:13.5px;color:var(--tv-muted);margin-top:4px">Six short steps on live data — from “what is trading” to a risk-free first trade</div>
+      <a class="btn btn-primary" href="/academy.html" style="margin-top:16px">Start learning</a>
+    </div>
+    <div class="tv-card" style="border-color:var(--tv-blue-line);background:var(--tv-blue-dim)">
+      <div class="row" style="justify-content:space-between"><p class="title" style="margin:0">Experts</p><span class="tag tag-warn">NEW · PILOT</span></div>
+      <div style="font-size:13.5px;color:var(--tv-muted);margin-top:4px">Talk to a licensed consultant — matched to your country, capital and task</div>
+      <a class="btn btn-primary" href="/experts.html" style="margin-top:16px">Find my expert</a>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="head">
+    <h2>Markets</h2>
+    <a href="#" style="font-size:13.5px;font-weight:700">See all markets →</a>
+  </div>
+  <!-- Sample figures for the mockup — this shell is not wired to a quote feed. -->
+  <div class="market-row">
+    <div class="mkt"><div class="t">SPX</div><div class="p">5 612.4</div><div class="c pos">+0.42%</div><svg viewBox="0 0 160 34"><polyline points="0,28 40,22 80,24 120,14 160,8" fill="none" stroke="#089981" stroke-width="1.8"/></svg></div>
+    <div class="mkt"><div class="t">NDQ</div><div class="p">20 148</div><div class="c pos">+0.71%</div><svg viewBox="0 0 160 34"><polyline points="0,30 40,24 80,20 120,12 160,6" fill="none" stroke="#089981" stroke-width="1.8"/></svg></div>
+    <div class="mkt"><div class="t">BTCUSD</div><div class="p">118 420</div><div class="c pos">+2.84%</div><svg viewBox="0 0 160 34"><polyline points="0,30 40,22 80,26 120,12 160,5" fill="none" stroke="#089981" stroke-width="1.8"/></svg></div>
+    <div class="mkt"><div class="t">EURUSD</div><div class="p">1.0842</div><div class="c neg">−0.18%</div><svg viewBox="0 0 160 34"><polyline points="0,10 40,14 80,12 120,22 160,26" fill="none" stroke="#F23645" stroke-width="1.8"/></svg></div>
+    <div class="mkt"><div class="t">XAUUSD</div><div class="p">2 412</div><div class="c pos">+1.10%</div><svg viewBox="0 0 160 34"><polyline points="0,26 40,24 80,18 120,16 160,10" fill="none" stroke="#089981" stroke-width="1.8"/></svg></div>
+  </div>
+  <div class="disclaimer" style="border:none;padding-top:10px;margin-top:8px;">Sample figures for layout only — this shell is not connected to a market data feed.</div>
+</div>
+
+<div class="section" style="padding-bottom:24px">
+  <div class="head"><h2>Community ideas</h2><span style="font-size:13px;color:var(--tv-faint)">Editors' picks · Popular · Following</span></div>
+  <div class="cards-4" style="grid-template-columns:repeat(3,1fr)">
+    <div class="tv-card" style="padding:0;overflow:hidden"><div class="ph" style="height:104px;border-radius:0"></div><div style="padding:13px"><div style="font-size:13.5px;font-weight:700;color:var(--tv-white)">Placeholder idea title</div><div class="mono" style="font-size:11px;color:var(--tv-faint);margin-top:6px">sample_author · 43</div></div></div>
+    <div class="tv-card" style="padding:0;overflow:hidden"><div class="ph" style="height:104px;border-radius:0"></div><div style="padding:13px"><div style="font-size:13.5px;font-weight:700;color:var(--tv-white)">Placeholder idea title</div><div class="mono" style="font-size:11px;color:var(--tv-faint);margin-top:6px">sample_author · 120</div></div></div>
+    <div class="tv-card" style="padding:0;overflow:hidden"><div class="ph" style="height:104px;border-radius:0"></div><div style="padding:13px"><div style="font-size:13.5px;font-weight:700;color:var(--tv-white)">Placeholder idea title</div><div class="mono" style="font-size:11px;color:var(--tv-faint);margin-top:6px">sample_author · 130</div></div></div>
+  </div>
+</div>
+
+<footer class="portal-footer">
+  <div class="cols">
+    <div class="col"><b>Products</b><div>Supercharts</div><div>Screeners</div><div>Heatmaps</div><div>Calendars</div></div>
+    <div class="col"><b>Community</b><div>Ideas</div><div>Scripts</div><div>Streams</div></div>
+    <div class="col"><b>Experts</b><div><a href="/experts.html">Find a consultant</a></div><div>Become a consultant</div><div>How matching works</div></div>
+    <div class="col"><b>Company</b><div>About</div><div>Careers</div><div>Blog</div></div>
+    <div class="col"><b>More</b><div>Pricing</div><div>Store</div><div>Help center</div></div>
+  </div>
+  <div class="cols" style="margin-top:26px;grid-template-columns:1fr;">
+    <div class="disclaimer" style="border-top:none;padding-top:0;margin-top:0;">
+      Unaffiliated case-study prototype built for an internal product review. Not a real platform,
+      not operated by or endorsed by any company whose branding appears here. Only the Experts
+      section is functional; everything else is a static placeholder. Not investment advice.
+    </div>
+  </div>
+</footer>
+
+<div class="variant-note" style="padding-bottom:34px">
+  home variant: <b>classic</b> (control) · <a href="/?home=task" id="optIn">try the task-based home</a>
+</div>
+
+<script>
+document.getElementById('optIn').addEventListener('click', () => {
+  window.Portal.track('home_variant_opt_in', { from: 'classic', to: 'task' });
+});
+</script>
+</body>
+</html>

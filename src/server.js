@@ -24,7 +24,52 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 
 app.use(express.json({ limit: '256kb' }));
-app.use(express.static(path.join(here, '..', 'public')));
+
+/* ------------------------------------------------------------ home A/B test
+   The task-based home is a hypothesis, so it ships as an experiment rather than
+   a replacement: a new visitor is split 50/50 between the task home and the old
+   promo home (the control), and every analytics event carries the assignment.
+
+   Split server-side on purpose — deciding in the browser would either flash the
+   wrong page first or block the first paint. The cookie is readable by scripts
+   because the client has to stamp the same flag on its events.
+
+   `?home=task|classic` overrides and sticks, which is how the classic home
+   offers the opt-in the spec asks for. */
+const PUBLIC = path.join(here, '..', 'public');
+const HOME_PAGE = { task: 'index.html', classic: 'classic.html' };
+const YEAR = 365 * 24 * 3600;
+
+function readCookies(req) {
+  const out = {};
+  for (const part of (req.headers.cookie || '').split(';')) {
+    const i = part.indexOf('=');
+    if (i > 0) out[part.slice(0, i).trim()] = decodeURIComponent(part.slice(i + 1).trim());
+  }
+  return out;
+}
+
+app.get('/', (req, res) => {
+  const jar = readCookies(req);
+  const forced = HOME_PAGE[req.query.home] ? req.query.home : null;
+
+  // Someone who has been here before keeps what they had; only a genuinely new
+  // visitor is randomised, and returning visitors default to the control.
+  const returning = jar.tv_seen === '1';
+  const variant = forced
+    || (HOME_PAGE[jar.home_variant] ? jar.home_variant : null)
+    || (returning ? 'classic' : (Math.random() < 0.5 ? 'task' : 'classic'));
+
+  res.setHeader('Set-Cookie', [
+    `home_variant=${variant}; Path=/; Max-Age=${YEAR}; SameSite=Lax`,
+    `tv_seen=1; Path=/; Max-Age=${YEAR}; SameSite=Lax`
+  ]);
+  // A shared cache must never pin one variant for everyone.
+  res.setHeader('Cache-Control', 'no-store');
+  res.sendFile(path.join(PUBLIC, HOME_PAGE[variant]));
+});
+
+app.use(express.static(PUBLIC));
 
 const PORT = process.env.PORT || 3000;
 const STAFF_TOKEN = process.env.STAFF_TOKEN || '';
@@ -387,13 +432,15 @@ app.post('/api/copilot/action', wrap(async (req, res) => {
     case 'add_watchlist':
       if (!p.symbol) return res.status(400).json({ error: 'symbol is required' });
       return res.json({ ok: true, confirm: `${p.symbol} added to your watchlist` });
+    // Charts now open in the workspace, not inside an Academy lesson: the new
+    // IA gives the portal and the chart a single, explicit boundary.
     case 'open_chart':
       if (!p.symbol) return res.status(400).json({ error: 'symbol is required' });
-      return res.json({ ok: true, navigate: '/lesson.html', symbol: p.symbol, range: p.range || '1D' });
+      return res.json({ ok: true, navigate: '/charts.html', symbol: p.symbol, range: p.range || '1D' });
     case 'compare': {
       const syms = Array.isArray(p.symbols) ? p.symbols.filter(Boolean) : [];
       if (syms.length < 2) return res.status(400).json({ error: 'at least two symbols are required' });
-      return res.json({ ok: true, navigate: '/lesson.html', symbol: syms[0], compare: syms });
+      return res.json({ ok: true, navigate: '/charts.html', symbol: syms[0], compare: syms });
     }
   }
 }));

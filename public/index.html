@@ -4,9 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Platform — home</title>
+<title>Platform — what do you want to do today?</title>
 <link rel="stylesheet" href="/tv-theme.css">
 <link rel="stylesheet" href="/portal.css">
+<script src="/home.js"></script>
 <script src="/copilot.js" defer></script>
 </head>
 <body>
@@ -15,92 +16,296 @@
   UNAFFILIATED CASE-STUDY MOCKUP · NOT A REAL PLATFORM · NOT INVESTMENT ADVICE
 </div>
 
+<!-- Five sections, no pricing-first CTA, ONE explicit door to the chart workspace. -->
 <nav class="portal-nav">
-  <div class="logo"><img src="/assets/tv-logo-white.svg" alt="Platform"></div>
+  <div class="logo"><a href="/"><img src="/assets/tv-logo-white.svg" alt="Platform"></a></div>
   <div class="search"><svg class="g" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="M11 11l4 4"/></svg>Search</div>
   <div class="menu">
-    <a href="#">Products</a>
-    <a href="#">Community</a>
-    <a href="#">Markets</a>
-    <a href="/experts.html" class="active">Experts</a>
+    <a href="/" class="active">Home</a>
+    <a href="#markets">Markets</a>
+    <a href="#ideas">Ideas</a>
     <a href="/academy.html">Academy</a>
+    <a href="/experts.html">Experts</a>
   </div>
   <div class="right">
+    <a class="btn btn-secondary" href="/charts.html" data-route="skip_portal" style="padding:8px 16px">Open Supercharts ↗</a>
     <span style="font-size:14px;color:var(--tv-muted)">Sign in</span>
-    <span class="btn btn-primary" style="padding:9px 16px">Get started</span>
     <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
   </div>
 </nav>
 
-<div class="portal-hero">
-  <h1>Look first.<br>Then leap.</h1>
-  <p>The all-in-one platform millions of traders and investors trust</p>
-  <div class="cta">
-    <span class="btn btn-primary" style="padding:13px 28px">Get started</span>
-    <span class="btn btn-secondary" style="padding:13px 28px">See plans</span>
-  </div>
-  <div class="ph" style="max-width:1180px;margin:44px auto 0;height:240px;display:flex;align-items:center;justify-content:center;font-family:var(--tv-mono);font-size:12px;color:var(--tv-ghost)">platform hero visual</div>
-</div>
+<main class="tv-page" style="max-width:1180px">
 
-<div class="section">
-  <div class="tv-eyebrow" style="color:var(--tv-blue)">Products</div>
-  <div class="cards-4">
-    <div class="tv-card"><p class="title">Supercharts</p><div style="font-size:13.5px;color:var(--tv-muted)">Advanced charting across every market</div><div class="ph" style="height:74px;margin-top:16px"></div></div>
-    <div class="tv-card"><p class="title">Screeners</p><div style="font-size:13.5px;color:var(--tv-muted)">Filter thousands of instruments</div><div class="ph" style="height:74px;margin-top:16px"></div></div>
-    <div class="tv-card" style="border-color:var(--tv-blue-line);background:var(--tv-blue-dim)">
-      <div class="row" style="justify-content:space-between"><p class="title" style="margin:0">Academy</p><span class="tag tag-warn">NEW</span></div>
-      <div style="font-size:13.5px;color:var(--tv-muted);margin-top:4px">Six short steps on live data — from “what is trading” to a risk-free first trade</div>
-      <a class="btn btn-primary" href="/academy.html" style="margin-top:16px">Start learning</a>
+  <!-- A question instead of a slogan: the first screen has to answer
+       "what do I do here?", not sell a subscription. -->
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin-top:16px;flex-wrap:wrap">
+    <div>
+      <h1 class="tv-h1" style="font-size:42px">What do you want to do today?</h1>
+      <p class="tv-lead" style="margin-top:12px">Pick a task — we set up the data, the chart and the next step. No account needed to start.</p>
     </div>
-    <div class="tv-card" style="border-color:var(--tv-blue-line);background:var(--tv-blue-dim)">
-      <div class="row" style="justify-content:space-between"><p class="title" style="margin:0">Experts</p><span class="tag tag-warn">NEW · PILOT</span></div>
-      <div style="font-size:13.5px;color:var(--tv-muted);margin-top:4px">Talk to a licensed consultant — matched to your country, capital and task</div>
-      <a class="btn btn-primary" href="/experts.html" style="margin-top:16px">Find my expert</a>
+    <span class="tag tag-ai" style="white-space:nowrap">BEGINNER MODE · ON</span>
+  </div>
+
+  <div class="routes">
+    <a class="route" href="#brief" data-route="understand_market"><div class="ic">01</div><h3>Understand today's market</h3><p>3 movers, 1 macro event, and why they moved.</p><div class="go">Open the brief ↓</div></a>
+    <a class="route" href="#asset" data-route="research_asset"><div class="ic">02</div><h3>Research one asset</h3><p>Price → drivers → peers → next event, in one flow.</p><div class="go">Start with BTC ↓</div></a>
+    <a class="route" href="#ideas" data-route="find_idea"><div class="ic">03</div><h3>Find an idea</h3><p>Curated by editors, with the author's track record.</p><div class="go">Editors' picks ↓</div></a>
+    <a class="route" href="#watchlist" data-route="track_instruments"><div class="ic">04</div><h3>Track my instruments</h3><p>Watchlist, alerts and events that touch your assets.</p><div class="go">Build a watchlist ↓</div></a>
+    <a class="route" href="/academy.html" data-route="learn"><div class="ic">05</div><h3>Learn without risk</h3><p>Guided lessons on live data + Paper Trading.</p><div class="go">Open Academy →</div></a>
+    <a class="route" href="#events" data-route="prepare_event"><div class="ic">06</div><h3>Prepare for an event</h3><p>FOMC in 18h — what it historically touches.</p><div class="go">See events ↓</div></a>
+    <a class="route" href="#brokers" data-route="start_trading"><div class="ic">07</div><h3>Start trading</h3><p>Connect a verified broker and trade from the chart.</p><div class="go">Choose a broker ↓</div></a>
+    <a class="route pro" href="/charts.html" data-route="skip_portal"><div class="ic">PRO?</div><h3>Skip the portal</h3><p>The full professional workspace is one click away — and clearly separated from browsing.</p><div class="go">Open Supercharts ↗</div></a>
+  </div>
+
+  <!-- ONE market brief instead of a quote section per asset class. -->
+  <div class="grid-2 mt-32" style="grid-template-columns:1.5fr 1fr;align-items:start" id="markets">
+    <div class="tv-card" style="padding:0;overflow:hidden" id="brief">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid var(--tv-ink-3)">
+        <p class="title" style="margin:0">Today's brief</p>
+        <span class="tag tag-fact">FACT · MARKET DATA · SAMPLE</span>
+      </div>
+      <!-- Sample figures: this shell is not wired to a quote feed. -->
+      <div class="brief-row"><b style="color:var(--tv-white)">BTCUSD</b><span class="mono" style="font-size:13.5px">118 420.5</span><span class="mono pos" style="font-size:13px">+2.84%</span><span style="font-size:13px;color:var(--tv-muted)">ETF inflows 4th day + softer US CPI</span></div>
+      <div class="brief-row"><b style="color:var(--tv-white)">TSLA</b><span class="mono" style="font-size:13.5px">331.62</span><span class="mono neg" style="font-size:13px">−4.10%</span><span style="font-size:13px;color:var(--tv-muted)">Q2 deliveries below consensus</span></div>
+      <div class="brief-row"><b style="color:var(--tv-white)">US10Y</b><span class="mono" style="font-size:13.5px">4.118%</span><span class="mono neg" style="font-size:13px">−0.07</span><span style="font-size:13px;color:var(--tv-muted)">CPI 2.6% vs 2.8% expected</span></div>
+      <div id="events" style="padding:13px 18px;border-top:1px solid var(--tv-ink-3);background:var(--tv-blue-dim);display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span class="mono" style="font-size:10.5px;color:var(--tv-orange)">NEXT EVENT</span>
+        <span style="font-size:13.5px"><b style="color:var(--tv-white)">FOMC in 18h 22m</b> · affects BTC, US10Y, XAUUSD</span>
+        <span style="flex:1"></span>
+        <button class="btn btn-quiet" id="followEvent" style="padding:6px 14px;font-size:12.5px">Follow this event</button>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <!-- Conversion is value-first: it appears after the visitor has looked at
+           symbols, and it never routes to pricing. -->
+      <div class="tv-card accent">
+        <div style="font-size:14px;color:var(--tv-muted);line-height:1.5" id="valueLine">
+          You looked at <b style="color:var(--tv-white)">BTC</b> and <b style="color:var(--tv-white)">TSLA</b>.
+          Save them and get the next event by email — free.
+        </div>
+        <div class="row mt-16" style="flex-wrap:wrap;gap:10px">
+          <button class="btn btn-primary" id="saveCta">Save my watchlist</button>
+          <button class="btn btn-secondary" id="guestCta">Continue as guest</button>
+        </div>
+        <div class="mono" style="font-size:10.5px;color:var(--tv-faint);margin-top:11px">pricing appears when you hit a limit — not before</div>
+      </div>
+
+      <div class="tv-card">
+        <div style="font-size:14px;font-weight:700;color:var(--tv-white)">Your research journey</div>
+        <div class="row mono" style="font-size:11px;margin-top:11px;flex-wrap:wrap;gap:7px" id="journey">
+          <span style="background:var(--tv-ink-2);border-radius:5px;padding:5px 9px;color:var(--tv-text)">US CPI</span><span style="color:var(--tv-ghost)">→</span>
+          <span style="background:var(--tv-ink-2);border-radius:5px;padding:5px 9px;color:var(--tv-text)">BTCUSD</span><span style="color:var(--tv-ghost)">→</span>
+          <span style="background:var(--tv-blue-dim);border:1px dashed var(--tv-blue-line);border-radius:5px;padding:5px 9px;color:var(--tv-blue)">next: IBIT vs FBTC</span>
+        </div>
+        <div style="font-size:12px;color:var(--tv-faint);margin-top:10px">Saved on this device — continue from here or from the Copilot.</div>
+      </div>
     </div>
   </div>
-</div>
 
-<div class="section">
-  <div class="head">
-    <h2>Markets</h2>
-    <a href="#" style="font-size:13.5px;font-weight:700">See all markets →</a>
-  </div>
-  <!-- Sample figures for the mockup — this shell is not wired to a quote feed. -->
-  <div class="market-row">
-    <div class="mkt"><div class="t">SPX</div><div class="p">5 612.4</div><div class="c pos">+0.42%</div><svg viewBox="0 0 160 34"><polyline points="0,28 40,22 80,24 120,14 160,8" fill="none" stroke="#089981" stroke-width="1.8"/></svg></div>
-    <div class="mkt"><div class="t">NDQ</div><div class="p">20 148</div><div class="c pos">+0.71%</div><svg viewBox="0 0 160 34"><polyline points="0,30 40,24 80,20 120,12 160,6" fill="none" stroke="#089981" stroke-width="1.8"/></svg></div>
-    <div class="mkt"><div class="t">BTCUSD</div><div class="p">118 420</div><div class="c pos">+2.84%</div><svg viewBox="0 0 160 34"><polyline points="0,30 40,22 80,26 120,12 160,5" fill="none" stroke="#089981" stroke-width="1.8"/></svg></div>
-    <div class="mkt"><div class="t">EURUSD</div><div class="p">1.0842</div><div class="c neg">−0.18%</div><svg viewBox="0 0 160 34"><polyline points="0,10 40,14 80,12 120,22 160,26" fill="none" stroke="#F23645" stroke-width="1.8"/></svg></div>
-    <div class="mkt"><div class="t">XAUUSD</div><div class="p">2 412</div><div class="c pos">+1.10%</div><svg viewBox="0 0 160 34"><polyline points="0,26 40,24 80,18 120,16 160,10" fill="none" stroke="#089981" stroke-width="1.8"/></svg></div>
-  </div>
-  <div class="disclaimer" style="border:none;padding-top:10px;margin-top:8px;">Sample figures for layout only — this shell is not connected to a market data feed.</div>
-</div>
+  <!-- Where routes 02, 04 and 07 land. Pilot-depth on purpose: the point of the
+       hypothesis is the entry, and a stub that says so beats a fake product. -->
+  <div class="stubs">
+    <div class="tv-card" id="asset">
+      <div class="row" style="justify-content:space-between"><p class="title" style="margin:0">Research one asset</p><span class="tag tag-fact">FACT · MARKET DATA</span></div>
+      <div style="font-size:13.5px;color:var(--tv-muted)">One flow for <b style="color:var(--tv-white)">BTCUSD</b> instead of eight tabs.</div>
+      <div class="stub-steps"><span>price</span><span>drivers</span><span>peers</span><span>next event</span></div>
+      <div class="row mt-16" style="flex-wrap:wrap;gap:8px">
+        <a class="btn btn-primary" href="/charts.html?symbol=BTCUSD" id="assetChart" style="padding:9px 16px">Open BTCUSD</a>
+        <button class="btn btn-quiet" id="assetAsk" style="padding:9px 16px">Ask the Copilot</button>
+      </div>
+      <div class="mono" style="font-size:10.5px;color:var(--tv-ghost);margin-top:10px">symbol page is a pilot stub — the flow, not the depth, is under test</div>
+    </div>
 
-<div class="section" style="padding-bottom:24px">
-  <div class="head"><h2>Community ideas</h2><span style="font-size:13px;color:var(--tv-faint)">Editors' picks · Popular · Following</span></div>
-  <div class="cards-4" style="grid-template-columns:repeat(3,1fr)">
-    <div class="tv-card" style="padding:0;overflow:hidden"><div class="ph" style="height:104px;border-radius:0"></div><div style="padding:13px"><div style="font-size:13.5px;font-weight:700;color:var(--tv-white)">Placeholder idea title</div><div class="mono" style="font-size:11px;color:var(--tv-faint);margin-top:6px">sample_author · 43</div></div></div>
-    <div class="tv-card" style="padding:0;overflow:hidden"><div class="ph" style="height:104px;border-radius:0"></div><div style="padding:13px"><div style="font-size:13.5px;font-weight:700;color:var(--tv-white)">Placeholder idea title</div><div class="mono" style="font-size:11px;color:var(--tv-faint);margin-top:6px">sample_author · 120</div></div></div>
-    <div class="tv-card" style="padding:0;overflow:hidden"><div class="ph" style="height:104px;border-radius:0"></div><div style="padding:13px"><div style="font-size:13.5px;font-weight:700;color:var(--tv-white)">Placeholder idea title</div><div class="mono" style="font-size:11px;color:var(--tv-faint);margin-top:6px">sample_author · 130</div></div></div>
-  </div>
-</div>
+    <div class="tv-card" id="watchlist">
+      <div class="row" style="justify-content:space-between"><p class="title" style="margin:0">Track my instruments</p><span class="tag tag-fact">FACT · YOUR LIST</span></div>
+      <div style="font-size:13.5px;color:var(--tv-muted)">Tap what you want to follow, then save the list.</div>
+      <div class="chips" id="chips"></div>
+      <div class="row mt-16" style="flex-wrap:wrap;gap:8px">
+        <button class="btn btn-primary" id="saveWatchlist" style="padding:9px 16px">Save watchlist</button>
+        <span class="mono" style="font-size:11px;color:var(--tv-faint)" id="watchState"></span>
+      </div>
+    </div>
 
+    <div class="tv-card" id="brokers">
+      <div class="row" style="justify-content:space-between"><p class="title" style="margin:0">Start trading</p><span class="tag tag-warn">OUT OF PILOT SCOPE</span></div>
+      <div style="font-size:13.5px;color:var(--tv-muted)">Trading goes through a licensed broker, never through this prototype.</div>
+      <div class="stub-steps"><span>choose a broker</span><span>verify identity</span><span>trade from the chart</span></div>
+      <div class="mono" style="font-size:10.5px;color:var(--tv-ghost);margin-top:14px">no broker integration is wired here, and none will be in a case-study stand</div>
+    </div>
+  </div>
+
+  <!-- ONE ideas module. Editors' Picks is the default surface; the unmoderated
+       feeds stay reachable, but the visitor has to ask for them. -->
+  <div class="mt-32" id="ideas">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
+      <h2 style="font-size:26px;font-weight:700;color:var(--tv-white);letter-spacing:-.015em;margin:0">Ideas</h2>
+      <div class="row" style="gap:10px;flex-wrap:wrap">
+        <div class="feed-tabs" id="feedTabs">
+          <button class="on" data-feed="editors">Editors' Picks</button>
+          <button data-feed="popular">Popular</button>
+          <button data-feed="newest">Newest</button>
+        </div>
+        <span class="tag tag-warn" id="feedTag">OPINION · REVIEWED</span>
+      </div>
+    </div>
+    <div style="font-size:13px;color:var(--tv-faint);margin-top:8px" id="feedNote">
+      Curated for new users by default — with the author's tracked outcome.
+    </div>
+    <div class="cards-4" style="grid-template-columns:repeat(3,1fr)" id="ideaCards"></div>
+  </div>
+
+  <div class="disclaimer">
+    Market data on this page is illustrative. Ideas are opinions, not investment advice.
+  </div>
+</main>
+
+<!-- Three columns instead of thirty-odd links. Pricing stays reachable here. -->
 <footer class="portal-footer">
-  <div class="cols">
-    <div class="col"><b>Products</b><div>Supercharts</div><div>Screeners</div><div>Heatmaps</div><div>Calendars</div></div>
-    <div class="col"><b>Community</b><div>Ideas</div><div>Scripts</div><div>Streams</div></div>
-    <div class="col"><b>Experts</b><div><a href="/experts.html">Find a consultant</a></div><div>Become a consultant</div><div>How matching works</div></div>
-    <div class="col"><b>Company</b><div>About</div><div>Careers</div><div>Blog</div></div>
-    <div class="col"><b>More</b><div>Pricing</div><div>Store</div><div>Help center</div></div>
+  <div class="cols" style="grid-template-columns:repeat(3,1fr)">
+    <div class="col"><b>Do</b><div><a href="#brief">Today's brief</a></div><div><a href="#asset">Research an asset</a></div><div><a href="#events">Events</a></div><div><a href="/charts.html">Open Supercharts</a></div></div>
+    <div class="col"><b>Learn &amp; decide</b><div><a href="/academy.html">Academy</a></div><div><a href="#ideas">Editors' Picks</a></div><div><a href="/experts.html">Experts</a></div></div>
+    <div class="col"><b>Company</b><div>About</div><div>Pricing</div><div>Help center</div></div>
   </div>
-  <div class="cols" style="margin-top:26px;grid-template-columns:1fr;">
-    <div class="disclaimer" style="border-top:none;padding-top:0;margin-top:0;">
+  <div class="cols" style="margin-top:26px;grid-template-columns:1fr">
+    <div class="disclaimer" style="border-top:none;padding-top:0;margin-top:0">
       Unaffiliated case-study prototype built for an internal product review. Not a real platform,
       not operated by or endorsed by any company whose branding appears here. Only the Experts
-      section is functional; everything else is a static placeholder. Not investment advice.
+      section and the Copilot are functional; everything else is a static placeholder.
+      Not investment advice.
     </div>
   </div>
 </footer>
 
+<div class="variant-note" style="padding-bottom:34px">
+  home variant: <b id="variantName">task</b> · <a href="/?home=classic">see the classic home</a>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const P = window.Portal;
+
+$('variantName').textContent = P.variant();
+
+/* ------------------------------------------------------------- watchlist */
+
+const OFFERED = ['BTCUSD', 'TSLA', 'US10Y', 'ETHUSD', 'XAUUSD'];
+
+function renderChips() {
+  const list = P.watchlist();
+  $('chips').innerHTML = OFFERED.map(s =>
+    `<button class="chip ${list.includes(s) ? 'on' : ''}" data-sym="${s}">${s}${list.includes(s) ? ' <span class="x">✓</span>' : ''}</button>`
+  ).join('');
+  $('watchState').textContent = list.length
+    ? `${list.length} saved on this device`
+    : 'nothing saved yet';
+  $('saveWatchlist').disabled = list.length === 0;
+}
+
+$('chips').addEventListener('click', e => {
+  const b = e.target.closest('[data-sym]');
+  if (!b) return;
+  P.toggleSymbol(b.dataset.sym);
+  renderChips();
+});
+
+$('saveWatchlist').addEventListener('click', () => {
+  const list = P.saveWatchlist('watchlist_card');
+  if (!list) return;
+  $('watchState').textContent = `saved: ${list.join(', ')}`;
+});
+
+/* The primary CTA is the only registration prompt on the page, and it only
+   makes sense once there is something to save. */
+$('saveCta').addEventListener('click', () => {
+  const list = P.watchlist();
+  if (!list.length) {
+    OFFERED.slice(0, 2).forEach(s => P.toggleSymbol(s));
+    renderChips();
+  }
+  P.saveWatchlist('value_cta');
+  P.registerClick('value_cta');
+  $('valueLine').innerHTML =
+    'Saved. Registration would happen here in production — this stand stores the list on your device only.';
+});
+
+$('guestCta').addEventListener('click', () => {
+  P.track('value_cta_dismissed', { source: 'value_cta' });
+  $('valueLine').textContent = 'No problem — everything above works without an account.';
+});
+
+$('followEvent').addEventListener('click', () => {
+  P.track('event_followed', { event: 'FOMC' });
+  P.meaningful('event_followed');
+  $('followEvent').textContent = '✓ following';
+  $('followEvent').disabled = true;
+});
+
+$('assetAsk').addEventListener('click', () => {
+  P.track('asset_stub_copilot', { symbol: 'BTCUSD' });
+  P.meaningful('asset_research');
+  document.querySelector('.cp-fab')?.click();
+});
+
+$('assetChart').addEventListener('click', () => P.meaningful('asset_research', { symbol: 'BTCUSD' }));
+
+/* ----------------------------------------------------------------- ideas */
+
+const FEEDS = {
+  editors: {
+    tag: 'OPINION · REVIEWED',
+    note: "Curated for new users by default — with the author's tracked outcome.",
+    items: [
+      ['BTC range structure into FOMC', '@mkt_notes · outcome tracked: 3/5 hit'],
+      ['Why ETF flows matter more than the halving', '@onchain · editorial review'],
+      ['Utilities: the defensive trade, explained', '@macro_view · editorial review']
+    ]
+  },
+  popular: {
+    tag: 'OPINION · UNREVIEWED',
+    note: 'Community feed, ranked by engagement. Headlines are not moderated and outcomes are not tracked.',
+    items: [
+      ['Placeholder community post', 'sample_author · 4.2k views'],
+      ['Placeholder community post', 'sample_author · 3.1k views'],
+      ['Placeholder community post', 'sample_author · 2.7k views']
+    ]
+  },
+  newest: {
+    tag: 'OPINION · UNREVIEWED',
+    note: 'Newest first, unfiltered. Nothing here has been reviewed.',
+    items: [
+      ['Placeholder community post', 'sample_author · 2 min ago'],
+      ['Placeholder community post', 'sample_author · 9 min ago'],
+      ['Placeholder community post', 'sample_author · 14 min ago']
+    ]
+  }
+};
+
+function renderFeed(key) {
+  const f = FEEDS[key];
+  $('feedTag').textContent = f.tag;
+  $('feedNote').textContent = f.note;
+  $('ideaCards').innerHTML = f.items.map(([title, meta]) => `
+    <div class="tv-card" style="padding:0;overflow:hidden">
+      <div class="ph" style="height:104px;border-radius:0"></div>
+      <div style="padding:13px">
+        <div style="font-size:13.5px;font-weight:700;color:var(--tv-white)">${title}</div>
+        <div class="mono" style="font-size:11px;color:var(--tv-faint);margin-top:6px">${meta}</div>
+      </div>
+    </div>`).join('');
+}
+
+$('feedTabs').addEventListener('click', e => {
+  const b = e.target.closest('[data-feed]');
+  if (!b) return;
+  document.querySelectorAll('#feedTabs button').forEach(x => x.classList.toggle('on', x === b));
+  renderFeed(b.dataset.feed);
+  P.track('ideas_feed_switched', { feed: b.dataset.feed });
+  P.meaningful('ideas_feed_switched', { feed: b.dataset.feed });
+});
+
+renderChips();
+renderFeed('editors');
+</script>
 </body>
 </html>

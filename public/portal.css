@@ -53,6 +53,40 @@
 .portal-footer b{color:var(--tv-white);display:block;margin-bottom:9px}
 .portal-footer .col div{margin-bottom:8px}
 
+/* ---------- Task-based home ---------- */
+/* Маршруты вместо витрины продуктов: восемь плиток, последняя — выход в
+   профессиональный воркспейс (явная граница Portal/Chart). */
+.routes{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:26px}
+.route{background:var(--tv-ink);border:1px solid var(--tv-ink-3);border-radius:var(--tv-r);padding:18px;cursor:pointer;display:block;color:inherit;text-align:left;font-family:var(--tv-font);width:100%}
+.route:hover{border-color:var(--tv-blue-line);color:inherit}
+.route .ic{font-family:var(--tv-mono);font-size:11px;color:var(--tv-blue);letter-spacing:.08em}
+.route h3{font-size:16.5px;font-weight:700;color:var(--tv-white);margin:9px 0 0}
+.route p{font-size:12.5px;color:var(--tv-faint);margin:7px 0 0;line-height:1.45}
+.route .go{font-size:12.5px;font-weight:700;color:var(--tv-blue);margin-top:12px}
+.route.pro{background:var(--tv-blue-dim);border-color:var(--tv-blue-line)}
+
+.brief-row{display:grid;grid-template-columns:120px 100px 78px minmax(0,1fr);gap:10px;align-items:center;padding:13px 18px;border-bottom:1px solid var(--tv-line)}
+.brief-row:last-of-type{border-bottom:none}
+
+/* Заглушка вотчлиста: список живёт в localStorage — этого достаточно, чтобы
+   измерить гипотезу, и честнее, чем рисовать несуществующий бэкенд. */
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.chip{display:inline-flex;align-items:center;gap:7px;background:var(--tv-ink-2);border:1px solid var(--tv-ink-3);border-radius:var(--tv-r-pill);padding:6px 12px;font-family:var(--tv-mono);font-size:12px;color:var(--tv-text);cursor:pointer}
+.chip.on{background:var(--tv-blue-dim);border-color:var(--tv-blue-line);color:#5B8DFF}
+.chip .x{color:var(--tv-ghost)}
+
+.feed-tabs{display:inline-flex;gap:3px;background:var(--tv-ink);border:1px solid var(--tv-ink-3);border-radius:var(--tv-r-pill);padding:3px}
+.feed-tabs button{font-family:var(--tv-font);font-size:12.5px;font-weight:700;padding:6px 14px;border-radius:var(--tv-r-pill);color:var(--tv-muted);background:none;border:none;cursor:pointer}
+.feed-tabs button.on{background:var(--tv-blue);color:#fff}
+
+.stubs{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}
+.stub-steps{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;font-family:var(--tv-mono);font-size:11px;color:var(--tv-faint)}
+.stub-steps span{background:var(--tv-ink-2);border-radius:5px;padding:5px 9px}
+
+.variant-note{max-width:1180px;margin:0 auto;padding:0 24px;font-family:var(--tv-mono);font-size:11px;color:var(--tv-ghost)}
+
+@media (max-width:1100px){.routes{grid-template-columns:repeat(2,1fr)}.stubs{grid-template-columns:1fr}}
+
 /* ---------- Academy: карта трека ---------- */
 .track{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:20px}
 .lesson{background:var(--tv-ink);border:1px solid var(--tv-ink-3);border-radius:var(--tv-r);padding:18px;position:relative;text-align:left;width:100%;font-family:var(--tv-font)}
