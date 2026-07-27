@@ -55,15 +55,26 @@ function fail(res, err) {
 
 /* ------------------------------------------------------------------ health */
 
+/* Отдаёт состояние конфигурации, но не сами секреты: длина и наличие — да,
+   значения — нет. Нужен, чтобы проверять деплой не заходя в дашборд. */
 app.get('/api/health', wrap(async (_req, res) => {
+  const problems = [];
+  if (db.MODE === 'memory') problems.push('DATABASE_URL не задан: данные исчезнут при рестарте');
+  if (!hasKey()) problems.push('ANTHROPIC_API_KEY не задан: AI-шаги вернут 503');
+  if (!STAFF_TOKEN) problems.push('STAFF_TOKEN не задан: кабинет консультанта и метрики открыты всем');
+  else if (STAFF_TOKEN.length < 12) problems.push('STAFF_TOKEN короче 12 символов — подберут перебором');
+
   res.json({
-    ok: true,
+    ok: problems.length === 0,
     storage: db.MODE,
     storage_note: db.MODE === 'memory'
       ? 'DATABASE_URL не задан — данные не переживут перезапуск'
       : 'Postgres подключён',
     ai: hasKey() ? 'ready' : 'ANTHROPIC_API_KEY не задан',
-    model: MODEL
+    model: MODEL,
+    staff_protected: Boolean(STAFF_TOKEN),
+    problems,
+    ready_for_pilot: problems.length === 0
   });
 }));
 
