@@ -18,6 +18,7 @@ import {
   buildBrief, rankMatches, hardFilter, streamSummary,
   hasKey, MODEL, RefusalError
 } from './claude.js';
+import { ask as copilotAsk, MODEL as COPILOT_MODEL } from './copilot.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -82,6 +83,7 @@ app.get('/api/health', wrap(async (_req, res) => {
       : 'Postgres connected',
     ai: hasKey() ? 'ready' : 'ANTHROPIC_API_KEY is not set',
     model: MODEL,
+    copilot_model: COPILOT_MODEL,
     staff_protected: Boolean(STAFF_TOKEN),
     problems,
     ready_for_pilot: problems.length === 0
@@ -335,6 +337,65 @@ app.get('/api/metrics', staffOnly, wrap(async (_req, res) => {
 
 app.get('/api/ai-calls', staffOnly, wrap(async (_req, res) => {
   res.json(await db.listAiCalls(100));
+}));
+
+/* ----------------------------------------------------------------- copilot */
+
+/* Simple per-IP window. The Copilot is open to anyone who loads a page, so it
+   needs a ceiling — one careless loop in a browser tab would otherwise spend
+   real money. In-memory is fine for a single-instance pilot; a shared store
+   would be needed behind more than one replica. */
+const COPILOT_LIMIT = Number(process.env.COPILOT_RPM || 20);
+const hits = new Map();
+
+function rateLimited(req) {
+  const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.ip || 'unknown';
+  const now = Date.now();
+  const window = (hits.get(ip) || []).filter(t => now - t < 60_000);
+  window.push(now);
+  hits.set(ip, window);
+  if (hits.size > 5000) hits.clear();          // crude guard against unbounded growth
+  return window.length > COPILOT_LIMIT;
+}
+
+app.post('/api/copilot', wrap(async (req, res) => {
+  if (rateLimited(req)) {
+    return res.status(429).json({ error: `Too many questions — limit is ${COPILOT_LIMIT} per minute.` });
+  }
+  const { messages, context } = req.body || {};
+  if (!Array.isArray(messages) || !messages.length) {
+    return res.status(400).json({ error: 'messages is required' });
+  }
+  const out = await copilotAsk({ messages, context: context || {} });
+  res.json(out);
+}));
+
+/* Actions are confirmed by the user in the widget; the client owns the pilot
+   storage (watchlist, alerts). This endpoint validates and acknowledges, so the
+   UI has one place to talk to and the server can count what was confirmed. */
+const ACTION_IDS = new Set(['create_alert', 'open_chart', 'compare', 'add_watchlist']);
+
+app.post('/api/copilot/action', wrap(async (req, res) => {
+  const { id, payload } = req.body || {};
+  if (!ACTION_IDS.has(id)) return res.status(400).json({ error: 'Unknown action' });
+
+  const p = payload || {};
+  switch (id) {
+    case 'create_alert':
+      if (!p.symbol || !p.condition) return res.status(400).json({ error: 'symbol and condition are required' });
+      return res.json({ ok: true, confirm: `Alert created for ${p.symbol}: ${p.condition}${p.value != null ? ' ' + p.value : ''}` });
+    case 'add_watchlist':
+      if (!p.symbol) return res.status(400).json({ error: 'symbol is required' });
+      return res.json({ ok: true, confirm: `${p.symbol} added to your watchlist` });
+    case 'open_chart':
+      if (!p.symbol) return res.status(400).json({ error: 'symbol is required' });
+      return res.json({ ok: true, navigate: '/lesson.html', symbol: p.symbol, range: p.range || '1D' });
+    case 'compare': {
+      const syms = Array.isArray(p.symbols) ? p.symbols.filter(Boolean) : [];
+      if (syms.length < 2) return res.status(400).json({ error: 'at least two symbols are required' });
+      return res.json({ ok: true, navigate: '/lesson.html', symbol: syms[0], compare: syms });
+    }
+  }
 }));
 
 /* -------------------------------------------------------------------- boot */
