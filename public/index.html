@@ -20,7 +20,7 @@
 <!-- Five sections, no pricing-first CTA, ONE explicit door to the chart workspace. -->
 <nav class="portal-nav">
   <div class="logo"><a href="/"><img src="/assets/tv-logo-white.svg" alt="Platform"></a></div>
-  <div class="search"><svg class="g" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="M11 11l4 4"/></svg>Search</div>
+  <div class="search"><svg class="g" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="M11 11l4 4"/></svg>Search or ask: &ldquo;why is BTC up?&rdquo;</div>
   <div class="menu">
     <a href="/" class="active">Home</a>
     <a href="#markets">Markets</a>
@@ -73,16 +73,6 @@
       <div class="brief-row"><b style="color:var(--tv-white)">BTCUSD</b><span class="mono" style="font-size:13.5px">118 420.5</span><span class="mono pos" style="font-size:13px">+2.84%</span><span style="font-size:13px;color:var(--tv-muted)">ETF inflows 4th day + softer US CPI</span></div>
       <div class="brief-row"><b style="color:var(--tv-white)">TSLA</b><span class="mono" style="font-size:13.5px">331.62</span><span class="mono neg" style="font-size:13px">−4.10%</span><span style="font-size:13px;color:var(--tv-muted)">Q2 deliveries below consensus</span></div>
       <div class="brief-row"><b style="color:var(--tv-white)">US10Y</b><span class="mono" style="font-size:13.5px">4.118%</span><span class="mono neg" style="font-size:13px">−0.07</span><span style="font-size:13px;color:var(--tv-muted)">CPI 2.6% vs 2.8% expected</span></div>
-      <!-- The events header. Imagery stops here: the quote rows above it stay on
-           a solid surface, because nothing decorative belongs behind data. -->
-      <section id="events" class="bg-section bg-arena" style="border-top:1px solid var(--tv-ink-3)">
-        <div class="bg-inner" style="padding:20px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-          <span class="mono" style="font-size:10.5px;color:#ffb74d">NEXT EVENT</span>
-          <span style="font-size:13.5px;color:#C9CEDA"><b style="color:#fff">FOMC in 18h 22m</b> · affects BTC, US10Y, XAUUSD</span>
-          <span style="flex:1"></span>
-          <button class="btn btn-quiet" id="followEvent" style="padding:6px 14px;font-size:12.5px">Follow this event</button>
-        </div>
-      </section>
     </div>
 
     <div style="display:flex;flex-direction:column;gap:14px">
@@ -110,6 +100,17 @@
       </div>
     </div>
   </div>
+
+  <!-- The events header, on its own so the brief above it keeps a solid surface:
+       nothing decorative belongs behind data. -->
+  <section id="events" class="bg-section bg-arena mt-32" style="border-radius:12px">
+    <div class="bg-inner" style="text-align:center;padding:52px 24px 58px">
+      <div class="mono" style="font-size:10.5px;color:#ffb74d;letter-spacing:.1em">IN 18H 22M · HIGH IMPACT</div>
+      <div style="font-size:30px;font-weight:700;color:#fff;margin-top:10px">FOMC rate decision</div>
+      <div style="font-size:13.5px;color:#C9CEDA;margin-top:8px">Historically touches BTC, US10Y and gold — a probability, not a rule.</div>
+      <button class="btn btn-primary" id="followEvent" style="margin-top:18px">Follow · 1 click</button>
+    </div>
+  </section>
 
   <!-- Where routes 02, 04 and 07 land. Pilot-depth on purpose: the point of the
        hypothesis is the entry, and a stub that says so beats a fake product. -->
@@ -186,7 +187,7 @@
 </footer>
 
 <div class="variant-note" style="padding-bottom:34px">
-  home variant: <b id="variantName">task</b> · <a href="/?home=classic">see the classic home</a>
+  home variant: <b id="variantName">task</b> · <a href="/?home=classic">see the A/B control (the old promo home)</a>
 </div>
 
 <script>
@@ -245,7 +246,7 @@ $('guestCta').addEventListener('click', () => {
 $('followEvent').addEventListener('click', () => {
   P.track('event_followed', { event: 'FOMC' });
   P.meaningful('event_followed');
-  $('followEvent').textContent = '✓ following';
+  $('followEvent').textContent = '✓ Following';
   $('followEvent').disabled = true;
 });
 
@@ -320,13 +321,12 @@ function renderFeed(key) {
   const f = FEEDS[key];
   $('feedTag').textContent = f.tag;
   $('feedNote').textContent = f.note;
+  /* No striped placeholder thumbnails: an empty hatched box says nothing and
+     reads as a broken image. The card is the headline and the track record. */
   $('ideaCards').innerHTML = f.items.map(([title, meta]) => `
-    <div class="tv-card" style="padding:0;overflow:hidden">
-      <div class="ph" style="height:104px;border-radius:0"></div>
-      <div style="padding:13px">
-        <div style="font-size:13.5px;font-weight:700;color:var(--tv-white)">${title}</div>
-        <div class="mono" style="font-size:11px;color:var(--tv-faint);margin-top:6px">${meta}</div>
-      </div>
+    <div class="tv-card">
+      <div style="font-size:14.5px;font-weight:700;color:var(--tv-white);line-height:1.35">${title}</div>
+      <div class="mono" style="font-size:11px;color:var(--tv-faint);margin-top:8px">${meta}</div>
     </div>`).join('');
 }
 

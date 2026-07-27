@@ -26,19 +26,23 @@ const app = express();
 app.use(express.json({ limit: '256kb' }));
 
 /* ------------------------------------------------------------ home A/B test
-   The task-based home is a hypothesis, so it ships as an experiment rather than
-   a replacement: a new visitor is split 50/50 between the task home and the old
-   promo home (the control), and every analytics event carries the assignment.
+   The task-based home is a hypothesis, so the machinery to run it as an
+   experiment is here: a new visitor can be split 50/50 against the old promo
+   home, and every analytics event carries the assignment.
+
+   The split is OFF by default (HOME_AB=on turns it on). This stand is shown to
+   people, not measured on traffic, and a coin flip at the front door means the
+   person being shown the work can land on the control and conclude nothing
+   shipped. With the split off, `/` always serves the task home and the control
+   stays one `?home=classic` away — visible on demand, never in the way.
 
    Split server-side on purpose — deciding in the browser would either flash the
    wrong page first or block the first paint. The cookie is readable by scripts
-   because the client has to stamp the same flag on its events.
-
-   `?home=task|classic` overrides and sticks, which is how the classic home
-   offers the opt-in the spec asks for. */
+   because the client has to stamp the same flag on its events. */
 const PUBLIC = path.join(here, '..', 'public');
 const HOME_PAGE = { task: 'index.html', classic: 'classic.html' };
 const YEAR = 365 * 24 * 3600;
+const HOME_AB = /^(1|on|true|yes)$/i.test(process.env.HOME_AB || '');
 
 function readCookies(req) {
   const out = {};
@@ -55,10 +59,14 @@ app.get('/', (req, res) => {
 
   // Someone who has been here before keeps what they had; only a genuinely new
   // visitor is randomised, and returning visitors default to the control.
+  // With the experiment off, an explicit ?home= still wins for one visit, but
+  // nothing sticks a visitor to the control behind their back.
   const returning = jar.tv_seen === '1';
   const variant = forced
-    || (HOME_PAGE[jar.home_variant] ? jar.home_variant : null)
-    || (returning ? 'classic' : (Math.random() < 0.5 ? 'task' : 'classic'));
+    || (HOME_AB
+      ? ((HOME_PAGE[jar.home_variant] ? jar.home_variant : null)
+         || (returning ? 'classic' : (Math.random() < 0.5 ? 'task' : 'classic')))
+      : 'task');
 
   res.setHeader('Set-Cookie', [
     `home_variant=${variant}; Path=/; Max-Age=${YEAR}; SameSite=Lax`,
@@ -129,6 +137,8 @@ app.get('/api/health', wrap(async (_req, res) => {
     ai: hasKey() ? 'ready' : 'ANTHROPIC_API_KEY is not set',
     model: MODEL,
     copilot_model: COPILOT_MODEL,
+    home_ab: HOME_AB ? 'on — / is split 50/50 between the task home and the control'
+                     : 'off — / always serves the task home; ?home=classic shows the control',
     staff_protected: Boolean(STAFF_TOKEN),
     problems,
     ready_for_pilot: problems.length === 0
