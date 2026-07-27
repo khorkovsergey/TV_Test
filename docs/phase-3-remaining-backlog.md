@@ -38,11 +38,12 @@ NEW-01 to NEW-07 and would be the strongest journey on the stand.
 variant assignment, exposure logging, a results view on `/metrics` — would turn every `metric` field
 in the registry from a claim into something the stand can actually report.
 
-**Localisation.** Estimated at 1.5–2 hours: 1701 strings / ~3900 words across 25 files, done in three
-steps (extract to `i18n.js` → translate → `?lang=ru` plus cookie and `Accept-Language`). Open
-question for the owner: does Russian **replace** English or sit **alongside** it? The legal
-disclaimers will not be auto-translated without explicit approval — a mistranslated disclosure is
-worse than an English one.
+**Localisation — deferred by decision, not by capacity.** The stand stays English-only for now.
+The estimate stands if it is picked up later: 1.5–2 hours for 1701 strings / ~3900 words across 25
+files, in three steps (extract to `i18n.js` → translate → `?lang=ru` plus cookie and
+`Accept-Language`). Two things to settle before starting, not during: whether Russian replaces
+English or sits alongside it, and who signs off the legal disclaimers — those will not be
+auto-translated, because a mistranslated disclosure is worse than an English one.
 
 ## Not in scope, on purpose
 
