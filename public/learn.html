@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Learn — master the market without overload</title>
+<link rel="stylesheet" href="/tv-theme.css">
+<link rel="stylesheet" href="/portal.css">
+<script src="/ia.js"></script>
+<script src="/home.js"></script>
+<script src="/quotes.js"></script>
+<script src="/hub.js"></script>
+<script src="/nav.js"></script>
+<script src="/copilot.js" defer></script>
+</head>
+<body data-section="learn">
+
+<div class="mock-strip">
+  UNAFFILIATED CASE-STUDY MOCKUP · NOT A REAL PLATFORM · NOT INVESTMENT ADVICE
+</div>
+
+<nav class="portal-nav">
+  <div class="logo"><a href="/"><img src="/assets/tv-logo-white.svg" alt="Platform"></a></div>
+  <div class="search"><svg class="g" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="M11 11l4 4"/></svg>Search or ask: &ldquo;why is BTC up?&rdquo;</div>
+  <div class="menu">
+    <a href="/overview">Overview</a>
+    <a href="/research">Research</a>
+    <a href="/capital">Capital</a>
+    <a href="/trade">Trade</a>
+    <a href="/learn" class="active">Learn</a>
+    <a href="/community">Community</a>
+  </div>
+  <div class="right">
+    <button class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
+    <span style="font-size:14px;color:var(--tv-muted)">Sign in</span>
+    <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
+  </div>
+</nav>
+
+<main class="tv-page" style="max-width:1180px">
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap">
+    <div>
+      <div class="tv-eyebrow">Learn</div>
+      <h1 class="tv-h1" style="margin-top:8px">Master the market without being overwhelmed</h1>
+      <p class="tv-lead" style="margin-top:10px">Learning inside the interface, on real instruments, one step at a time — and an answer to the question you actually asked.</p>
+    </div>
+    <span class="tag tag-ai" id="modeBadge">Simple mode</span>
+  </div>
+
+  <div id="modules"></div>
+
+  <h2 class="mt-32" id="everything" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">Everything in this section</h2>
+  <div style="font-size:13px;color:var(--tv-faint);margin-top:6px">
+    Grouped once, with what this prototype implements. Deeper tools are marked, never hidden —
+    switching mode changes what comes first, not what you may reach.
+  </div>
+  <div class="stubs mt-16" id="shelf"></div>
+
+  <div class="mt-32" id="next"></div>
+
+  <div class="disclaimer">
+    Market data is delayed and comes from a free public source. Nothing on this page is investment advice.
+  </div>
+</main>
+
+<footer class="portal-footer">
+  <div class="cols" style="grid-template-columns:repeat(6,1fr)">
+    <div class="col"><b>Company</b>
+      <div><a href="#about-prototype">About this prototype</a></div>
+      <div><a href="/sitemap#company">About</a></div>
+      <div><a href="/sitemap#company">Blog</a></div>
+      <div><a href="/sitemap#company">Careers</a></div>
+      <div><a href="/sitemap#company">Media kit</a></div>
+    </div>
+    <div class="col"><b>Product & plans</b>
+      <div><a href="/sitemap#company">Features</a></div>
+      <div><a href="/sitemap#company">Pricing</a></div>
+      <div><a href="/sitemap#company">Market data</a></div>
+      <div><a href="/sitemap#company">Apps</a></div>
+      <div><a href="/sitemap#company">Gift plans</a></div>
+    </div>
+    <div class="col"><b>For business</b>
+      <div><a href="/sitemap#business">Widgets</a></div>
+      <div><a href="/sitemap#business">Charting libraries</a></div>
+      <div><a href="/sitemap#business">Broker integration</a></div>
+      <div><a href="/sitemap#business">Advertising</a></div>
+      <div><a href="/sitemap#business">Partner program</a></div>
+    </div>
+    <div class="col"><b>Support</b>
+      <div><a href="/learn#help">Help centre</a></div>
+      <div><a href="/api/health">Status</a></div>
+      <div><a href="/sitemap#policies">Security</a></div>
+      <div><a href="/sitemap#policies">Accessibility</a></div>
+    </div>
+    <div class="col"><b>Legal</b>
+      <div><a href="/sitemap#policies">Terms</a></div>
+      <div><a href="/sitemap#policies">Privacy</a></div>
+      <div><a href="/sitemap#policies">Cookies</a></div>
+      <div><a href="#about-prototype">Disclaimer</a></div>
+    </div>
+    <div class="col"><b>Community extras</b>
+      <div><a href="/community#rewards">Store</a></div>
+      <div><a href="/community#rewards">Refer a friend</a></div>
+      <div><a href="/sitemap#company">Wall of Love</a></div>
+      <div><a href="/sitemap#policies">House rules</a></div>
+    </div>
+  </div>
+  <div class="cols" style="margin-top:22px;grid-template-columns:1fr">
+    <div style="font-size:13px"><a href="/sitemap"><b>Full site map — every destination, where it went and whether it works here →</b></a></div>
+  </div>
+  <div class="cols" style="margin-top:18px;grid-template-columns:1fr">
+    <div class="disclaimer" id="about-prototype" style="border-top:none;padding-top:0;margin-top:0">
+      Unaffiliated case-study prototype built for an internal product review. Not a real platform,
+      not operated by or endorsed by any company whose branding appears here. Market data is delayed
+      and comes from a free public source; the Experts flow and the Copilot are the only functional
+      services. Nothing here is investment advice.
+    </div>
+  </div>
+</footer>
+
+<script>
+document.getElementById('askCopilot')?.addEventListener('click', () => document.querySelector('.cp-fab')?.click());
+
+const H = window.Hub, P = window.Portal;
+
+const STEPS = [
+  'What a market is', 'What kinds of assets exist', 'How to find an instrument',
+  'How to read the Asset Hub', 'How to compare two instruments', 'How to add to a watchlist',
+  'How to create an alert', 'How to open a simple chart', 'How to try paper trading',
+  'How to move to Standard mode'
+];
+
+Hub.mount('learn', mode => `
+  <div class="tv-card mt-24" id="start">
+    <div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <p class="title" style="margin:0">Start here</p><span class="tag tag-fact">LIVE ROUTE</span>
+    </div>
+    <div style="font-size:13.5px;color:var(--tv-muted);margin-top:6px">Ten steps through the product itself. Each one ends with an action, not a quiz.</div>
+    <div class="stub-steps" style="margin-top:12px">${STEPS.map((s, n) => `<span>${n + 1} · ${s}</span>`).join('')}</div>
+    <div class="row mt-16" style="gap:8px;flex-wrap:wrap">
+      <a class="btn btn-primary" href="/learn/academy" style="padding:9px 16px">Open the Academy</a>
+      <a class="btn btn-quiet" href="/symbols/AAPL" style="padding:9px 16px">Try step 4 now</a>
+    </div>
+  </div>
+
+  <h2 class="mt-32" id="modes" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">Simple, Standard, Pro</h2>
+  <div class="stubs mt-16">
+    <div class="tv-card"><p class="title" style="margin:0">Simple</p>
+      <div style="font-size:13px;color:var(--tv-muted);margin-top:6px;line-height:1.5">Fewer tabs and metrics, terms explained, one main action, editorially chosen content, a basic chart preset. For a first visit or a single question.</div></div>
+    <div class="tv-card"><p class="title" style="margin:0">Standard</p>
+      <div style="font-size:13px;color:var(--tv-muted);margin-top:6px;line-height:1.5">The full asset hub, screeners, fundamentals, all events, extended charts, saved layouts and real watchlists. For someone who comes back weekly.</div></div>
+    <div class="tv-card"><p class="title" style="margin:0">Pro</p>
+      <div style="font-size:13px;color:var(--tv-muted);margin-top:6px;line-height:1.5">Density, multi-chart, extended panels, Pine, strategy tester, options, yield curves, shortcuts and a configurable workspace. Minimum explanation by default.</div></div>
+  </div>
+  <div class="mono" style="font-size:11px;color:var(--tv-ghost);margin-top:12px">
+    the switch is in the header, it works both ways, and it never blocks access to the full interface
+  </div>
+
+  <h2 class="mt-32" id="investing" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">Tracks</h2>
+  <div class="stubs mt-16">
+    ${H.pilotCard({ title: 'Investing', what: 'Asset classes, fundamentals, portfolio, dividends, risk, horizon, goals and diversification — for someone building, not trading.' , actions: [{ label: 'Capital section', url: '/capital' }] })}
+    ${H.pilotCard({ title: 'Trading', what: 'Technical analysis, charts, indicators, order types, risk management, strategies, journal and backtesting.', actions: [{ label: 'Practice first', url: '/trade#practice', primary: true }] })}
+    ${H.pilotCard({ title: 'Pine Script', what: 'Basics, syntax, examples, editor, debugging, publication and documentation.', actions: [{ label: 'Community scripts', url: '/community#scripts' }] })}
+  </div>
+
+  <h2 class="mt-32" id="qa" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">Structured answers</h2>
+  <div class="stubs mt-16">
+    ${H.pilotCard({ title: 'Question → short answer → why', what: 'Every answer carries the short version, the explanation, a source, when it was updated, an example, the screen it relates to and the next step. The opposite of an SEO page.', actions: [{ label: 'Ask the Copilot instead', url: '#', primary: true }] })}
+    ${H.pilotCard({ title: 'Help centre', what: 'Support articles, security, plans, market data and billing.', actions: [{ label: 'Site map', url: '/sitemap#company' }] })}
+    <div class="tv-card"><div class="row" style="justify-content:space-between"><p class="title" style="margin:0">Research Copilot</p><span class="tag tag-fact">LIVE</span></div>
+      <div style="font-size:13px;color:var(--tv-muted);margin-top:6px">It sees the page you are on and the live quote of the instrument, answers in words, cites sources and proposes actions you confirm.</div>
+      <button class="btn btn-primary mt-16" id="askIt" style="padding:9px 16px">Ask it something</button></div>
+  </div>
+`);
+
+document.addEventListener('click', e => {
+  if (e.target.closest('#askIt') || e.target.closest('[href="#"]')) {
+    e.preventDefault();
+    document.querySelector('.cp-fab')?.click();
+  }
+});
+
+Hub.nextStep(document.getElementById('next'), {
+  label: 'Do the thing you just read about',
+  url: '/learn/academy',
+  why: 'The Academy runs on live data and ends each step with a real action in the product — the only kind of learning that sticks here.'
+});
+</script>
+</body>
+</html>

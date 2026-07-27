@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Trade — test an idea, then act</title>
+<link rel="stylesheet" href="/tv-theme.css">
+<link rel="stylesheet" href="/portal.css">
+<script src="/ia.js"></script>
+<script src="/home.js"></script>
+<script src="/quotes.js"></script>
+<script src="/hub.js"></script>
+<script src="/nav.js"></script>
+<script src="/copilot.js" defer></script>
+</head>
+<body data-section="trade">
+
+<div class="mock-strip">
+  UNAFFILIATED CASE-STUDY MOCKUP · NOT A REAL PLATFORM · NOT INVESTMENT ADVICE
+</div>
+
+<nav class="portal-nav">
+  <div class="logo"><a href="/"><img src="/assets/tv-logo-white.svg" alt="Platform"></a></div>
+  <div class="search"><svg class="g" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="M11 11l4 4"/></svg>Search or ask: &ldquo;why is BTC up?&rdquo;</div>
+  <div class="menu">
+    <a href="/overview">Overview</a>
+    <a href="/research">Research</a>
+    <a href="/capital">Capital</a>
+    <a href="/trade" class="active">Trade</a>
+    <a href="/learn">Learn</a>
+    <a href="/community">Community</a>
+  </div>
+  <div class="right">
+    <button class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
+    <span style="font-size:14px;color:var(--tv-muted)">Sign in</span>
+    <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
+  </div>
+</nav>
+
+<main class="tv-page" style="max-width:1180px">
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap">
+    <div>
+      <div class="tv-eyebrow">Trade</div>
+      <h1 class="tv-h1" style="margin-top:8px">Test an idea without risk, or place a trade</h1>
+      <p class="tv-lead" style="margin-top:10px">Practice comes first here on purpose: the safe default for anyone who has never traded, and a fast path for anyone who has.</p>
+    </div>
+    <span class="tag tag-ai" id="modeBadge">Simple mode</span>
+  </div>
+
+  <div id="modules"></div>
+
+  <h2 class="mt-32" id="everything" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">Everything in this section</h2>
+  <div style="font-size:13px;color:var(--tv-faint);margin-top:6px">
+    Grouped once, with what this prototype implements. Deeper tools are marked, never hidden —
+    switching mode changes what comes first, not what you may reach.
+  </div>
+  <div class="stubs mt-16" id="shelf"></div>
+
+  <div class="mt-32" id="next"></div>
+
+  <div class="disclaimer">
+    Market data is delayed and comes from a free public source. Nothing on this page is investment advice.
+  </div>
+</main>
+
+<footer class="portal-footer">
+  <div class="cols" style="grid-template-columns:repeat(6,1fr)">
+    <div class="col"><b>Company</b>
+      <div><a href="#about-prototype">About this prototype</a></div>
+      <div><a href="/sitemap#company">About</a></div>
+      <div><a href="/sitemap#company">Blog</a></div>
+      <div><a href="/sitemap#company">Careers</a></div>
+      <div><a href="/sitemap#company">Media kit</a></div>
+    </div>
+    <div class="col"><b>Product & plans</b>
+      <div><a href="/sitemap#company">Features</a></div>
+      <div><a href="/sitemap#company">Pricing</a></div>
+      <div><a href="/sitemap#company">Market data</a></div>
+      <div><a href="/sitemap#company">Apps</a></div>
+      <div><a href="/sitemap#company">Gift plans</a></div>
+    </div>
+    <div class="col"><b>For business</b>
+      <div><a href="/sitemap#business">Widgets</a></div>
+      <div><a href="/sitemap#business">Charting libraries</a></div>
+      <div><a href="/sitemap#business">Broker integration</a></div>
+      <div><a href="/sitemap#business">Advertising</a></div>
+      <div><a href="/sitemap#business">Partner program</a></div>
+    </div>
+    <div class="col"><b>Support</b>
+      <div><a href="/learn#help">Help centre</a></div>
+      <div><a href="/api/health">Status</a></div>
+      <div><a href="/sitemap#policies">Security</a></div>
+      <div><a href="/sitemap#policies">Accessibility</a></div>
+    </div>
+    <div class="col"><b>Legal</b>
+      <div><a href="/sitemap#policies">Terms</a></div>
+      <div><a href="/sitemap#policies">Privacy</a></div>
+      <div><a href="/sitemap#policies">Cookies</a></div>
+      <div><a href="#about-prototype">Disclaimer</a></div>
+    </div>
+    <div class="col"><b>Community extras</b>
+      <div><a href="/community#rewards">Store</a></div>
+      <div><a href="/community#rewards">Refer a friend</a></div>
+      <div><a href="/sitemap#company">Wall of Love</a></div>
+      <div><a href="/sitemap#policies">House rules</a></div>
+    </div>
+  </div>
+  <div class="cols" style="margin-top:22px;grid-template-columns:1fr">
+    <div style="font-size:13px"><a href="/sitemap"><b>Full site map — every destination, where it went and whether it works here →</b></a></div>
+  </div>
+  <div class="cols" style="margin-top:18px;grid-template-columns:1fr">
+    <div class="disclaimer" id="about-prototype" style="border-top:none;padding-top:0;margin-top:0">
+      Unaffiliated case-study prototype built for an internal product review. Not a real platform,
+      not operated by or endorsed by any company whose branding appears here. Market data is delayed
+      and comes from a free public source; the Experts flow and the Copilot are the only functional
+      services. Nothing here is investment advice.
+    </div>
+  </div>
+</footer>
+
+<script>
+document.getElementById('askCopilot')?.addEventListener('click', () => document.querySelector('.cp-fab')?.click());
+
+const H = window.Hub, P = window.Portal;
+
+Hub.mount('trade', mode => `
+  <div class="tv-card mt-24" id="start">
+    <div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <p class="title" style="margin:0">Start here — eight steps</p><span class="tag tag-warn">PILOT FLOW</span>
+    </div>
+    <div class="stub-steps" style="margin-top:12px">
+      <span>1 · choose a market</span><span>2 · choose an instrument</span><span>3 · understand the risk</span>
+      <span>4 · practice or real</span><span>5 · choose a broker</span><span>6 · connect an account</span>
+      <span>7 · place the trade</span><span>8 · review the result</span>
+    </div>
+    <div class="row mt-16" style="gap:8px;flex-wrap:wrap">
+      <a class="btn btn-primary" href="#practice" style="padding:9px 16px">Start with practice</a>
+      <a class="btn btn-quiet" href="/learn#trading" style="padding:9px 16px">Learn the vocabulary</a>
+    </div>
+    <div class="mono" style="font-size:10.5px;color:var(--tv-ghost);margin-top:11px">
+      no broker integration exists on this stand, and none will on a case-study prototype
+    </div>
+  </div>
+
+  <h2 class="mt-32" id="practice" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">Practice</h2>
+  <div class="stubs mt-16">
+    ${H.pilotCard({ title: 'Paper trading', what: 'A virtual balance with commissions and leverage simulated, so a decision costs attention rather than money.', actions: [{ label: 'Learn it in the Academy', url: '/learn/academy', primary: true }] })}
+    ${H.pilotCard({ title: 'Bar replay & scenarios', what: 'Replay a past period bar by bar and act as if it were live — the cheapest way to find out whether a rule survives contact with the market.', actions: [{ label: 'Open the workspace', url: '/charts' }] })}
+    ${H.pilotCard({ title: 'Decision journal', what: 'Why you entered, what you expected, what happened. The part most platforms leave out and most people need most.', actions: [{ label: 'Saved research', url: '/capital#saved' }] })}
+  </div>
+
+  <h2 class="mt-32" id="brokers" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">Brokers</h2>
+  <div class="stubs mt-16">
+    ${H.pilotCard({ title: 'Catalogue', what: 'Filter by country, availability, asset classes, commissions, ratings, reviews, integrations and data delay — with the limitations stated, not buried.', note: 'ratings on the real platform are partly commercial; a prototype should not imitate that' })}
+    ${H.pilotCard({ title: 'Comparison', what: 'Commissions, spread, available markets, order types, leverage, supported countries, integration and support quality, side by side.', actions: [{ label: 'How matching works elsewhere', url: '/community/experts' }] })}
+    ${H.pilotCard({ title: 'Connected accounts', what: 'Status, permissions, available markets, balances, errors and reconnection — the boring screen that decides whether people trust the connection.' })}
+  </div>
+
+  <h2 class="mt-32" id="terminal" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">Terminal</h2>
+  <div class="stubs mt-16">
+    ${H.pilotCard({ title: 'Order ticket and positions', what: 'Order ticket, positions, active orders, history, trading from the chart, risk controls and connection status.', actions: [{ label: 'The chart it lives in', url: '/charts', primary: true }] })}
+  </div>
+`);
+
+Hub.nextStep(document.getElementById('next'), {
+  label: 'Learn what you are about to do',
+  url: '/learn/academy',
+  why: 'Six short steps on live data, ending in a trade with no money at risk. The order that keeps beginners out of trouble.'
+});
+</script>
+</body>
+</html>

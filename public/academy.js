@@ -83,8 +83,8 @@ window.Academy = (function () {
      ever fails to load, and tolerates the quoted value older builds wrote. */
   function mode() {
     if (window.Portal?.mode) return window.Portal.mode();
-    const raw = ls.get(K_MODE, 'beginner');
-    return ['beginner', 'standard', 'pro'].includes(raw) ? raw : 'beginner';
+    const raw = ls.get(K_MODE, 'simple');
+    return ['simple', 'standard', 'pro'].includes(raw) ? raw : 'simple';
   }
 
   function setMode(next) {
@@ -98,7 +98,7 @@ window.Academy = (function () {
   /* In beginner mode the advanced nav items are hidden. Scoped to Academy
      pages on purpose: the spec requires the other pages to stay untouched. */
   function applyMode() {
-    const beginner = mode() === 'beginner';
+    const beginner = mode() === 'simple';
     document.querySelectorAll('[data-advanced]').forEach(el => { el.hidden = beginner; });
     document.querySelectorAll('[data-mode]').forEach(el =>
       el.classList.toggle('on', el.dataset.mode === mode()));

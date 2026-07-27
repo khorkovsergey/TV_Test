@@ -1,15 +1,18 @@
 /* =========================================================================
-   Navigation — five doors, small panels, and one way to reach everything.
+   The global app shell — one navigation for beginners and professionals.
 
-   The rule this file implements: a menu is a map, not an index. Each door
-   opens at most five rows and a link to the section page that holds the rest.
-   Nothing is hidden by mode — depth is marked and sorted lower, because a
-   person who cannot see that a tool exists cannot grow into it.
+   Six doors: Overview · Research · Capital · Trade · Learn · Community.
+   Always available beside them: search, the Copilot, the Simple/Standard/Pro
+   switch and the profile.
 
-   What makes a five-item nav safe is the command palette: ⌘K (or clicking the
-   search field, which until now was decoration) searches every destination in
-   the IA plus every instrument in the market universe. If it exists, you can
-   type its name and be there.
+   Two rules this file exists to keep:
+
+   1. Mode changes what is offered first, never what is reachable. A menu shows
+      more rows in Standard and Pro, but every destination stays in the section
+      hub, in the site map and in ⌘K. §7.4: the full interface is never locked.
+   2. A menu is a map, not an index — at most six rows and a way to see the
+      rest. The command palette is what makes that safe: it searches every
+      destination, every instrument and a set of actions.
    ========================================================================= */
 
 (function () {
@@ -18,8 +21,9 @@
   const IA = window.IA;
   if (!IA) return;
 
+  const P = () => window.Portal;
   const track = (event, props) => {
-    if (window.Portal?.track) window.Portal.track(event, props);
+    if (P()?.track) P().track(event, props);
     else console.log('[analytics]', event, props || {});
   };
 
@@ -27,18 +31,30 @@
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
   const STATUS = {
-    live:   { label: '',        title: 'Working in this prototype' },
-    pilot:  { label: 'PILOT',   title: 'A deliberate stub: the flow is real, the depth is not' },
-    mapped: { label: 'MAPPED',  title: 'Exists on the real platform; kept in the map, not built here' }
+    live:   { label: '',       title: 'Working in this prototype' },
+    pilot:  { label: 'PILOT',  title: 'A deliberate stub: the flow is real, the depth is not' },
+    mapped: { label: 'MAPPED', title: 'Exists on the real platform; kept in the map, not built here' }
   };
+
+  const MODES = [
+    { id: 'simple',   label: 'Simple',   hint: 'fewer panels, terms explained, one main action' },
+    { id: 'standard', label: 'Standard', hint: 'full asset hub, screeners, fundamentals, saved layouts' },
+    { id: 'pro',      label: 'Pro',      hint: 'density, multi-chart, Pine, strategy tester, shortcuts' }
+  ];
 
   /* ------------------------------------------------------------- styles */
 
   const css = `
-  .nav-door{position:relative;display:inline-flex;align-items:center;gap:2px}
-  .nav-caret{background:none;border:none;color:var(--tv-faint);cursor:pointer;font-size:10px;line-height:1;padding:6px 4px;border-radius:5px;font-family:var(--tv-font)}
-  .nav-caret:hover,.nav-door.open .nav-caret{color:#fff;background:var(--tv-ink-2)}
-  .nav-panel{position:absolute;top:calc(100% + 10px);left:-10px;min-width:330px;background:var(--tv-ink);border:1px solid var(--tv-ink-3);
+  /* The whole label is the target — a 10px caret was a needle to thread. */
+  .nav-door{position:relative;display:inline-flex;align-items:center}
+  .nav-door > a{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:8px}
+  .nav-door > a:hover{background:var(--tv-ink-2);color:#fff}
+  .nav-door.open > a{background:var(--tv-ink-2);color:#fff}
+  /* The caret is decoration, so it lives in CSS: it must not end up inside the
+     link's text for a screen reader or a test to read back. */
+  .nav-door > a::after{content:"▾";font-size:9px;line-height:1;color:var(--tv-faint);transition:transform .15s ease;display:inline-block}
+  .nav-door.open > a::after{transform:rotate(180deg);color:#fff}
+  .nav-panel{position:absolute;top:calc(100% + 10px);left:-10px;min-width:340px;background:var(--tv-ink);border:1px solid var(--tv-ink-3);
     border-radius:12px;padding:10px;display:none;z-index:9500;box-shadow:0 18px 50px rgba(0,0,0,.6)}
   .nav-door.open .nav-panel{display:block}
   .nav-panel .tl{font-size:12px;color:var(--tv-faint);padding:4px 10px 8px;line-height:1.4}
@@ -54,27 +70,41 @@
   .st-pro{color:#B48CFF;background:#221340;border:1px solid #3C2A66}
 
   .portal-nav .search{cursor:pointer;position:relative}
-  .portal-nav .search:hover{border:1px solid var(--tv-ink-3);color:var(--tv-text)}
   .portal-nav .search .kbd{margin-left:auto;font-family:var(--tv-mono);font-size:10px;color:var(--tv-ghost);
     border:1px solid var(--tv-ink-3);border-radius:4px;padding:1px 5px}
   .portal-nav .avatar{cursor:pointer}
 
+  .mode-switch{display:inline-flex;gap:2px;background:var(--tv-ink);border:1px solid var(--tv-ink-3);border-radius:var(--tv-r-pill);padding:3px}
+  .mode-switch button{font-family:var(--tv-font);font-size:12px;font-weight:700;padding:5px 11px;border-radius:var(--tv-r-pill);
+    color:var(--tv-muted);background:none;border:none;cursor:pointer;white-space:nowrap}
+  .mode-switch button.on{background:var(--tv-blue);color:#fff}
+  .mode-toast{position:fixed;right:18px;bottom:86px;z-index:9400;max-width:330px;background:var(--tv-ink);border:1px solid var(--tv-blue-line);
+    border-radius:12px;padding:14px 16px;box-shadow:0 14px 40px rgba(0,0,0,.55)}
+  .mode-toast b{color:#fff;display:block;margin-bottom:5px;font-size:13.5px}
+  .mode-toast span{font-size:12.5px;color:var(--tv-muted);line-height:1.5}
+  .mode-toast button{margin-top:10px}
+
   .cmd-back{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9600;display:flex;justify-content:center;align-items:flex-start;padding-top:12vh}
-  .cmd{width:640px;max-width:94vw;background:var(--tv-ink);border:1px solid var(--tv-ink-3);border-radius:14px;overflow:hidden;
+  .cmd{width:660px;max-width:94vw;background:var(--tv-ink);border:1px solid var(--tv-ink-3);border-radius:14px;overflow:hidden;
     box-shadow:0 24px 70px rgba(0,0,0,.7);display:flex;flex-direction:column;max-height:74vh}
   .cmd input{background:none;border:none;border-bottom:1px solid var(--tv-ink-3);border-radius:0;padding:16px 18px;
     font-size:16px;color:#fff;width:100%;outline:none}
   .cmd .list{overflow-y:auto;padding:8px}
   .cmd .row{display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:8px;cursor:pointer;color:var(--tv-text);font-size:13.5px}
   .cmd .row.on{background:var(--tv-blue-dim);outline:1px solid var(--tv-blue-line)}
-  .cmd .row .where{font-family:var(--tv-mono);font-size:10px;color:var(--tv-ghost);flex:0 0 auto}
+  .cmd .row .where{font-family:var(--tv-mono);font-size:10px;color:var(--tv-ghost);flex:0 0 auto;width:82px}
   .cmd .row .lbl{font-weight:700;color:#fff}
   .cmd .row .d{font-size:11.5px;color:var(--tv-faint);flex:1;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .cmd .hint{border-top:1px solid var(--tv-ink-3);padding:9px 14px;font-family:var(--tv-mono);font-size:10.5px;color:var(--tv-ghost);
-    display:flex;gap:14px;flex-wrap:wrap}
+  .cmd .hint{border-top:1px solid var(--tv-ink-3);padding:9px 14px;font-family:var(--tv-mono);font-size:10.5px;color:var(--tv-ghost);display:flex;gap:14px;flex-wrap:wrap}
   .cmd .empty{padding:26px 18px;color:var(--tv-faint);font-size:13.5px}
   .cmd .grp{font-family:var(--tv-mono);font-size:9.5px;color:#5B8DFF;letter-spacing:.08em;padding:10px 12px 4px}
-  @media (prefers-reduced-motion:reduce){.cmd,.nav-panel{transition:none}}`;
+
+  @media (max-width:900px){
+    .portal-nav .menu{gap:10px;font-size:14px}
+    .nav-panel{position:fixed;left:8px;right:8px;top:auto;min-width:0}
+    .mode-switch button{padding:5px 8px;font-size:11px}
+  }
+  @media (prefers-reduced-motion:reduce){.cmd,.nav-panel,.mode-toast{transition:none}}`;
 
   const style = document.createElement('style');
   style.textContent = css;
@@ -94,95 +124,178 @@
   function closeAll() {
     document.querySelectorAll('.nav-door.open').forEach(d => {
       d.classList.remove('open');
-      d.querySelector('.nav-caret')?.setAttribute('aria-expanded', 'false');
+      d.querySelector('a[aria-expanded], .avatar')?.setAttribute('aria-expanded', 'false');
     });
   }
+
+  const panels = [];
+
+  function paintPanel(entry) {
+    const { section, panel } = entry;
+    const rows = IA.menuRows(section, P()?.mode?.() || 'simple', 6);
+    panel.innerHTML = `<div class="tl">${esc(section.question)}</div>
+      ${rows.map(i => `<a href="${esc(i.url)}" data-ia="${esc(i.id)}">
+          <span>${esc(i.label)} ${badge(i)}</span>
+          <span class="d">${esc(i.desc || i.group)}</span></a>`).join('')}
+      <div class="all"><a href="${esc(section.url)}">See everything in ${esc(section.label)} →</a></div>`;
+  }
+
+  function repaintPanels() { panels.forEach(paintPanel); }
 
   function buildPanels() {
     const menu = document.querySelector('.portal-nav .menu');
     if (!menu) return;
 
-    for (const door of IA.PANEL_DOORS) {
-      const link = [...menu.querySelectorAll('a')].find(a => a.textContent.trim() === door.label);
+    for (const section of IA.SECTIONS) {
+      const link = [...menu.querySelectorAll('a')].find(a => a.textContent.trim() === section.label);
       if (!link) continue;
 
-      /* The label stays a link — a disclosure button sits beside it. Turning
-         the label itself into a toggle would take away the one-click route to
-         the section, which is the destination most people actually want. */
+      /* Clicking the section name opens its menu — the label is the target, not
+         a caret beside it. The element stays an <a href> so that a modified
+         click (⌘, ctrl, middle, shift) still opens the hub, in a new tab if
+         that is what was asked for, and so that the route survives without
+         JavaScript. Inside the panel, "See everything in X" is the plain way
+         to the hub. */
       const wrap = document.createElement('span');
       wrap.className = 'nav-door';
       link.parentNode.insertBefore(wrap, link);
       wrap.appendChild(link);
 
-      const caret = h(`<button class="nav-caret" aria-expanded="false" aria-label="Open the ${esc(door.label)} menu">▾</button>`);
-      wrap.appendChild(caret);
+      link.setAttribute('aria-expanded', 'false');
+      link.setAttribute('aria-haspopup', 'true');
 
-      const rows = IA.menuRows(door, 5);
-      const panel = h(`<div class="nav-panel" role="group" aria-label="${esc(door.label)}">
-        <div class="tl">${esc(door.tagline)}</div>
-        ${rows.map(i => `<a href="${esc(i.url)}" data-ia="${esc(i.id)}">
-            <span>${esc(i.label)} ${badge(i)}</span>
-            <span class="d">${esc(i.desc || i.group)}</span></a>`).join('')}
-        <div class="all"><a href="${esc(door.url)}">See everything in ${esc(door.label)} →</a></div>
-      </div>`);
+      const panel = h(`<div class="nav-panel" role="group" aria-label="${esc(section.label)}"></div>`);
       wrap.appendChild(panel);
 
-      caret.addEventListener('click', e => {
-        e.preventDefault();
-        e.stopPropagation();
+      const entry = { section, panel };
+      panels.push(entry);
+      paintPanel(entry);
+
+      link.addEventListener('click', e => {
+        // Let the browser do its job when the visitor asked for a new tab.
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button === 1) return;
+        e.preventDefault(); e.stopPropagation();
         const open = wrap.classList.contains('open');
         closeAll();
         if (!open) {
           wrap.classList.add('open');
-          caret.setAttribute('aria-expanded', 'true');
-          track('nav_menu_opened', { menu: door.id, rows: rows.length });
+          link.setAttribute('aria-expanded', 'true');
+          track('nav_menu_opened', { menu: section.id, mode: P()?.mode?.() });
         }
       });
-
       panel.addEventListener('click', e => {
         const a = e.target.closest('a[data-ia]');
-        if (a) track('nav_menu_item', { menu: door.id, item: a.dataset.ia });
+        if (a) track('nav_menu_item', { menu: section.id, item: a.dataset.ia });
       });
     }
-
     document.addEventListener('click', closeAll);
+  }
+
+  /* --------------------------------------------------------- mode switch */
+
+  function buildModeSwitch() {
+    const right = document.querySelector('.portal-nav .right');
+    if (!right || right.querySelector('.mode-switch')) return;
+
+    const sw = h(`<span class="mode-switch" role="group" aria-label="Interface complexity">
+      ${MODES.map(m => `<button data-mode="${m.id}" title="${esc(m.hint)}">${m.label}</button>`).join('')}
+    </span>`);
+    right.insertBefore(sw, right.firstChild);
+
+    const paint = () => {
+      const cur = P()?.mode?.() || 'simple';
+      sw.querySelectorAll('button').forEach(b => {
+        const on = b.dataset.mode === cur;
+        b.classList.toggle('on', on);
+        b.setAttribute('aria-pressed', String(on));
+      });
+      document.body.dataset.uiMode = cur;
+    };
+
+    sw.addEventListener('click', e => {
+      const b = e.target.closest('[data-mode]');
+      if (!b) return;
+      const from = P()?.mode?.() || 'simple';
+      const to = b.dataset.mode;
+      if (from === to) return;
+      P()?.setMode?.(to, 'switch');
+      paint();
+      repaintPanels();
+      document.dispatchEvent(new CustomEvent('ui-mode-changed', { detail: { from, to } }));
+      /* Moving up is the moment to say what just appeared — §7.4 asks for a
+         short explanation, not a celebration. */
+      if (IA.ORDER[to] > IA.ORDER[from]) explainMode(to);
+      track('mode_changed', { from, to, source: 'switch' });
+    });
+
+    paint();
+    document.addEventListener('ui-mode-changed', paint);
+  }
+
+  function explainMode(to) {
+    document.querySelector('.mode-toast')?.remove();
+    const m = MODES.find(x => x.id === to);
+    const toast = h(`<div class="mode-toast" role="status">
+      <b>${esc(m.label)} mode is on</b>
+      <span>What appeared: ${esc(m.hint)}. Nothing was taken away — the switch moves both ways.</span>
+      <button class="btn btn-quiet" style="padding:5px 12px;font-size:12px">Got it</button>
+    </div>`);
+    document.body.appendChild(toast);
+    toast.querySelector('button').addEventListener('click', () => toast.remove());
+    setTimeout(() => toast.remove(), 9000);
   }
 
   /* ---------------------------------------------------- command palette */
 
   let instruments = [];
   let instrumentsTried = false;
-  let onInstruments = null;      // the open palette, waiting to redraw
+  let onInstruments = null;
 
-  /* Instruments join the palette the first time it opens. They arrive after
-     the first keystrokes, so whatever is on screen redraws when they land —
-     otherwise typing a ticker in the first second finds nothing. A failure
-     here is silent on purpose: the palette must still find every page. */
   async function loadInstruments() {
     if (instrumentsTried) return;
     instrumentsTried = true;
+    const map = items => items.map(i => ({
+      id: 'sym-' + i.symbol, label: i.symbol, desc: i.name,
+      url: '/symbols/' + encodeURIComponent(i.symbol),
+      status: 'live', level: 'simple', door: 'Asset', group: i.cls,
+      keywords: `${i.symbol} ${i.name} ${i.cls}`
+    }));
     try {
       const r = await fetch('/api/markets', { signal: AbortSignal.timeout(2500) });
-      const d = await r.json();
-      instruments = (d.items || []).filter(i => i.ok).map(i => ({
-        id: 'sym-' + i.symbol, label: i.symbol, desc: i.name,
-        url: '/symbol.html?symbol=' + encodeURIComponent(i.symbol),
-        status: 'live', level: 'core', door: 'Instrument', group: i.cls,
-        keywords: `${i.symbol} ${i.name} ${i.cls}`
-      }));
+      instruments = map(((await r.json()).items || []).filter(i => i.ok));
     } catch {
       try {
         const r = await fetch('/assets/quotes-sample.json', { signal: AbortSignal.timeout(2500) });
-        const d = await r.json();
-        instruments = (d.items || []).map(i => ({
-          id: 'sym-' + i.symbol, label: i.symbol, desc: i.name,
-          url: '/symbol.html?symbol=' + encodeURIComponent(i.symbol),
-          status: 'live', level: 'core', door: 'Instrument', group: i.cls,
-          keywords: `${i.symbol} ${i.name} ${i.cls}`
-        }));
-      } catch { /* the palette still lists every page */ }
+        instruments = map((await r.json()).items || []);
+      } catch { /* the palette still finds every page */ }
     }
     if (onInstruments) onInstruments();
+  }
+
+  /* Actions are the difference between a search box and a command palette:
+     things you can do, not only places you can go. */
+  function actions() {
+    const sym = (() => { try { return localStorage.getItem('active_symbol') || 'BTCUSD'; } catch { return 'BTCUSD'; } })();
+    const list = [
+      { id: 'act-open', label: `Open ${sym}`, desc: 'asset hub', url: '/symbols/' + encodeURIComponent(sym), keywords: 'open asset symbol ' + sym },
+      { id: 'act-chart', label: `Open ${sym} on the chart`, desc: 'workspace', url: '/charts?symbol=' + encodeURIComponent(sym), keywords: 'chart open ' + sym },
+      { id: 'act-watch', label: `Add ${sym} to a watchlist`, desc: 'saves on this device', run: () => {
+          P()?.toggleSymbol?.(sym); P()?.saveWatchlist?.('command_palette');
+        }, keywords: 'add watchlist follow ' + sym },
+      { id: 'act-alert', label: 'Create an alert', desc: 'from the chart', url: '/charts?symbol=' + encodeURIComponent(sym), keywords: 'alert create notify' },
+      { id: 'act-screener', label: 'Open the screener', desc: 'ask the market a question', url: '/screeners', keywords: 'screener filter scan' },
+      { id: 'act-paper', label: 'Go to paper trading', desc: 'practice without money', url: '/trade#practice', keywords: 'paper trading practice' },
+      { id: 'act-events', label: 'Show the nearest events', desc: 'what is scheduled', url: '/overview#events', keywords: 'events calendar nearest upcoming' },
+      { id: 'act-compare', label: 'Compare instruments', desc: 'side by side', url: '/markets', keywords: 'compare instruments side by side' }
+    ];
+    for (const m of MODES) {
+      list.push({
+        id: 'act-mode-' + m.id, label: `Switch to ${m.label} mode`, desc: m.hint,
+        run: () => { P()?.setMode?.(m.id, 'palette'); document.dispatchEvent(new CustomEvent('ui-mode-changed', { detail: { to: m.id } })); repaintPanels(); },
+        keywords: 'mode switch ' + m.id
+      });
+    }
+    return list.map(a => ({ ...a, status: 'live', level: 'simple', door: 'Action', group: 'Actions' }));
   }
 
   function score(item, q) {
@@ -193,7 +306,6 @@
     if (label.startsWith(q)) return 80;
     if (label.includes(q)) return 60;
     if (hay.includes(q)) return 30;
-    // every letter in order — catches "yldcrv" for "Yield curves"
     let i = 0;
     for (const ch of hay) if (ch === q[i]) i++;
     return i === q.length ? 10 : -1;
@@ -207,7 +319,7 @@
 
     const back = h('<div class="cmd-back" role="dialog" aria-modal="true" aria-label="Search everything"></div>');
     const box = h(`<div class="cmd">
-      <input type="text" placeholder="Search anything — a page, a tool, an instrument" aria-label="Search everything" autocomplete="off">
+      <input type="text" placeholder="Search or run an action — asset, page, “add AAPL to watchlist”" aria-label="Search everything" autocomplete="off">
       <div class="list"></div>
       <div class="hint"><span>↑↓ move</span><span>↵ open</span><span>esc close</span><span id="cmdCount"></span></div>
     </div>`);
@@ -221,25 +333,23 @@
 
     function render() {
       const q = input.value.trim().toLowerCase();
-      const pool = IA.allItems().concat(instruments);
+      const pool = actions().concat(IA.allItems(), instruments);
 
       results = (q
         ? pool.map(i => ({ i, s: score(i, q) })).filter(x => x.s >= 0)
             .sort((a, b) => b.s - a.s || a.i.label.length - b.i.label.length).map(x => x.i)
-        : pool.filter(i => i.status === 'live' && i.door !== 'Footer')
+        : actions().slice(0, 8).concat(IA.allItems().filter(i => i.status === 'live' && i.door !== 'Company').slice(0, 14))
       ).slice(0, 40);
 
       cursor = 0;
-      box.querySelector('#cmdCount').textContent =
-        q ? `${results.length} of ${pool.length}` : `${pool.length} destinations`;
+      box.querySelector('#cmdCount').textContent = q ? `${results.length} of ${pool.length}` : `${pool.length} destinations and actions`;
 
       if (!results.length) {
         list.innerHTML = `<div class="empty">Nothing matches “${esc(input.value)}”.
-          Every destination of the portal is on the <a href="/directory.html">site map</a>.</div>`;
+          Everything the portal has is on the <a href="/sitemap">site map</a>.</div>`;
         return;
       }
-
-      list.innerHTML = (q ? '' : '<div class="grp">WORKING IN THIS PROTOTYPE</div>') +
+      list.innerHTML = (q ? '' : '<div class="grp">ACTIONS AND WORKING PAGES</div>') +
         results.map((i, n) => `<div class="row ${n === 0 ? 'on' : ''}" data-n="${n}">
           <span class="where">${esc(i.door)}</span>
           <span class="lbl">${esc(i.label)} ${badge(i)}</span>
@@ -260,18 +370,16 @@
       const item = results[n];
       if (!item) return;
       track('command_palette_selected', { item: item.id, query: input.value.trim(), door: item.door });
-      window.Portal?.meaningful?.('command_palette', { item: item.id });
+      P()?.meaningful?.('command_palette', { item: item.id });
       close();
-      location.href = item.url;
+      if (item.run) { item.run(); return; }
+      if (item.url) location.href = item.url;
     }
 
     function close() {
-      back.remove();
-      palette = null;
-      onInstruments = null;
+      back.remove(); palette = null; onInstruments = null;
       document.removeEventListener('keydown', onKey, true);
     }
-
     onInstruments = () => { if (palette === back) render(); };
 
     function onKey(e) {
@@ -299,8 +407,6 @@
     track('command_palette_opened', { page: location.pathname, prefill: Boolean(prefill) });
   }
 
-  /* ------------------------------------------------------ the search box */
-
   function wireSearch() {
     const box = document.querySelector('.portal-nav .search');
     if (!box) return;
@@ -312,13 +418,9 @@
     box.addEventListener('keydown', e => {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPalette(); }
     });
-
     document.addEventListener('keydown', e => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); openPalette(); }
-      // "/" is the other muscle memory, but not while typing into a field
-      if (e.key === '/' && !/^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName)) {
-        e.preventDefault(); openPalette();
-      }
+      if (e.key === '/' && !/^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName)) { e.preventDefault(); openPalette(); }
     });
   }
 
@@ -326,9 +428,8 @@
 
   function wireAvatar() {
     const avatar = document.querySelector('.portal-nav .avatar');
-    if (!avatar) return;
-    const door = IA.DOORS.find(d => d.id === 'my');
-    if (!door) return;
+    if (!avatar || avatar.closest('.nav-door')) return;
+    const door = IA.MY_SPACE;
 
     const wrap = document.createElement('span');
     wrap.className = 'nav-door';
@@ -341,18 +442,15 @@
     avatar.setAttribute('aria-label', 'My space');
 
     const items = door.groups[0].items;
-    const panel = h(`<div class="nav-panel" role="group" aria-label="My space" style="left:auto;right:-6px;min-width:290px">
-      <div class="tl">${esc(door.tagline)}</div>
+    const panel = h(`<div class="nav-panel" role="group" aria-label="My space" style="left:auto;right:-6px;min-width:300px">
+      <div class="tl">${esc(door.question)}</div>
       ${items.map(i => `<a href="${esc(i.url)}" data-ia="${esc(i.id)}">
-          <span>${esc(i.label)} ${badge(i)}</span>
-          <span class="d">${esc(i.desc || '')}</span></a>`).join('')}
-      <div class="all"><a href="/directory.html">Full site map →</a></div>
+        <span>${esc(i.label)} ${badge(i)}</span><span class="d">${esc(i.desc || '')}</span></a>`).join('')}
     </div>`);
     wrap.appendChild(panel);
 
     const toggle = e => {
-      e.preventDefault();
-      e.stopPropagation();
+      e.preventDefault(); e.stopPropagation();
       const open = wrap.classList.contains('open');
       closeAll();
       if (!open) {
@@ -369,13 +467,15 @@
 
   function init() {
     buildPanels();
+    buildModeSwitch();
     wireSearch();
     wireAvatar();
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+    document.addEventListener('ui-mode-changed', repaintPanels);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 
-  window.PortalNav = { openPalette };
+  window.PortalNav = { openPalette, repaintPanels, MODES };
 })();

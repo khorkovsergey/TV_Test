@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Overview — what is happening right now</title>
+<link rel="stylesheet" href="/tv-theme.css">
+<link rel="stylesheet" href="/portal.css">
+<script src="/ia.js"></script>
+<script src="/home.js"></script>
+<script src="/quotes.js"></script>
+<script src="/hub.js"></script>
+<script src="/nav.js"></script>
+<script src="/copilot.js" defer></script>
+</head>
+<body data-section="overview">
+
+<div class="mock-strip">
+  UNAFFILIATED CASE-STUDY MOCKUP · NOT A REAL PLATFORM · NOT INVESTMENT ADVICE
+</div>
+
+<nav class="portal-nav">
+  <div class="logo"><a href="/"><img src="/assets/tv-logo-white.svg" alt="Platform"></a></div>
+  <div class="search"><svg class="g" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="M11 11l4 4"/></svg>Search or ask: &ldquo;why is BTC up?&rdquo;</div>
+  <div class="menu">
+    <a href="/overview" class="active">Overview</a>
+    <a href="/research">Research</a>
+    <a href="/capital">Capital</a>
+    <a href="/trade">Trade</a>
+    <a href="/learn">Learn</a>
+    <a href="/community">Community</a>
+  </div>
+  <div class="right">
+    <button class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
+    <span style="font-size:14px;color:var(--tv-muted)">Sign in</span>
+    <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
+  </div>
+</nav>
+
+<main class="tv-page" style="max-width:1180px">
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap">
+    <div>
+      <div class="tv-eyebrow">Overview</div>
+      <h1 class="tv-h1" style="margin-top:8px">What is happening, and what of it matters to you</h1>
+      <p class="tv-lead" style="margin-top:10px">The day in one screen: the biggest moves with the reason behind them, what is scheduled next, and where to look further.</p>
+    </div>
+    <span class="tag tag-ai" id="modeBadge">Simple mode</span>
+  </div>
+
+  <div class="row mt-16" id="sourceLine" style="flex-wrap:wrap;gap:10px"></div>
+  <div id="modules"></div>
+
+  <h2 class="mt-32" id="everything" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">Everything in this section</h2>
+  <div style="font-size:13px;color:var(--tv-faint);margin-top:6px">
+    Grouped once, with what this prototype implements. Deeper tools are marked, never hidden —
+    switching mode changes what comes first, not what you may reach.
+  </div>
+  <div class="stubs mt-16" id="shelf"></div>
+
+  <div class="mt-32" id="next"></div>
+
+  <div class="disclaimer">
+    Market data is delayed and comes from a free public source. Nothing on this page is investment advice.
+  </div>
+</main>
+
+<footer class="portal-footer">
+  <div class="cols" style="grid-template-columns:repeat(6,1fr)">
+    <div class="col"><b>Company</b>
+      <div><a href="#about-prototype">About this prototype</a></div>
+      <div><a href="/sitemap#company">About</a></div>
+      <div><a href="/sitemap#company">Blog</a></div>
+      <div><a href="/sitemap#company">Careers</a></div>
+      <div><a href="/sitemap#company">Media kit</a></div>
+    </div>
+    <div class="col"><b>Product & plans</b>
+      <div><a href="/sitemap#company">Features</a></div>
+      <div><a href="/sitemap#company">Pricing</a></div>
+      <div><a href="/sitemap#company">Market data</a></div>
+      <div><a href="/sitemap#company">Apps</a></div>
+      <div><a href="/sitemap#company">Gift plans</a></div>
+    </div>
+    <div class="col"><b>For business</b>
+      <div><a href="/sitemap#business">Widgets</a></div>
+      <div><a href="/sitemap#business">Charting libraries</a></div>
+      <div><a href="/sitemap#business">Broker integration</a></div>
+      <div><a href="/sitemap#business">Advertising</a></div>
+      <div><a href="/sitemap#business">Partner program</a></div>
+    </div>
+    <div class="col"><b>Support</b>
+      <div><a href="/learn#help">Help centre</a></div>
+      <div><a href="/api/health">Status</a></div>
+      <div><a href="/sitemap#policies">Security</a></div>
+      <div><a href="/sitemap#policies">Accessibility</a></div>
+    </div>
+    <div class="col"><b>Legal</b>
+      <div><a href="/sitemap#policies">Terms</a></div>
+      <div><a href="/sitemap#policies">Privacy</a></div>
+      <div><a href="/sitemap#policies">Cookies</a></div>
+      <div><a href="#about-prototype">Disclaimer</a></div>
+    </div>
+    <div class="col"><b>Community extras</b>
+      <div><a href="/community#rewards">Store</a></div>
+      <div><a href="/community#rewards">Refer a friend</a></div>
+      <div><a href="/sitemap#company">Wall of Love</a></div>
+      <div><a href="/sitemap#policies">House rules</a></div>
+    </div>
+  </div>
+  <div class="cols" style="margin-top:22px;grid-template-columns:1fr">
+    <div style="font-size:13px"><a href="/sitemap"><b>Full site map — every destination, where it went and whether it works here →</b></a></div>
+  </div>
+  <div class="cols" style="margin-top:18px;grid-template-columns:1fr">
+    <div class="disclaimer" id="about-prototype" style="border-top:none;padding-top:0;margin-top:0">
+      Unaffiliated case-study prototype built for an internal product review. Not a real platform,
+      not operated by or endorsed by any company whose branding appears here. Market data is delayed
+      and comes from a free public source; the Experts flow and the Copilot are the only functional
+      services. Nothing here is investment advice.
+    </div>
+  </div>
+</footer>
+
+<script>
+document.getElementById('askCopilot')?.addEventListener('click', () => document.querySelector('.cp-fab')?.click());
+
+const H = window.Hub, Q = window.Quotes, P = window.Portal;
+
+Hub.mount('overview', mode => `
+  <div class="grid-2 mt-24" style="grid-template-columns:1.5fr 1fr;align-items:start">
+    <div class="tv-card" style="padding:0;overflow:hidden" id="brief">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid var(--tv-ink-3);flex-wrap:wrap;gap:8px">
+        <p class="title" style="margin:0">Today's brief · biggest moves</p>
+        <span id="briefTag" class="tag tag-fact">FACT · MARKET DATA</span>
+      </div>
+      <div id="briefRows"><div class="brief-row" style="grid-template-columns:1fr"><span style="color:var(--tv-faint);font-size:13px">Loading…</span></div></div>
+      <div style="padding:11px 18px;border-top:1px solid var(--tv-ink-3);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
+        <span class="mono src" id="briefSource"></span>
+        <a href="/markets" style="font-size:13px;font-weight:700">All 49 instruments →</a>
+      </div>
+    </div>
+    <div id="why" class="tv-card">
+      <div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <p class="title" style="margin:0">Why the market moves</p>
+        <span class="tag tag-ai">AI · EXPLANATION</span>
+      </div>
+      <div style="font-size:13px;color:var(--tv-muted);margin-top:8px;line-height:1.5">
+        Every move gets a factor, a source and a time — and a confidence, because a plausible story
+        is not a proven cause.
+      </div>
+      <div id="whyRows" style="margin-top:12px"></div>
+      <div class="mono" style="font-size:10.5px;color:var(--tv-ghost);margin-top:10px">
+        attribution is a hypothesis about the past, not a forecast
+      </div>
+    </div>
+  </div>
+
+  <h2 class="mt-32" id="news" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">News</h2>
+  <div class="stubs mt-16">
+    ${H.pilotCard({ title: 'Grouped for you', what: 'For you · Important today · By market · By your assets · By events · Editors\' Picks · News Flow. Each card carries the source, the time, a trust label, the assets it touches and a way to open it on the chart.', actions: [{ label: 'See the map of news destinations', url: '/sitemap#overview' }], note: 'no newswire is connected to this stand' })}
+    ${H.pilotCard({ title: 'Open on the chart', what: 'A headline is only useful when you can see what the price did around it. The chart workspace already marks a selected range; wiring a feed into it is the next step.', actions: [{ label: 'Open the workspace', url: '/charts', primary: true }] })}
+    ${H.pilotCard({ title: 'Why it matters', what: 'Each item states which of your instruments it touches, so a feed becomes a filter rather than a river.', actions: [{ label: 'Build a watchlist first', url: '/capital#watchlists' }] })}
+  </div>
+
+  <h2 class="mt-32" id="events" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">Events</h2>
+  <div class="row mt-16" style="gap:10px;flex-wrap:wrap">
+    <span class="tag tag-warn">PILOT · STATIC CALENDAR</span>
+    <span class="mono src">economic, earnings, dividend and IPO calendars are mapped; the two below are fixed examples</span>
+  </div>
+  <div class="stubs mt-16">
+    <div class="tv-card">
+      <div class="mono" style="font-size:10.5px;color:var(--tv-orange);letter-spacing:.08em">IN 18H 22M · HIGH IMPACT</div>
+      <p class="title mt-16" style="margin-bottom:4px">FOMC rate decision</p>
+      <div style="font-size:13px;color:var(--tv-muted)">Historically touches BTC, US10Y and gold — a probability, not a rule.</div>
+      <div class="row mt-16" style="gap:8px;flex-wrap:wrap">
+        <a class="btn btn-quiet" href="/symbols/US10Y" style="padding:8px 14px;font-size:12.5px">See US10Y</a>
+        <button class="btn btn-quiet" data-follow="FOMC" style="padding:8px 14px;font-size:12.5px">Follow</button>
+      </div>
+    </div>
+    <div class="tv-card">
+      <div class="mono" style="font-size:10.5px;color:#5B8DFF;letter-spacing:.08em">THIS WEEK</div>
+      <p class="title mt-16" style="margin-bottom:4px">US CPI release</p>
+      <div style="font-size:13px;color:var(--tv-muted)">The print that moved rates and crypto last month.</div>
+      <div class="row mt-16" style="gap:8px;flex-wrap:wrap">
+        <a class="btn btn-quiet" href="/symbols/BTCUSD" style="padding:8px 14px;font-size:12.5px">See BTCUSD</a>
+        <button class="btn btn-quiet" data-follow="CPI" style="padding:8px 14px;font-size:12.5px">Follow</button>
+      </div>
+    </div>
+    ${H.pilotCard({ title: 'Other calendars', what: 'Earnings, dividends, IPOs, central-bank decisions, corporate and token events, all filterable by your assets.', actions: [{ label: 'Where they live', url: '/sitemap#overview' }] })}
+  </div>
+`);
+
+/* Live brief and attribution */
+(async () => {
+  try {
+    const [snap, m] = await Promise.all([Q.snapshot(), Q.movers(3)]);
+    document.getElementById('sourceLine').innerHTML = Q.sourceLine(snap);
+    const rows = m.biggest_moves.slice(0, 3);
+    document.getElementById('briefRows').innerHTML = rows.map(i => `
+      <div class="brief-row">
+        <a style="color:var(--tv-white);font-weight:700" href="/symbols/${encodeURIComponent(i.symbol)}">${Q.esc(i.symbol)}</a>
+        <span class="mono" style="font-size:13.5px">${Q.price(i.price, i)}</span>
+        <span class="mono ${Q.cls(i.changePct)}" style="font-size:13px">${Q.pct(i.changePct)}</span>
+        <span style="font-size:13px;color:var(--tv-muted);overflow:hidden;text-overflow:ellipsis">${Q.esc(i.name)}</span>
+      </div>`).join('');
+    document.getElementById('briefSource').textContent = snap.isSample
+      ? 'the live source did not answer in time — bundled snapshot'
+      : `${snap.source} · updated ${Q.ago(snap.asOf)}`;
+    if (snap.isSample) { const t = document.getElementById('briefTag'); t.className = 'tag tag-warn'; t.textContent = 'SAMPLE · NOT LIVE'; }
+
+    document.getElementById('whyRows').innerHTML = rows.map(i => {
+      const up = (i.changePct || 0) >= 0;
+      return `<div style="padding:9px 0;border-bottom:1px solid var(--tv-line)">
+        <div style="font-size:13px"><b style="color:var(--tv-white)">${Q.esc(i.symbol)}</b> ${up ? 'rose' : 'fell'}
+          <span class="${Q.cls(i.changePct)}">${Q.pct(i.changePct)}</span> today</div>
+        <div class="mono" style="font-size:11px;color:var(--tv-faint);margin-top:4px">
+          factor: largest move in ${Q.esc(i.cls)} · source: price data · confidence: low — no news feed is wired here
+        </div></div>`;
+    }).join('');
+  } catch (e) {
+    document.getElementById('briefRows').innerHTML =
+      '<div class="brief-row" style="grid-template-columns:1fr"><span style="color:var(--tv-orange);font-size:13px">Live quotes unavailable — nothing is shown rather than invented.</span></div>';
+  }
+})();
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-follow]');
+  if (!b) return;
+  P.track('event_followed', { event: b.dataset.follow });
+  P.meaningful('event_followed');
+  b.textContent = '✓ following'; b.disabled = true;
+});
+
+Hub.nextStep(document.getElementById('next'), {
+  label: 'Take one of these moves apart',
+  url: '/symbols/BTCUSD',
+  why: 'The overview says what happened. The asset hub says why, what it touches, and what is scheduled next for it.'
+});
+</script>
+</body>
+</html>

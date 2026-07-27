@@ -22,14 +22,15 @@
   <div class="logo"><a href="/"><img src="/assets/tv-logo-white.svg" alt="Platform"></a></div>
   <div class="search"><svg class="g" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="M11 11l4 4"/></svg>Search or ask: &ldquo;why is BTC up?&rdquo;</div>
   <div class="menu">
-    <a href="/">Home</a>
-    <a href="/markets.html">Markets</a>
-    <a href="/#ideas">Ideas</a>
-    <a href="/academy.html">Academy</a>
-    <a href="/experts.html">Experts</a>
+    <a href="/overview">Overview</a>
+    <a href="/research">Research</a>
+    <a href="/capital">Capital</a>
+    <a href="/trade">Trade</a>
+    <a href="/learn">Learn</a>
+    <a href="/community">Community</a>
   </div>
   <div class="right">
-    <a class="btn btn-secondary" href="/charts.html" style="padding:8px 16px">Open Supercharts ↗</a>
+    <button class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
     <span style="font-size:14px;color:var(--tv-muted)">Sign in</span>
     <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
   </div>
@@ -38,7 +39,7 @@
 <main class="tv-page" style="max-width:1180px">
 
   <div class="tv-eyebrow">Information architecture</div>
-  <h1 class="tv-h1" style="margin-top:8px">Five doors, and everything behind them</h1>
+  <h1 class="tv-h1" style="margin-top:8px">Six sections, and everything behind them</h1>
   <p class="tv-lead" style="margin-top:10px">
     The platform this stand is modelled on spreads roughly ninety destinations across five mega-menus
     and a nine-column footer. Nothing here was deleted — it was regrouped by the question a person
@@ -54,7 +55,7 @@
     <div class="tv-card">
       <p class="title" style="margin:0">A menu is a map</p>
       <div style="font-size:13px;color:var(--tv-muted);margin-top:6px;line-height:1.5">
-        Each door opens five rows and a way to see the rest. A dropdown that lists everything is the
+        Each section opens at most six rows and a way to see the rest. A dropdown that lists everything is the
         thing being replaced, not the solution.</div>
     </div>
     <div class="tv-card">
@@ -66,8 +67,8 @@
     <div class="tv-card">
       <p class="title" style="margin:0">Anything can be typed</p>
       <div style="font-size:13px;color:var(--tv-muted);margin-top:6px;line-height:1.5">
-        ⌘K searches every destination and every instrument. That is what makes a five-item
-        navigation safe instead of lossy.</div>
+        ⌘K searches every destination, every instrument and a set of actions. That is what makes a
+        six-item navigation safe instead of lossy.</div>
     </div>
     <div class="tv-card">
       <p class="title" style="margin:0">Company is not navigation</p>
@@ -88,16 +89,18 @@
       <table class="q-table">
         <thead><tr><th>Was</th><th>Now</th><th>Why</th></tr></thead>
         <tbody>
-          <tr><td>Screeners in Products, Markets and the footer</td><td>Markets → Find &amp; filter</td><td>one door per task; three entrances to one tool is three chances to feel lost</td></tr>
-          <tr><td>Calendars in Products and the footer</td><td>Markets → Events</td><td>an event is a market fact, not a product</td></tr>
-          <tr><td>Heatmaps only in the footer</td><td>Markets → Overview</td><td>the fastest read of a whole market was buried</td></tr>
-          <tr><td>Brokers as a top-level menu</td><td>Home route 07 &amp; the site map</td><td>the one destination that costs money sat above the four that create the reason to spend it</td></tr>
-          <tr><td>Products menu (10 tools)</td><td>split across Markets and My space</td><td>&ldquo;products&rdquo; is the seller's mental model, not the visitor's</td></tr>
-          <tr><td>Community menu</td><td>Ideas</td><td>people come for opinions, not for a community</td></tr>
-          <tr><td>Portfolios, watchlists, alerts scattered</td><td>My space, behind the avatar</td><td>everything that belongs to you in one place</td></tr>
-          <tr><td>More menu (13 company links)</td><td>footer, four groups</td><td>company content is not market work</td></tr>
-          <tr><td>Search box as decoration</td><td>⌘K over the whole IA</td><td>the cheapest way to keep a small menu without losing anything</td></tr>
-        </tbody>
+          <tr><td>Products menu (10 tools)</td><td>Research and Overview</td><td>&ldquo;products&rdquo; is the seller's mental model; a visitor arrives with a question</td></tr>
+          <tr><td>More menu (13 company links)</td><td>the footer, six groups</td><td>company content is not market work</td></tr>
+          <tr><td>Brokers as a top-level menu</td><td>Trade</td><td>trading is a task, and now it has a section — starting with practice</td></tr>
+          <tr><td>Community menu</td><td>Community</td><td>same name, but opinion now carries a trust label and a track record</td></tr>
+          <tr><td>Screeners in three places</td><td>Research → Find</td><td>one door per task</td></tr>
+          <tr><td>Calendars in Products and the footer</td><td>Overview → Events</td><td>an event is a market fact, not a product</td></tr>
+          <tr><td>Heatmaps only in the footer</td><td>Overview → Markets</td><td>the fastest read of a whole market was buried</td></tr>
+          <tr><td>Portfolios, watchlists, alerts scattered</td><td>Capital</td><td>watching, money and goals answer one question together</td></tr>
+          <tr><td>Wealth Hub, AI Private, Expert Marketplace as products</td><td>Capital, Copilot, Community</td><td>§4 — none of them is a top-level idea</td></tr>
+          <tr><td>Store, Gifts, Referral</td><td>Community → Rewards</td><td>four entrances collapsed into one</td></tr>
+          <tr><td>Search box as decoration</td><td>⌘K over the whole IA plus actions</td><td>the cheapest way to keep a small menu without losing anything</td></tr>
+          </tbody>
       </table>
     </div>
   </div>
@@ -110,47 +113,49 @@
 
 
 <footer class="portal-footer">
-  <div class="cols" style="grid-template-columns:repeat(4,1fr)">
-    <div class="col"><b>Product</b>
-      <div><a href="/charts.html">Supercharts</a></div>
-      <div><a href="/directory.html#company">Pricing</a></div>
-      <div><a href="/directory.html#company">Features</a></div>
-      <div><a href="/directory.html#company">What's new</a></div>
-      <div><a href="/directory.html#company">Market data</a></div>
-      <div><a href="/directory.html#company">Gift plans</a></div>
-      <div><a href="/directory.html#company">Mobile &amp; desktop apps</a></div>
-    </div>
-    <div class="col"><b>For business</b>
-      <div><a href="/directory.html#business">Widgets</a></div>
-      <div><a href="/directory.html#business">Charting libraries</a></div>
-      <div><a href="/directory.html#business">Trading platform</a></div>
-      <div><a href="/directory.html#business">Advertising</a></div>
-      <div><a href="/directory.html#business">Brokerage integration</a></div>
-      <div><a href="/directory.html#business">Partner &amp; education programs</a></div>
-    </div>
+  <div class="cols" style="grid-template-columns:repeat(6,1fr)">
     <div class="col"><b>Company</b>
       <div><a href="#about-prototype">About this prototype</a></div>
-      <div><a href="/directory.html#company">Who we are</a></div>
-      <div><a href="/directory.html#company">Careers</a></div>
-      <div><a href="/directory.html#company">Blog and news</a></div>
-      <div><a href="/directory.html#company">Media kit</a></div>
-      <div><a href="/directory.html#company">Space mission</a></div>
-      <div><a href="/directory.html#company">Merch &amp; store</a></div>
+      <div><a href="/sitemap#company">About</a></div>
+      <div><a href="/sitemap#company">Blog</a></div>
+      <div><a href="/sitemap#company">Careers</a></div>
+      <div><a href="/sitemap#company">Media kit</a></div>
     </div>
-    <div class="col"><b>Policies</b>
-      <div><a href="/directory.html#policies">Terms of use</a></div>
+    <div class="col"><b>Product & plans</b>
+      <div><a href="/sitemap#company">Features</a></div>
+      <div><a href="/sitemap#company">Pricing</a></div>
+      <div><a href="/sitemap#company">Market data</a></div>
+      <div><a href="/sitemap#company">Apps</a></div>
+      <div><a href="/sitemap#company">Gift plans</a></div>
+    </div>
+    <div class="col"><b>For business</b>
+      <div><a href="/sitemap#business">Widgets</a></div>
+      <div><a href="/sitemap#business">Charting libraries</a></div>
+      <div><a href="/sitemap#business">Broker integration</a></div>
+      <div><a href="/sitemap#business">Advertising</a></div>
+      <div><a href="/sitemap#business">Partner program</a></div>
+    </div>
+    <div class="col"><b>Support</b>
+      <div><a href="/learn#help">Help centre</a></div>
+      <div><a href="/api/health">Status</a></div>
+      <div><a href="/sitemap#policies">Security</a></div>
+      <div><a href="/sitemap#policies">Accessibility</a></div>
+    </div>
+    <div class="col"><b>Legal</b>
+      <div><a href="/sitemap#policies">Terms</a></div>
+      <div><a href="/sitemap#policies">Privacy</a></div>
+      <div><a href="/sitemap#policies">Cookies</a></div>
       <div><a href="#about-prototype">Disclaimer</a></div>
-      <div><a href="/directory.html#policies">Privacy policy</a></div>
-      <div><a href="/directory.html#policies">Cookies policy</a></div>
-      <div><a href="/directory.html#policies">Accessibility statement</a></div>
-      <div><a href="/directory.html#policies">Security tips</a></div>
-      <div><a href="/directory.html#policies">Bug bounty programme</a></div>
-      <div><a href="/api/health">Status page</a></div>
-      <div><a href="/directory.html#policies">House rules &amp; moderators</a></div>
+    </div>
+    <div class="col"><b>Community extras</b>
+      <div><a href="/community#rewards">Store</a></div>
+      <div><a href="/community#rewards">Refer a friend</a></div>
+      <div><a href="/sitemap#company">Wall of Love</a></div>
+      <div><a href="/sitemap#policies">House rules</a></div>
     </div>
   </div>
   <div class="cols" style="margin-top:22px;grid-template-columns:1fr">
-    <div style="font-size:13px"><a href="/directory.html"><b>Full site map — every destination and where it went →</b></a></div>
+    <div style="font-size:13px"><a href="/sitemap"><b>Full site map — every destination, where it went and whether it works here →</b></a></div>
   </div>
   <div class="cols" style="margin-top:18px;grid-template-columns:1fr">
     <div class="disclaimer" id="about-prototype" style="border-top:none;padding-top:0;margin-top:0">
@@ -184,23 +189,32 @@ function statusCell(i) {
   return `<span class="tag ${cls}" title="${esc(title)}" ${cls ? '' : 'style="color:var(--tv-ghost);background:var(--tv-ink-2);border:1px solid var(--tv-ink-3)"'}>${label}</span>`;
 }
 
-/* Each footer group gets its own anchor, because the footer links straight at
-   them: a link that lands on the right page but the wrong screenful is only
-   half an answer. */
-const FOOTER_SECTIONS = {
-  'Product':      { id: 'company',  label: 'Product & company',   tagline: 'Everything about the product itself' },
-  'For business': { id: 'business', label: 'For business',        tagline: 'Widgets, libraries, partnerships' },
-  'Company':      { id: 'company2', label: 'The company',         tagline: 'Who is behind it' },
-  'Policies':     { id: 'policies', label: 'Policies & security', tagline: 'The small print, kept findable' }
+/* The map is generated from the same structure the navigation uses, so a
+   destination that moves in the IA moves here without a second list to keep in
+   step. Footer groups get their own anchors because the footer links straight
+   at them — landing on the right page but the wrong screenful is half an answer. */
+const WHERE = {
+  home: 'the entry page',
+  my: 'behind the avatar',
+  company: 'the footer'
 };
 
-const sections = IA.DOORS.map(d => ({
-  id: d.id, label: d.label, tagline: d.tagline, groups: d.groups,
-  where: d.navHidden ? (d.id === 'my' ? 'behind the avatar' : 'a task on the home page') : 'a door in the navigation'
-})).concat(IA.FOOTER.map(g => {
-  const s = FOOTER_SECTIONS[g.name];
-  return { id: s.id, label: s.label, tagline: s.tagline, where: 'the footer', groups: [g] };
-}));
+const FOOTER_ANCHOR = {
+  'Company': 'company', 'Product & plans': 'company', 'For business': 'business',
+  'Support': 'policies', 'Legal': 'policies', 'Community extras': 'company'
+};
+
+const sections = IA.ALL_DOORS
+  .filter(d => d.id !== 'company')
+  .map(d => ({
+    id: d.id, label: d.label, tagline: d.question, groups: d.groups,
+    where: WHERE[d.id] || 'a section in the navigation'
+  }))
+  .concat(IA.FOOTER.map((g, n) => ({
+    id: n === 0 ? 'company' : (FOOTER_ANCHOR[g.name] === 'company' ? 'company-' + n : FOOTER_ANCHOR[g.name] + (n > 3 ? '-' + n : '')),
+    label: g.name, tagline: 'kept out of the navigation on purpose',
+    where: 'the footer', groups: [g]
+  })));
 
 document.getElementById('map').innerHTML = sections.map(s => `
   <section id="${esc(s.id)}" class="mt-32">

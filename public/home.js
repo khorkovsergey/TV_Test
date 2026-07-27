@@ -166,22 +166,30 @@ window.Portal = (function () {
   const K_DENSITY  = 'chart_density';
   const K_FEATURES = 'features_used';
 
-  const MODES = ['beginner', 'standard', 'pro'];
-  const ORDER = { beginner: 0, standard: 1, pro: 2 };
+  const MODES = ['simple', 'standard', 'pro'];
+  const ORDER = { simple: 0, standard: 1, pro: 2 };
 
-  /* ui_mode is read by three scripts, so it is stored as a PLAIN string, not
-     JSON. Reading is tolerant of the quoted value older builds wrote, otherwise
-     a visitor who switched modes before this release would be stuck on a value
-     none of the comparisons match. */
+  /* One word for one thing. The first level used to be called "beginner" in
+     the Academy and the chart; it is "simple" everywhere now, and the old value
+     still reads correctly so nobody who switched modes before this release is
+     stranded on a string none of the comparisons match. ui_mode is stored as a
+     PLAIN string because three other scripts read it directly. */
+  const canonical = v => {
+    if (typeof v !== 'string') return null;
+    const s = v.replace(/^"|"$/g, '');
+    if (s === 'beginner') return 'simple';
+    return MODES.includes(s) ? s : null;
+  };
+
   function mode() {
     let v;
     try { v = localStorage.getItem(K_MODE); } catch { v = null; }
-    if (typeof v === 'string') v = v.replace(/^"|"$/g, '');
-    return MODES.includes(v) ? v : 'beginner';
+    return canonical(v) || 'simple';
   }
 
-  function setMode(next, source) {
-    if (!MODES.includes(next)) return mode();
+  function setMode(input, source) {
+    const next = canonical(input);
+    if (!next) return mode();
     const from = mode();
     try { localStorage.setItem(K_MODE, next); } catch {}
     if (from !== next) {

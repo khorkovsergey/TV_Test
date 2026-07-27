@@ -23,14 +23,15 @@
   <div class="logo"><a href="/"><img src="/assets/tv-logo-white.svg" alt="Platform"></a></div>
   <div class="search"><svg class="g" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="M11 11l4 4"/></svg>Search or ask: &ldquo;why is BTC up?&rdquo;</div>
   <div class="menu">
-    <a href="/">Home</a>
-    <a href="/markets.html">Markets</a>
-    <a href="/#ideas">Ideas</a>
-    <a href="/academy.html" class="active">Academy</a>
-    <a href="/experts.html">Experts</a>
+    <a href="/overview">Overview</a>
+    <a href="/research">Research</a>
+    <a href="/capital">Capital</a>
+    <a href="/trade">Trade</a>
+    <a href="/learn" class="active">Learn</a>
+    <a href="/community">Community</a>
   </div>
   <div class="right">
-    <a class="btn btn-secondary" href="/charts.html" style="padding:8px 16px">Open Supercharts ↗</a>
+    <button class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
     <span style="font-size:14px;color:var(--tv-muted)">Sign in</span>
     <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
   </div>
@@ -46,7 +47,7 @@
   </div>
   <div class="mono" style="font-size:11px;color:var(--tv-faint);" id="toolCount"></div>
   <div style="flex:1;"></div>
-  <a href="/academy.html" style="font-size:13px;font-weight:700;">← back to Academy</a>
+  <a href="/learn/academy" style="font-size:13px;font-weight:700;">← back to Academy</a>
 </div>
 
 <div class="chart-shell">
@@ -231,47 +232,49 @@ restore();
 </script>
 
 <footer class="portal-footer">
-  <div class="cols" style="grid-template-columns:repeat(4,1fr)">
-    <div class="col"><b>Product</b>
-      <div><a href="/charts.html">Supercharts</a></div>
-      <div><a href="/directory.html#company">Pricing</a></div>
-      <div><a href="/directory.html#company">Features</a></div>
-      <div><a href="/directory.html#company">What's new</a></div>
-      <div><a href="/directory.html#company">Market data</a></div>
-      <div><a href="/directory.html#company">Gift plans</a></div>
-      <div><a href="/directory.html#company">Mobile &amp; desktop apps</a></div>
-    </div>
-    <div class="col"><b>For business</b>
-      <div><a href="/directory.html#business">Widgets</a></div>
-      <div><a href="/directory.html#business">Charting libraries</a></div>
-      <div><a href="/directory.html#business">Trading platform</a></div>
-      <div><a href="/directory.html#business">Advertising</a></div>
-      <div><a href="/directory.html#business">Brokerage integration</a></div>
-      <div><a href="/directory.html#business">Partner &amp; education programs</a></div>
-    </div>
+  <div class="cols" style="grid-template-columns:repeat(6,1fr)">
     <div class="col"><b>Company</b>
       <div><a href="#about-prototype">About this prototype</a></div>
-      <div><a href="/directory.html#company">Who we are</a></div>
-      <div><a href="/directory.html#company">Careers</a></div>
-      <div><a href="/directory.html#company">Blog and news</a></div>
-      <div><a href="/directory.html#company">Media kit</a></div>
-      <div><a href="/directory.html#company">Space mission</a></div>
-      <div><a href="/directory.html#company">Merch &amp; store</a></div>
+      <div><a href="/sitemap#company">About</a></div>
+      <div><a href="/sitemap#company">Blog</a></div>
+      <div><a href="/sitemap#company">Careers</a></div>
+      <div><a href="/sitemap#company">Media kit</a></div>
     </div>
-    <div class="col"><b>Policies</b>
-      <div><a href="/directory.html#policies">Terms of use</a></div>
+    <div class="col"><b>Product & plans</b>
+      <div><a href="/sitemap#company">Features</a></div>
+      <div><a href="/sitemap#company">Pricing</a></div>
+      <div><a href="/sitemap#company">Market data</a></div>
+      <div><a href="/sitemap#company">Apps</a></div>
+      <div><a href="/sitemap#company">Gift plans</a></div>
+    </div>
+    <div class="col"><b>For business</b>
+      <div><a href="/sitemap#business">Widgets</a></div>
+      <div><a href="/sitemap#business">Charting libraries</a></div>
+      <div><a href="/sitemap#business">Broker integration</a></div>
+      <div><a href="/sitemap#business">Advertising</a></div>
+      <div><a href="/sitemap#business">Partner program</a></div>
+    </div>
+    <div class="col"><b>Support</b>
+      <div><a href="/learn#help">Help centre</a></div>
+      <div><a href="/api/health">Status</a></div>
+      <div><a href="/sitemap#policies">Security</a></div>
+      <div><a href="/sitemap#policies">Accessibility</a></div>
+    </div>
+    <div class="col"><b>Legal</b>
+      <div><a href="/sitemap#policies">Terms</a></div>
+      <div><a href="/sitemap#policies">Privacy</a></div>
+      <div><a href="/sitemap#policies">Cookies</a></div>
       <div><a href="#about-prototype">Disclaimer</a></div>
-      <div><a href="/directory.html#policies">Privacy policy</a></div>
-      <div><a href="/directory.html#policies">Cookies policy</a></div>
-      <div><a href="/directory.html#policies">Accessibility statement</a></div>
-      <div><a href="/directory.html#policies">Security tips</a></div>
-      <div><a href="/directory.html#policies">Bug bounty programme</a></div>
-      <div><a href="/api/health">Status page</a></div>
-      <div><a href="/directory.html#policies">House rules &amp; moderators</a></div>
+    </div>
+    <div class="col"><b>Community extras</b>
+      <div><a href="/community#rewards">Store</a></div>
+      <div><a href="/community#rewards">Refer a friend</a></div>
+      <div><a href="/sitemap#company">Wall of Love</a></div>
+      <div><a href="/sitemap#policies">House rules</a></div>
     </div>
   </div>
   <div class="cols" style="margin-top:22px;grid-template-columns:1fr">
-    <div style="font-size:13px"><a href="/directory.html"><b>Full site map — every destination and where it went →</b></a></div>
+    <div style="font-size:13px"><a href="/sitemap"><b>Full site map — every destination, where it went and whether it works here →</b></a></div>
   </div>
   <div class="cols" style="margin-top:18px;grid-template-columns:1fr">
     <div class="disclaimer" id="about-prototype" style="border-top:none;padding-top:0;margin-top:0">

@@ -78,6 +78,73 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(PUBLIC, HOME_PAGE[variant]));
 });
 
+/* ------------------------------------------------------------------ routes
+   Six sections, clean paths, and not one broken bookmark. Every page that
+   existed before this release keeps working: the old `.html` paths issue a
+   permanent redirect to their new home and carry the query string with them,
+   so `/markets.html?cls=crypto` still lands on the crypto filter and
+   `/symbol.html?symbol=BTCUSD` still opens bitcoin. */
+
+const send = file => (_req, res) => res.sendFile(path.join(PUBLIC, file));
+
+/* Section hubs and the pages inside them. */
+const ROUTES = {
+  '/overview': 'overview.html',
+  '/research': 'research.html',
+  '/capital': 'capital.html',
+  '/trade': 'trade.html',
+  '/learn': 'learn.html',
+  '/community': 'community.html',
+  '/markets': 'markets.html',
+  '/screeners': 'screener.html',
+  '/charts': 'charts.html',
+  '/learn/academy': 'academy.html',
+  '/learn/academy/lesson': 'lesson.html',
+  '/community/experts': 'experts.html',
+  '/sitemap': 'directory.html',
+  '/staff': 'staff.html',
+  '/metrics': 'metrics.html'
+};
+for (const [route, file] of Object.entries(ROUTES)) app.get(route, send(file));
+
+/* One asset hub per instrument. The page reads the symbol from the path; the
+   old query form is redirected into it below. */
+app.get('/symbols/:symbol', send('symbol.html'));
+app.get('/symbols', (_req, res) => res.redirect(301, '/markets'));
+
+/* Legacy paths. Nothing 404s, nothing loses its query. */
+const LEGACY = {
+  '/index.html': '/',
+  '/overview.html': '/overview',
+  '/research.html': '/research',
+  '/capital.html': '/capital',
+  '/trade.html': '/trade',
+  '/learn.html': '/learn',
+  '/community.html': '/community',
+  '/markets.html': '/markets',
+  '/screener.html': '/screeners',
+  '/charts.html': '/charts',
+  '/academy.html': '/learn/academy',
+  '/lesson.html': '/learn/academy/lesson',
+  '/experts.html': '/community/experts',
+  '/directory.html': '/sitemap',
+  '/staff.html': '/staff',
+  '/metrics.html': '/metrics'
+};
+for (const [from, to] of Object.entries(LEGACY)) {
+  app.get(from, (req, res) => {
+    const qs = req.originalUrl.includes('?') ? '?' + req.originalUrl.split('?')[1] : '';
+    res.redirect(301, to + qs);
+  });
+}
+
+/* The symbol page moved from a query to a path; keep the old address alive and
+   preserve the instrument it pointed at. */
+app.get('/symbol.html', (req, res) => {
+  const sym = String(req.query.symbol || 'BTCUSD').toUpperCase().replace(/[^A-Z0-9.\-=^]/g, '');
+  res.redirect(301, '/symbols/' + encodeURIComponent(sym || 'BTCUSD'));
+});
+
 app.use(express.static(PUBLIC));
 
 const PORT = process.env.PORT || 3000;

@@ -28,14 +28,15 @@
   <div class="logo"><a href="/"><img src="/assets/tv-logo-white.svg" alt="Platform"></a></div>
   <div class="search"><svg class="g" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="M11 11l4 4"/></svg>Search or ask: &ldquo;why is BTC up?&rdquo;</div>
   <div class="menu">
-    <a href="/">Home</a>
-    <a href="/markets.html" class="active">Markets</a>
-    <a href="/#ideas">Ideas</a>
-    <a href="/academy.html">Academy</a>
-    <a href="/experts.html">Experts</a>
+    <a href="/overview">Overview</a>
+    <a href="/research" class="active">Research</a>
+    <a href="/capital">Capital</a>
+    <a href="/trade">Trade</a>
+    <a href="/learn">Learn</a>
+    <a href="/community">Community</a>
   </div>
   <div class="right">
-    <a class="btn btn-secondary" href="/charts.html" style="padding:8px 16px">Open Supercharts ↗</a>
+    <button class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
     <span style="font-size:14px;color:var(--tv-muted)">Sign in</span>
     <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
   </div>
@@ -57,14 +58,28 @@
     </div>
     <div class="row" style="flex-wrap:wrap;gap:10px">
       <button class="btn btn-primary" id="addWatch">Add to watchlist</button>
-      <a class="btn btn-secondary" href="/charts.html" id="openChart">Open chart</a>
+      <a class="btn btn-secondary" href="/charts" id="openChart">Open chart</a>
     </div>
   </div>
+
+  <!-- Event chip: the nearest thing that could move this instrument, with
+       something to do about it. §9.5. -->
+  <div class="row mt-16" id="eventChip" style="gap:10px;flex-wrap:wrap;align-items:center"></div>
+
+  <!-- Asset Hub tabs. Simple shows five, Standard and Pro show all nine; the
+       hidden ones are listed under the row rather than removed, because §7.4
+       forbids locking anyone out of the full interface. -->
+  <div class="class-tabs mt-16" id="hubTabs" role="tablist"></div>
+  <div class="mono" style="font-size:10.5px;color:var(--tv-ghost);margin-top:8px" id="tabNote"></div>
+
+  <!-- Contextual action bar: what to do next with this instrument, ordered by
+       mode and by what the visitor has already done. §9.6. -->
+  <div class="row mt-16" id="actionBar" style="gap:8px;flex-wrap:wrap"></div>
 
   <div id="loadError" hidden class="tv-card mt-24" style="border-color:#5c2029;background:var(--tv-red-dim)">
     <p class="title" style="margin:0">This instrument could not be loaded</p>
     <div style="font-size:13.5px;color:#ffc2cb;margin-top:6px" id="loadErrorText"></div>
-    <a class="btn btn-secondary mt-16" href="/markets.html" style="padding:9px 16px">Back to markets</a>
+    <a class="btn btn-secondary mt-16" href="/markets" style="padding:9px 16px">Back to markets</a>
   </div>
 
   <div class="grid-2 mt-24" style="grid-template-columns:1.6fr 1fr;align-items:start" id="content" hidden>
@@ -87,6 +102,10 @@
         </div>
         <div id="technicals" style="display:flex;flex-direction:column;gap:10px;margin-top:12px;font-size:13.5px;color:var(--tv-text);line-height:1.5"></div>
         <div class="mono" style="font-size:10.5px;color:var(--tv-ghost);margin-top:12px" id="techNote"></div>
+        <div style="border-top:1px solid var(--tv-line);margin-top:14px;padding-top:12px">
+          <div class="mono" style="font-size:10px;letter-spacing:.08em;color:#5B8DFF">HOW THIS RATING WAS FORMED</div>
+          <div id="ratingBox" style="margin-top:8px"></div>
+        </div>
       </div>
 
       <div class="tv-card">
@@ -146,9 +165,12 @@ function lsRaw(k, fallback) {
   try { const v = localStorage.getItem(k); return v === null ? fallback : v; } catch { return fallback; }
 }
 
-const symbol = (params.get('symbol') || lsRaw('active_symbol', '') || 'BTCUSD').toUpperCase();
+/* The instrument now lives in the path — /symbols/BTCUSD — with the old query
+   form still redirected here by the server. */
+const fromPath = (location.pathname.match(/\/symbols\/([^/?#]+)/) || [])[1];
+const symbol = decodeURIComponent(fromPath || params.get('symbol') || lsRaw('active_symbol', '') || 'BTCUSD').toUpperCase();
 try { localStorage.setItem('active_symbol', symbol); } catch {}
-$('openChart').href = '/charts.html?symbol=' + encodeURIComponent(symbol);
+$('openChart').href = '/charts?symbol=' + encodeURIComponent(symbol);
 
 /* Paint the shell from the URL immediately — the ticker is knowledge we already
    have, and a heading that admits to waiting reads as broken even when the page
@@ -157,6 +179,101 @@ document.title = symbol + ' — research journey';
 $('eyebrow').textContent = symbol;
 $('assetName').textContent = symbol;
 $('content').hidden = false;
+
+/* ---------------------------------------------------------- the Asset Hub */
+
+/* Nine tabs; Simple offers five. The rest are named under the row rather than
+   removed — someone who cannot see that a tab exists cannot grow into it. */
+const TABS = [
+  { id: 'overview',    label: 'Overview',      min: 'simple' },
+  { id: 'why',         label: 'Why it moves',  min: 'simple' },
+  { id: 'chart',       label: 'Chart',         min: 'simple' },
+  { id: 'events',      label: 'Events',        min: 'simple' },
+  { id: 'ideas',       label: 'Ideas',         min: 'simple' },
+  { id: 'metrics',     label: 'Metrics',       min: 'standard' },
+  { id: 'news',        label: 'News',          min: 'standard' },
+  { id: 'discussion',  label: 'Discussion',    min: 'pro' },
+  { id: 'trade',       label: 'Trade',         min: 'pro' }
+];
+
+function renderTabs() {
+  const mode = P.mode();
+  const order = window.IA?.ORDER || { simple: 0, standard: 1, pro: 2 };
+  const shown = TABS.filter(t => order[t.min] <= order[mode]);
+  const later = TABS.filter(t => order[t.min] > order[mode]);
+
+  $('hubTabs').innerHTML = shown.map((t, n) =>
+    `<button role="tab" data-tab="${t.id}" class="${n === 0 ? 'on' : ''}">${t.label}</button>`).join('');
+  $('tabNote').textContent = later.length
+    ? `Also here in ${later[0].min} mode: ${later.map(t => t.label).join(', ')} — switch in the header, nothing is locked.`
+    : 'All nine tabs are shown.';
+}
+
+/* §9.6 — the actions worth taking on this instrument, ordered by mode. */
+function renderActionBar(d) {
+  const mode = P.mode();
+  const saved = (P.watchlist() || []).includes(symbol);
+  const base = [
+    { label: saved ? '✓ In your watchlist' : '+ Watchlist', act: 'watch', primary: !saved },
+    { label: 'Open chart', href: '/charts?symbol=' + encodeURIComponent(symbol) },
+    { label: 'Compare with peers', href: '/markets?cls=' + encodeURIComponent(d?.cls || 'crypto') },
+    { label: 'Create an alert', act: 'alert' },
+    { label: 'Ask the Copilot', act: 'copilot' }
+  ];
+  const deeper = [
+    { label: 'Open the screener', href: '/screeners?cls=' + encodeURIComponent(d?.cls || '') },
+    { label: 'Sector heatmap', href: '/markets#heatmap' },
+    { label: 'Check events', href: '/overview#events' },
+    { label: 'Paper trade it', href: '/trade#practice' }
+  ];
+  const list = mode === 'simple' ? base.slice(0, 3) : mode === 'standard' ? base : base.concat(deeper);
+
+  $('actionBar').innerHTML = list.map(a => a.href
+    ? `<a class="btn ${a.primary ? 'btn-primary' : 'btn-quiet'}" href="${a.href}" style="padding:8px 14px;font-size:12.5px">${a.label}</a>`
+    : `<button class="btn ${a.primary ? 'btn-primary' : 'btn-quiet'}" data-act="${a.act}" style="padding:8px 14px;font-size:12.5px">${a.label}</button>`).join('');
+}
+
+/* §9.5 — the nearest event, with something to do about it. */
+function renderEventChip() {
+  $('eventChip').innerHTML = `
+    <span class="tag tag-warn">NEXT EVENT · PILOT</span>
+    <span style="font-size:13px;color:var(--tv-muted)"><b style="color:var(--tv-white)">FOMC rate decision</b> in 18h 22m —
+      historically touches this class</span>
+    <button class="btn btn-quiet" data-act="follow" style="padding:6px 12px;font-size:12px">Follow</button>
+    <a class="btn btn-quiet" href="/overview#events" style="padding:6px 12px;font-size:12px">Historical reaction</a>`;
+}
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]');
+  if (!b) return;
+  const act = b.dataset.act;
+  if (act === 'watch') {
+    if (!(P.watchlist() || []).includes(symbol)) P.toggleSymbol(symbol);
+    P.saveWatchlist('asset_hub');
+    P.track('watchlist_added', { symbol });
+    renderActionBar(current);
+  }
+  if (act === 'alert' || act === 'copilot') {
+    P.track(act === 'alert' ? 'alert_intent' : 'copilot_from_asset', { symbol });
+    document.querySelector('.cp-fab')?.click();
+  }
+  if (act === 'follow') {
+    P.track('event_followed', { event: 'FOMC', symbol });
+    P.meaningful('event_followed');
+    b.textContent = '✓ following'; b.disabled = true;
+  }
+});
+
+$('hubTabs').addEventListener('click', e => {
+  const b = e.target.closest('[data-tab]');
+  if (!b) return;
+  $('hubTabs').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+  P.track('asset_tab_opened', { symbol, tab: b.dataset.tab, mode: P.mode() });
+  const target = { chart: '#chart', metrics: '#stats', events: '#eventChip', why: '#technicals' }[b.dataset.tab];
+  if (target) document.querySelector(target)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+});
+
+document.addEventListener('ui-mode-changed', () => { renderTabs(); renderActionBar(current); });
 
 /* ------------------------------------------------------------- the trail */
 
@@ -190,7 +307,7 @@ document.addEventListener('click', e => {
   /* Two of the rules have a real destination in this build; the rest record the
      step and say so rather than pretending to navigate somewhere. */
   if (b.dataset.rule === 'sector' || b.dataset.rule === 'peers') {
-    setTimeout(() => { location.href = '/markets.html?cls=' + encodeURIComponent(current?.cls || 'crypto'); }, 220);
+    setTimeout(() => { location.href = '/markets?cls=' + encodeURIComponent(current?.cls || 'crypto'); }, 220);
   }
 });
 
@@ -290,14 +407,45 @@ function renderTechnicals(d) {
      The case argues that a computed signal dressed as a recommendation is the
      "success feel" the user research complained about — so the readings ship
      without a verdict, and the page says why. */
+  /* §9.7 — a rating that only says Buy / Sell / Neutral tells you nothing you
+     can check. This one says which readings formed it, whether they agree,
+     over what timeframe, where they contradict each other, when it was
+     computed, and why it is not a recommendation. */
+  const readings = [];
+  if (Number.isFinite(t.sma20)) readings.push({ name: '20-day average', bull: d.price > t.sma20 });
+  if (Number.isFinite(t.sma5)) readings.push({ name: '5-day average', bull: d.price > t.sma5 });
+  if (Number.isFinite(t.rsi14)) readings.push({ name: 'RSI(14)', bull: t.rsi14 > 50 });
+  if (Number.isFinite(t.range_position)) readings.push({ name: '52-week position', bull: t.range_position > 0.5 });
+
+  const up = readings.filter(r => r.bull).length;
+  const agreement = readings.length ? Math.round(Math.max(up, readings.length - up) / readings.length * 100) : 0;
+  const contradictions = readings.length && up !== 0 && up !== readings.length
+    ? readings.filter(r => r.bull !== (up > readings.length / 2)).map(r => r.name).join(', ')
+    : 'none — every reading points the same way';
+
+  $('ratingBox').innerHTML = `
+    <div style="font-size:13.5px;color:var(--tv-text);line-height:1.6">
+      <div><b style="color:var(--tv-white)">${up} of ${readings.length}</b> readings are above their reference,
+        so they agree <b style="color:var(--tv-white)">${agreement}%</b> of the time.</div>
+      <div style="margin-top:6px">Formed by: ${readings.map(r =>
+        `<span class="mono ${r.bull ? 'pos' : 'neg'}" style="font-size:11.5px">${r.name}</span>`).join(' · ')}</div>
+      <div style="margin-top:6px">Timeframe: daily closes, last ${(d.series || []).length} bars.</div>
+      <div style="margin-top:6px">Contradictions: ${contradictions}.</div>
+      <div style="margin-top:6px">Computed ${new Date().toUTCString().slice(5, 22)} UTC, from delayed prices.</div>
+    </div>
+    <div class="mono" style="font-size:10.5px;color:var(--tv-ghost);margin-top:11px">
+      This is not a recommendation. It describes where the price sits relative to its own recent
+      averages — it knows nothing about the company, the news, your horizon or your risk.
+    </div>`;
+
   $('techNote').textContent =
-    `${t.disclaimer || ''} Computed from ${t.computed_from || 'recent closes'}. Deliberately no buy/sell rating: a formula over 20 closes is a description, not advice.`;
+    `${t.disclaimer || ''} Computed from ${t.computed_from || 'recent closes'}.`;
 }
 
 function renderPeers(d) {
   $('peers').innerHTML = (d.peers || []).map(p => `
     <div class="mover-row">
-      <a class="s" href="/symbol.html?symbol=${encodeURIComponent(p.symbol)}">${Q.esc(p.symbol)}</a>
+      <a class="s" href="/symbols/${encodeURIComponent(p.symbol)}">${Q.esc(p.symbol)}</a>
       <span style="color:var(--tv-faint);font-size:12.5px;flex:1;overflow:hidden;text-overflow:ellipsis">${Q.esc(p.name)}</span>
       <span class="p" style="flex:0 0 auto">${Q.price(p.price, p)}</span>
       <span class="c ${Q.cls(p.changePct)}">${Q.pct(p.changePct)}</span>
@@ -313,6 +461,9 @@ $('addWatch').addEventListener('click', () => {
 
 (async () => {
   renderTrail();
+  renderTabs();
+  renderEventChip();
+  renderActionBar(null);
   try {
     const d = await Q.symbol(symbol);
     current = d;
@@ -351,6 +502,7 @@ $('addWatch').addEventListener('click', () => {
     renderStats(d);
     renderTechnicals(d);
     renderPeers(d);
+    renderActionBar(d);
 
     if ((P.watchlist() || []).includes(symbol)) {
       $('addWatch').textContent = '✓ In your watchlist';
@@ -375,47 +527,49 @@ $('addWatch').addEventListener('click', () => {
 </script>
 
 <footer class="portal-footer">
-  <div class="cols" style="grid-template-columns:repeat(4,1fr)">
-    <div class="col"><b>Product</b>
-      <div><a href="/charts.html">Supercharts</a></div>
-      <div><a href="/directory.html#company">Pricing</a></div>
-      <div><a href="/directory.html#company">Features</a></div>
-      <div><a href="/directory.html#company">What's new</a></div>
-      <div><a href="/directory.html#company">Market data</a></div>
-      <div><a href="/directory.html#company">Gift plans</a></div>
-      <div><a href="/directory.html#company">Mobile &amp; desktop apps</a></div>
-    </div>
-    <div class="col"><b>For business</b>
-      <div><a href="/directory.html#business">Widgets</a></div>
-      <div><a href="/directory.html#business">Charting libraries</a></div>
-      <div><a href="/directory.html#business">Trading platform</a></div>
-      <div><a href="/directory.html#business">Advertising</a></div>
-      <div><a href="/directory.html#business">Brokerage integration</a></div>
-      <div><a href="/directory.html#business">Partner &amp; education programs</a></div>
-    </div>
+  <div class="cols" style="grid-template-columns:repeat(6,1fr)">
     <div class="col"><b>Company</b>
       <div><a href="#about-prototype">About this prototype</a></div>
-      <div><a href="/directory.html#company">Who we are</a></div>
-      <div><a href="/directory.html#company">Careers</a></div>
-      <div><a href="/directory.html#company">Blog and news</a></div>
-      <div><a href="/directory.html#company">Media kit</a></div>
-      <div><a href="/directory.html#company">Space mission</a></div>
-      <div><a href="/directory.html#company">Merch &amp; store</a></div>
+      <div><a href="/sitemap#company">About</a></div>
+      <div><a href="/sitemap#company">Blog</a></div>
+      <div><a href="/sitemap#company">Careers</a></div>
+      <div><a href="/sitemap#company">Media kit</a></div>
     </div>
-    <div class="col"><b>Policies</b>
-      <div><a href="/directory.html#policies">Terms of use</a></div>
+    <div class="col"><b>Product & plans</b>
+      <div><a href="/sitemap#company">Features</a></div>
+      <div><a href="/sitemap#company">Pricing</a></div>
+      <div><a href="/sitemap#company">Market data</a></div>
+      <div><a href="/sitemap#company">Apps</a></div>
+      <div><a href="/sitemap#company">Gift plans</a></div>
+    </div>
+    <div class="col"><b>For business</b>
+      <div><a href="/sitemap#business">Widgets</a></div>
+      <div><a href="/sitemap#business">Charting libraries</a></div>
+      <div><a href="/sitemap#business">Broker integration</a></div>
+      <div><a href="/sitemap#business">Advertising</a></div>
+      <div><a href="/sitemap#business">Partner program</a></div>
+    </div>
+    <div class="col"><b>Support</b>
+      <div><a href="/learn#help">Help centre</a></div>
+      <div><a href="/api/health">Status</a></div>
+      <div><a href="/sitemap#policies">Security</a></div>
+      <div><a href="/sitemap#policies">Accessibility</a></div>
+    </div>
+    <div class="col"><b>Legal</b>
+      <div><a href="/sitemap#policies">Terms</a></div>
+      <div><a href="/sitemap#policies">Privacy</a></div>
+      <div><a href="/sitemap#policies">Cookies</a></div>
       <div><a href="#about-prototype">Disclaimer</a></div>
-      <div><a href="/directory.html#policies">Privacy policy</a></div>
-      <div><a href="/directory.html#policies">Cookies policy</a></div>
-      <div><a href="/directory.html#policies">Accessibility statement</a></div>
-      <div><a href="/directory.html#policies">Security tips</a></div>
-      <div><a href="/directory.html#policies">Bug bounty programme</a></div>
-      <div><a href="/api/health">Status page</a></div>
-      <div><a href="/directory.html#policies">House rules &amp; moderators</a></div>
+    </div>
+    <div class="col"><b>Community extras</b>
+      <div><a href="/community#rewards">Store</a></div>
+      <div><a href="/community#rewards">Refer a friend</a></div>
+      <div><a href="/sitemap#company">Wall of Love</a></div>
+      <div><a href="/sitemap#policies">House rules</a></div>
     </div>
   </div>
   <div class="cols" style="margin-top:22px;grid-template-columns:1fr">
-    <div style="font-size:13px"><a href="/directory.html"><b>Full site map — every destination and where it went →</b></a></div>
+    <div style="font-size:13px"><a href="/sitemap"><b>Full site map — every destination, where it went and whether it works here →</b></a></div>
   </div>
   <div class="cols" style="margin-top:18px;grid-template-columns:1fr">
     <div class="disclaimer" id="about-prototype" style="border-top:none;padding-top:0;margin-top:0">

@@ -28,24 +28,25 @@
   <div class="logo"><a href="/"><img src="/assets/tv-logo-white.svg" alt="Platform"></a></div>
   <div class="search"><svg class="g" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="M11 11l4 4"/></svg>Search or ask: &ldquo;why is BTC up?&rdquo;</div>
   <div class="menu">
-    <a href="/">Home</a>
-    <a href="/markets.html">Markets</a>
-    <a href="/#ideas">Ideas</a>
-    <a href="/academy.html">Academy</a>
-    <a href="/experts.html">Experts</a>
+    <a href="/overview">Overview</a>
+    <a href="/research" class="active">Research</a>
+    <a href="/capital">Capital</a>
+    <a href="/trade">Trade</a>
+    <a href="/learn">Learn</a>
+    <a href="/community">Community</a>
   </div>
   <div class="right">
-    <a class="btn btn-secondary" href="/charts.html" style="padding:8px 16px">Open Supercharts ↗</a>
+    <button class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
     <span style="font-size:14px;color:var(--tv-muted)">Sign in</span>
     <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
   </div>
 </nav>
 
 <div class="toolbar" style="flex-wrap:wrap">
-  <a class="sym" href="/symbol.html" id="symLink">BTCUSD</a>
+  <a class="sym" href="/symbols/BTCUSD" id="symLink">BTCUSD</a>
   <span class="tb-item" id="rangeLabel">1D · Candles</span>
   <div class="mode-pill" id="modePill">
-    <button data-mode="beginner">Beginner</button>
+    <button data-mode="simple">Simple</button>
     <button data-mode="standard">Standard</button>
     <button data-mode="pro">Pro</button>
   </div>
@@ -66,7 +67,7 @@
 
 <div class="hintbar" id="hintbar">
   <span class="tag tag-ai">PROGRESSIVE COMPLEXITY</span>
-  <span id="hintText">Beginner preset: 3 drawing tools, 1 indicator, side panels hidden. Everything
+  <span id="hintText">Simple preset: 3 drawing tools, 1 indicator, side panels hidden. Everything
     unlocks as you level up — or instantly via “Full interface”.</span>
   <span style="flex:1"></span>
   <button class="btn btn-quiet" id="hintClose" style="padding:5px 12px;font-size:11.5px" aria-label="Dismiss">✕</button>
@@ -139,7 +140,7 @@
   <div class="disclaimer" style="border-top:none;padding-top:0;margin-top:0">
     Sample data for illustration — this workspace is a case-study shell, not a chart engine, and it
     is not connected to a market data feed. The portal is for browsing and deciding; this screen is
-    the working surface, and the header button is its only entrance. Not investment advice.
+    the working surface, reached from Research or from the "Skip the portal" tile on the home page. Not investment advice.
   </div>
 </div>
 
@@ -164,7 +165,7 @@ const range  = params.get('range') || lsRaw('chart_range', '') || '1D';
 const compare = lsJson('compare_symbols', []).filter(s => s && s.toUpperCase() !== symbol);
 
 $('symLink').textContent = symbol;
-$('symLink').href = '/symbol.html?symbol=' + encodeURIComponent(symbol);
+$('symLink').href = '/symbols/' + encodeURIComponent(symbol);
 $('rangeLabel').textContent = range + ' · Candles' + (compare.length ? ' · vs ' + compare.join(', ') : '');
 try { localStorage.setItem('active_symbol', symbol); } catch {}
 
@@ -235,7 +236,7 @@ async function drawSymbol() {
     const want = (P.watchlist() || []).filter(x => bySym.has(x));
     const rows = (want.length ? want : ['SPX', 'BTCUSD', 'ETHUSD', 'EURUSD']).map(x => bySym.get(x)).filter(Boolean);
     $('watchRows').innerHTML = rows.map(i =>
-      `<div class="wl-row"><a href="/symbol.html?symbol=${encodeURIComponent(i.symbol)}" style="color:var(--tv-text)">${Q.esc(i.symbol)}</a>
+      `<div class="wl-row"><a href="/symbols/${encodeURIComponent(i.symbol)}" style="color:var(--tv-text)">${Q.esc(i.symbol)}</a>
        <span class="${Q.cls(i.changePct)}">${Q.price(i.price, i)} ${Q.pct(i.changePct)}</span></div>`).join('') +
       (want.length ? '' : '<div class="mono" style="font-size:10px;color:var(--tv-ghost);margin-top:6px">your list is empty — showing four benchmarks</div>');
   } catch (err) {
@@ -248,13 +249,13 @@ async function drawSymbol() {
 /* -------------------------------------------------- progressive complexity */
 
 const CAPTIONS = {
-  beginner: '3 tools · 1 indicator · panels hidden',
+  simple: '3 tools · 1 indicator · panels hidden',
   standard: '6 tools · indicators & alerts · watchlist panel',
   pro: 'all 40 tools · multi-pane · DOM, Pine, layouts'
 };
-const TOOLCAP = { beginner: '3 of 40 tools', standard: '6 of 40 tools', pro: '40 of 40 tools' };
+const TOOLCAP = { simple: '3 of 40 tools', standard: '6 of 40 tools', pro: '40 of 40 tools' };
 const HINTS = {
-  beginner: 'Beginner preset: 3 drawing tools, 1 indicator, side panels hidden. Everything unlocks as you level up — or instantly via “Full interface”.',
+  simple: 'Simple preset: 3 drawing tools, 1 indicator, side panels hidden. Everything unlocks as you level up — or instantly via “Full interface”.',
   standard: 'Standard preset: six tools, indicators, alerts and replay, plus your watchlist. Density is yours to set.',
   pro: 'Pro preset: the full workspace. The pill goes back to Beginner whenever you want — nothing here is one-way.'
 };
@@ -276,17 +277,17 @@ function applyMode(m, source) {
   $('modeCaption').textContent = CAPTIONS[mode];
   $('toolCap').textContent = TOOLCAP[mode];
   if ($('hintText')) $('hintText').textContent = HINTS[mode];
-  if ($('hintbar')) $('hintbar').style.display = mode === 'beginner' ? '' : 'none';
+  if ($('hintbar')) $('hintbar').style.display = mode === 'simple' ? '' : 'none';
 
-  $('sidePanel').hidden = mode === 'beginner';
-  $('shell').classList.toggle('with-panel', mode !== 'beginner');
+  $('sidePanel').hidden = mode === 'simple';
+  $('shell').classList.toggle('with-panel', mode !== 'simple');
 
   // SVG ignores [hidden]; opacity keeps the transition and the layout stable.
   const ov = $('proOverlay'), cn = $('chartNews');
   ov.style.display = ''; cn.style.display = '';
   ov.style.opacity = mode === 'pro' ? 1 : 0;
-  cn.style.opacity = mode === 'beginner' ? 0 : 1;
-  $('rangeNews').hidden = mode === 'beginner';
+  cn.style.opacity = mode === 'simple' ? 0 : 1;
+  $('rangeNews').hidden = mode === 'simple';
 
   document.body.dataset.uiMode = mode;
 }
@@ -294,6 +295,15 @@ function applyMode(m, source) {
 $('modePill').addEventListener('click', e => {
   const b = e.target.closest('[data-mode]');
   if (b) applyMode(b.dataset.mode, 'pill');
+});
+
+/* The header switch and this toolbar pill are two views of one setting, so a
+   change in either has to reach the other — otherwise the workspace keeps the
+   old density while the header claims a new mode. */
+document.addEventListener('ui-mode-changed', () => {
+  const m = P.mode();
+  if (document.body.dataset.uiMode !== m || !$('modePill').querySelector('.on')?.dataset) applyMode(m, 'sync');
+  else applyMode(m, 'sync');
 });
 
 /* The escape hatch has to be instant, and it has to work in both directions. */
@@ -328,7 +338,7 @@ function renderNextStep() {
 $('nextStep').addEventListener('click', () => {
   const s = P.suggestNext('chart');
   P.pushJourney({ from: 'chart', to: s.to, rule: s.rule, label: s.label });
-  location.href = '/symbol.html?symbol=' + encodeURIComponent(symbol);
+  location.href = '/symbols/' + encodeURIComponent(symbol);
 });
 
 $('explainMove').addEventListener('click', () => {
@@ -373,47 +383,49 @@ drawSymbol();
 </script>
 
 <footer class="portal-footer">
-  <div class="cols" style="grid-template-columns:repeat(4,1fr)">
-    <div class="col"><b>Product</b>
-      <div><a href="/charts.html">Supercharts</a></div>
-      <div><a href="/directory.html#company">Pricing</a></div>
-      <div><a href="/directory.html#company">Features</a></div>
-      <div><a href="/directory.html#company">What's new</a></div>
-      <div><a href="/directory.html#company">Market data</a></div>
-      <div><a href="/directory.html#company">Gift plans</a></div>
-      <div><a href="/directory.html#company">Mobile &amp; desktop apps</a></div>
-    </div>
-    <div class="col"><b>For business</b>
-      <div><a href="/directory.html#business">Widgets</a></div>
-      <div><a href="/directory.html#business">Charting libraries</a></div>
-      <div><a href="/directory.html#business">Trading platform</a></div>
-      <div><a href="/directory.html#business">Advertising</a></div>
-      <div><a href="/directory.html#business">Brokerage integration</a></div>
-      <div><a href="/directory.html#business">Partner &amp; education programs</a></div>
-    </div>
+  <div class="cols" style="grid-template-columns:repeat(6,1fr)">
     <div class="col"><b>Company</b>
       <div><a href="#about-prototype">About this prototype</a></div>
-      <div><a href="/directory.html#company">Who we are</a></div>
-      <div><a href="/directory.html#company">Careers</a></div>
-      <div><a href="/directory.html#company">Blog and news</a></div>
-      <div><a href="/directory.html#company">Media kit</a></div>
-      <div><a href="/directory.html#company">Space mission</a></div>
-      <div><a href="/directory.html#company">Merch &amp; store</a></div>
+      <div><a href="/sitemap#company">About</a></div>
+      <div><a href="/sitemap#company">Blog</a></div>
+      <div><a href="/sitemap#company">Careers</a></div>
+      <div><a href="/sitemap#company">Media kit</a></div>
     </div>
-    <div class="col"><b>Policies</b>
-      <div><a href="/directory.html#policies">Terms of use</a></div>
+    <div class="col"><b>Product & plans</b>
+      <div><a href="/sitemap#company">Features</a></div>
+      <div><a href="/sitemap#company">Pricing</a></div>
+      <div><a href="/sitemap#company">Market data</a></div>
+      <div><a href="/sitemap#company">Apps</a></div>
+      <div><a href="/sitemap#company">Gift plans</a></div>
+    </div>
+    <div class="col"><b>For business</b>
+      <div><a href="/sitemap#business">Widgets</a></div>
+      <div><a href="/sitemap#business">Charting libraries</a></div>
+      <div><a href="/sitemap#business">Broker integration</a></div>
+      <div><a href="/sitemap#business">Advertising</a></div>
+      <div><a href="/sitemap#business">Partner program</a></div>
+    </div>
+    <div class="col"><b>Support</b>
+      <div><a href="/learn#help">Help centre</a></div>
+      <div><a href="/api/health">Status</a></div>
+      <div><a href="/sitemap#policies">Security</a></div>
+      <div><a href="/sitemap#policies">Accessibility</a></div>
+    </div>
+    <div class="col"><b>Legal</b>
+      <div><a href="/sitemap#policies">Terms</a></div>
+      <div><a href="/sitemap#policies">Privacy</a></div>
+      <div><a href="/sitemap#policies">Cookies</a></div>
       <div><a href="#about-prototype">Disclaimer</a></div>
-      <div><a href="/directory.html#policies">Privacy policy</a></div>
-      <div><a href="/directory.html#policies">Cookies policy</a></div>
-      <div><a href="/directory.html#policies">Accessibility statement</a></div>
-      <div><a href="/directory.html#policies">Security tips</a></div>
-      <div><a href="/directory.html#policies">Bug bounty programme</a></div>
-      <div><a href="/api/health">Status page</a></div>
-      <div><a href="/directory.html#policies">House rules &amp; moderators</a></div>
+    </div>
+    <div class="col"><b>Community extras</b>
+      <div><a href="/community#rewards">Store</a></div>
+      <div><a href="/community#rewards">Refer a friend</a></div>
+      <div><a href="/sitemap#company">Wall of Love</a></div>
+      <div><a href="/sitemap#policies">House rules</a></div>
     </div>
   </div>
   <div class="cols" style="margin-top:22px;grid-template-columns:1fr">
-    <div style="font-size:13px"><a href="/directory.html"><b>Full site map — every destination and where it went →</b></a></div>
+    <div style="font-size:13px"><a href="/sitemap"><b>Full site map — every destination, where it went and whether it works here →</b></a></div>
   </div>
   <div class="cols" style="margin-top:18px;grid-template-columns:1fr">
     <div class="disclaimer" id="about-prototype" style="border-top:none;padding-top:0;margin-top:0">

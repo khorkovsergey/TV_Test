@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Capital — watching, money and goals</title>
+<link rel="stylesheet" href="/tv-theme.css">
+<link rel="stylesheet" href="/portal.css">
+<script src="/ia.js"></script>
+<script src="/home.js"></script>
+<script src="/quotes.js"></script>
+<script src="/hub.js"></script>
+<script src="/nav.js"></script>
+<script src="/copilot.js" defer></script>
+</head>
+<body data-section="capital">
+
+<div class="mock-strip">
+  UNAFFILIATED CASE-STUDY MOCKUP · NOT A REAL PLATFORM · NOT INVESTMENT ADVICE
+</div>
+
+<nav class="portal-nav">
+  <div class="logo"><a href="/"><img src="/assets/tv-logo-white.svg" alt="Platform"></a></div>
+  <div class="search"><svg class="g" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="M11 11l4 4"/></svg>Search or ask: &ldquo;why is BTC up?&rdquo;</div>
+  <div class="menu">
+    <a href="/overview">Overview</a>
+    <a href="/research">Research</a>
+    <a href="/capital" class="active">Capital</a>
+    <a href="/trade">Trade</a>
+    <a href="/learn">Learn</a>
+    <a href="/community">Community</a>
+  </div>
+  <div class="right">
+    <button class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
+    <span style="font-size:14px;color:var(--tv-muted)">Sign in</span>
+    <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
+  </div>
+</nav>
+
+<main class="tv-page" style="max-width:1180px">
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap">
+    <div>
+      <div class="tv-eyebrow">Capital</div>
+      <h1 class="tv-h1" style="margin-top:8px">How your watching, investments and goals connect</h1>
+      <p class="tv-lead" style="margin-top:10px">What you follow, what you own, what you are aiming at — and what a market move does to all three.</p>
+    </div>
+    <span class="tag tag-ai" id="modeBadge">Simple mode</span>
+  </div>
+
+  <div id="modules"></div>
+
+  <h2 class="mt-32" id="everything" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">Everything in this section</h2>
+  <div style="font-size:13px;color:var(--tv-faint);margin-top:6px">
+    Grouped once, with what this prototype implements. Deeper tools are marked, never hidden —
+    switching mode changes what comes first, not what you may reach.
+  </div>
+  <div class="stubs mt-16" id="shelf"></div>
+
+  <div class="mt-32" id="next"></div>
+
+  <div class="disclaimer">
+    Market data is delayed and comes from a free public source. Nothing on this page is investment advice.
+  </div>
+</main>
+
+<footer class="portal-footer">
+  <div class="cols" style="grid-template-columns:repeat(6,1fr)">
+    <div class="col"><b>Company</b>
+      <div><a href="#about-prototype">About this prototype</a></div>
+      <div><a href="/sitemap#company">About</a></div>
+      <div><a href="/sitemap#company">Blog</a></div>
+      <div><a href="/sitemap#company">Careers</a></div>
+      <div><a href="/sitemap#company">Media kit</a></div>
+    </div>
+    <div class="col"><b>Product & plans</b>
+      <div><a href="/sitemap#company">Features</a></div>
+      <div><a href="/sitemap#company">Pricing</a></div>
+      <div><a href="/sitemap#company">Market data</a></div>
+      <div><a href="/sitemap#company">Apps</a></div>
+      <div><a href="/sitemap#company">Gift plans</a></div>
+    </div>
+    <div class="col"><b>For business</b>
+      <div><a href="/sitemap#business">Widgets</a></div>
+      <div><a href="/sitemap#business">Charting libraries</a></div>
+      <div><a href="/sitemap#business">Broker integration</a></div>
+      <div><a href="/sitemap#business">Advertising</a></div>
+      <div><a href="/sitemap#business">Partner program</a></div>
+    </div>
+    <div class="col"><b>Support</b>
+      <div><a href="/learn#help">Help centre</a></div>
+      <div><a href="/api/health">Status</a></div>
+      <div><a href="/sitemap#policies">Security</a></div>
+      <div><a href="/sitemap#policies">Accessibility</a></div>
+    </div>
+    <div class="col"><b>Legal</b>
+      <div><a href="/sitemap#policies">Terms</a></div>
+      <div><a href="/sitemap#policies">Privacy</a></div>
+      <div><a href="/sitemap#policies">Cookies</a></div>
+      <div><a href="#about-prototype">Disclaimer</a></div>
+    </div>
+    <div class="col"><b>Community extras</b>
+      <div><a href="/community#rewards">Store</a></div>
+      <div><a href="/community#rewards">Refer a friend</a></div>
+      <div><a href="/sitemap#company">Wall of Love</a></div>
+      <div><a href="/sitemap#policies">House rules</a></div>
+    </div>
+  </div>
+  <div class="cols" style="margin-top:22px;grid-template-columns:1fr">
+    <div style="font-size:13px"><a href="/sitemap"><b>Full site map — every destination, where it went and whether it works here →</b></a></div>
+  </div>
+  <div class="cols" style="margin-top:18px;grid-template-columns:1fr">
+    <div class="disclaimer" id="about-prototype" style="border-top:none;padding-top:0;margin-top:0">
+      Unaffiliated case-study prototype built for an internal product review. Not a real platform,
+      not operated by or endorsed by any company whose branding appears here. Market data is delayed
+      and comes from a free public source; the Experts flow and the Copilot are the only functional
+      services. Nothing here is investment advice.
+    </div>
+  </div>
+</footer>
+
+<script>
+document.getElementById('askCopilot')?.addEventListener('click', () => document.querySelector('.cp-fab')?.click());
+
+const H = window.Hub, Q = window.Quotes, P = window.Portal;
+
+Hub.mount('capital', mode => `
+  <div class="grid-2 mt-24" style="grid-template-columns:1.4fr 1fr;align-items:start">
+    <div class="tv-card" id="watchlists">
+      <div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <p class="title" style="margin:0">Watchlists</p><span class="tag tag-fact">LIVE · YOUR LIST</span>
+      </div>
+      <div id="watchBody" style="margin-top:10px"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="tv-card" id="alerts">
+        <div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <p class="title" style="margin:0">Alerts</p><span class="tag tag-warn">PILOT</span>
+        </div>
+        <div id="alertBody" style="margin-top:8px"></div>
+      </div>
+      <div class="tv-card" id="saved">
+        <div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <p class="title" style="margin:0">Saved research</p><span class="tag tag-fact">LIVE</span>
+        </div>
+        <div id="savedBody" style="margin-top:8px"></div>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="mt-32" id="portfolio" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">Money</h2>
+  <div class="stubs mt-16">
+    ${H.pilotCard({ title: 'Portfolio', what: 'Positions, result, yield, allocation by currency, sector and country, risk, concentration, a benchmark, and the news and events that touch the holdings.', actions: [{ label: 'Start from a watchlist', url: '#watchlists', primary: true }], note: 'no brokerage connection exists on this stand' })}
+    ${H.pilotCard({ title: 'Wealth Hub', what: 'Market assets together with cash, deposits and currency structure — plus the share of capital that is not working, liquidity, and how a macro event reaches your money.', actions: [{ label: 'How events reach assets', url: '/overview#events' }] })}
+    ${H.pilotCard({ title: 'Goals & scenarios', what: 'A goal with an amount, a horizon, a currency and a risk level; then what changes if the market falls, if rates move, if the currency moves.', actions: [{ label: 'Learn the vocabulary first', url: '/learn#investing' }] })}
+  </div>
+`);
+
+/* Live: the watchlist is real, so it renders live quotes rather than a promise. */
+async function paintWatch() {
+  const list = P.watchlist();
+  const box = document.getElementById('watchBody');
+  if (!box) return;
+  if (!list.length) {
+    box.innerHTML = `<div style="font-size:13.5px;color:var(--tv-muted)">Nothing followed yet.
+      Pick a few instruments and this becomes the page you open first.</div>
+      <div class="row mt-16" style="gap:8px;flex-wrap:wrap">
+        <a class="btn btn-primary" href="/markets" style="padding:9px 16px">Browse markets</a>
+        <a class="btn btn-quiet" href="/screeners" style="padding:9px 16px">Ask the screener</a>
+      </div>`;
+    return;
+  }
+  box.innerHTML = '<div class="mono" style="font-size:11px;color:var(--tv-faint)">loading quotes…</div>';
+  try {
+    const snap = await Q.snapshot();
+    const by = new Map(snap.items.map(i => [i.symbol, i]));
+    box.innerHTML = list.map(s => {
+      const i = by.get(s);
+      if (!i || !i.ok) return `<div class="mover-row"><span class="s">${Q.esc(s)}</span><span class="p">—</span><span class="c">no data</span></div>`;
+      return `<div class="mover-row">
+        <a class="s" href="/symbols/${encodeURIComponent(i.symbol)}">${Q.esc(i.symbol)}</a>
+        <span style="color:var(--tv-faint);font-size:12.5px;flex:1;overflow:hidden;text-overflow:ellipsis">${Q.esc(i.name)}</span>
+        <span class="p">${Q.price(i.price, i)}</span>
+        <span class="c ${Q.cls(i.changePct)}">${Q.pct(i.changePct)}</span>
+        <button class="preset" data-drop="${Q.esc(i.symbol)}" style="padding:4px 10px;font-size:11px">remove</button>
+      </div>`;
+    }).join('') + `<div class="mono" style="font-size:10.5px;color:var(--tv-ghost);margin-top:10px">stored on this device · ${Q.esc(snap.isSample ? 'sample quotes' : snap.source)}</div>`;
+  } catch {
+    box.innerHTML = '<div style="font-size:13px;color:var(--tv-orange)">Quotes unavailable right now.</div>';
+  }
+}
+
+function paintAlerts() {
+  let alerts = [];
+  try { alerts = JSON.parse(localStorage.getItem('alerts') || '[]'); } catch {}
+  const box = document.getElementById('alertBody');
+  if (!box) return;
+  box.innerHTML = alerts.length
+    ? alerts.slice(-6).map(a => `<div class="mover-row"><span class="s">${Q.esc(a.symbol || '?')}</span>
+        <span style="flex:1;font-size:12.5px;color:var(--tv-muted)">${Q.esc(a.condition || '')} ${Q.esc(a.value ?? '')}</span></div>`).join('')
+    : `<div style="font-size:13px;color:var(--tv-muted)">No alerts yet. The Copilot can prepare one — you confirm it.</div>
+       <button class="btn btn-quiet mt-16" id="askAlert" style="padding:8px 14px;font-size:12.5px">Ask the Copilot</button>`;
+}
+
+function paintSaved() {
+  const journey = P.journey();
+  let screens = [];
+  try { screens = JSON.parse(localStorage.getItem('screener_saved') || '[]'); } catch {}
+  const box = document.getElementById('savedBody');
+  if (!box) return;
+  const bits = [];
+  bits.push(`<div style="font-size:12.5px;color:var(--tv-muted)">Research journey: ${journey.length ? Q.esc(journey.slice(-4).join(' → ')) : 'nothing yet'}</div>`);
+  bits.push(`<div style="font-size:12.5px;color:var(--tv-muted);margin-top:8px">Saved screens: ${screens.length || 'none'}${screens.length ? ' — ' + Q.esc(screens.slice(-2).map(s => s.name).join('; ')) : ''}</div>`);
+  bits.push(`<div class="row mt-16" style="gap:8px;flex-wrap:wrap">
+      <a class="btn btn-quiet" href="/screeners" style="padding:8px 14px;font-size:12.5px">Open screens</a>
+      <a class="btn btn-quiet" href="/symbols/BTCUSD" style="padding:8px 14px;font-size:12.5px">Continue research</a>
+    </div>`);
+  box.innerHTML = bits.join('');
+}
+
+function paintAll() { paintWatch(); paintAlerts(); paintSaved(); }
+paintAll();
+document.addEventListener('ui-mode-changed', () => setTimeout(paintAll, 0));
+
+document.addEventListener('click', e => {
+  const drop = e.target.closest('[data-drop]');
+  if (drop) { P.toggleSymbol(drop.dataset.drop); P.track('watchlist_removed', { symbol: drop.dataset.drop }); paintWatch(); }
+  if (e.target.closest('#askAlert')) document.querySelector('.cp-fab')?.click();
+});
+
+Hub.nextStep(document.getElementById('next'), {
+  label: 'Test what you follow before you risk anything',
+  url: '/trade#practice',
+  why: 'Paper trading turns a watchlist into a decision you can review, without money being involved.'
+});
+</script>
+</body>
+</html>
