@@ -7,8 +7,10 @@
 <title>Markets — live quotes</title>
 <link rel="stylesheet" href="/tv-theme.css">
 <link rel="stylesheet" href="/portal.css">
+<script src="/ia.js"></script>
 <script src="/home.js"></script>
 <script src="/quotes.js"></script>
+<script src="/nav.js"></script>
 <script src="/copilot.js" defer></script>
 </head>
 <body>
@@ -66,33 +68,95 @@
     </table>
   </div>
 
-  <h2 class="mt-32" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">Heatmap · today's change</h2>
+  <h2 class="mt-32" id="heatmap" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">Heatmap · today's change</h2>
   <div style="font-size:13px;color:var(--tv-faint);margin-top:6px">Colour is the size of the move, not a judgement about it.</div>
   <div id="heat"></div>
+
+  <!-- Events: what is scheduled, and which instruments it has historically
+       touched. Static in the pilot and labelled as such — an event calendar
+       that invents dates would be worse than one that admits its scope. -->
+  <h2 class="mt-32" id="events" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">Events ahead</h2>
+  <div class="row mt-16" style="gap:10px;flex-wrap:wrap">
+    <span class="tag tag-warn">PILOT · STATIC CALENDAR</span>
+    <span class="mono src">the economic, earnings, dividend and IPO calendars are mapped, not wired to a feed</span>
+  </div>
+  <div class="stubs mt-16">
+    <div class="tv-card">
+      <div class="mono" style="font-size:10.5px;color:var(--tv-orange);letter-spacing:.08em">IN 18H 22M · HIGH IMPACT</div>
+      <p class="title mt-16" style="margin-bottom:4px">FOMC rate decision</p>
+      <div style="font-size:13px;color:var(--tv-muted)">Historically touches BTC, US10Y and gold — a probability, not a rule.</div>
+      <a class="next-step" href="/symbol.html?symbol=US10Y" style="margin-top:12px">See US10Y <b>→</b></a>
+    </div>
+    <div class="tv-card">
+      <div class="mono" style="font-size:10.5px;color:#5B8DFF;letter-spacing:.08em">THIS WEEK</div>
+      <p class="title mt-16" style="margin-bottom:4px">US CPI release</p>
+      <div style="font-size:13px;color:var(--tv-muted)">The print that moved rates and crypto last month.</div>
+      <a class="next-step" href="/symbol.html?symbol=BTCUSD" style="margin-top:12px">See BTCUSD <b>→</b></a>
+    </div>
+    <div class="tv-card">
+      <div class="mono" style="font-size:10.5px;color:var(--tv-faint);letter-spacing:.08em">OTHER CALENDARS</div>
+      <p class="title mt-16" style="margin-bottom:4px">Earnings · dividends · IPOs</p>
+      <div style="font-size:13px;color:var(--tv-muted)">Mapped in the information architecture, out of scope for this build.</div>
+      <a class="next-step" href="/directory.html#markets" style="margin-top:12px">Where they live <b>→</b></a>
+    </div>
+  </div>
+
+  <!-- The full shelf. The nav panel shows five rows; everything else in this
+       section lives here, visible to everyone, depth marked but never hidden. -->
+  <h2 class="mt-32" id="tools" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">Everything in Markets</h2>
+  <div style="font-size:13px;color:var(--tv-faint);margin-top:6px">
+    Screeners, heatmaps, calendars and the analysis tools — each listed once, with what this
+    prototype actually implements.
+  </div>
+  <div id="shelf"></div>
 
   <div class="disclaimer" id="disclaimer"></div>
 </main>
 
 <footer class="portal-footer">
-  <div class="cols" style="grid-template-columns:repeat(3,1fr)">
-    <div class="col"><b>Do</b>
-      <div><a href="/#brief">Today's brief</a></div>
-      <div><a href="/markets.html">Markets</a></div>
-      <div><a href="/screener.html">Screener</a></div>
-      <div><a href="/charts.html">Open Supercharts</a></div>
+  <div class="cols" style="grid-template-columns:repeat(4,1fr)">
+    <div class="col"><b>Product</b>
+      <div><a href="/charts.html">Supercharts</a></div>
+      <div><a href="/directory.html#company">Pricing</a></div>
+      <div><a href="/directory.html#company">Features</a></div>
+      <div><a href="/directory.html#company">What's new</a></div>
+      <div><a href="/directory.html#company">Market data</a></div>
+      <div><a href="/directory.html#company">Gift plans</a></div>
+      <div><a href="/directory.html#company">Mobile &amp; desktop apps</a></div>
     </div>
-    <div class="col"><b>Learn &amp; decide</b>
-      <div><a href="/academy.html">Academy</a></div>
-      <div><a href="/#ideas">Editors' Picks</a></div>
-      <div><a href="/experts.html">Experts</a></div>
+    <div class="col"><b>For business</b>
+      <div><a href="/directory.html#business">Widgets</a></div>
+      <div><a href="/directory.html#business">Charting libraries</a></div>
+      <div><a href="/directory.html#business">Trading platform</a></div>
+      <div><a href="/directory.html#business">Advertising</a></div>
+      <div><a href="/directory.html#business">Brokerage integration</a></div>
+      <div><a href="/directory.html#business">Partner &amp; education programs</a></div>
     </div>
     <div class="col"><b>Company</b>
       <div><a href="#about-prototype">About this prototype</a></div>
-      <div><span style="color:var(--tv-ghost)">Pricing — not part of the pilot</span></div>
-      <div><span style="color:var(--tv-ghost)">Help centre — not part of the pilot</span></div>
+      <div><a href="/directory.html#company">Who we are</a></div>
+      <div><a href="/directory.html#company">Careers</a></div>
+      <div><a href="/directory.html#company">Blog and news</a></div>
+      <div><a href="/directory.html#company">Media kit</a></div>
+      <div><a href="/directory.html#company">Space mission</a></div>
+      <div><a href="/directory.html#company">Merch &amp; store</a></div>
+    </div>
+    <div class="col"><b>Policies</b>
+      <div><a href="/directory.html#policies">Terms of use</a></div>
+      <div><a href="#about-prototype">Disclaimer</a></div>
+      <div><a href="/directory.html#policies">Privacy policy</a></div>
+      <div><a href="/directory.html#policies">Cookies policy</a></div>
+      <div><a href="/directory.html#policies">Accessibility statement</a></div>
+      <div><a href="/directory.html#policies">Security tips</a></div>
+      <div><a href="/directory.html#policies">Bug bounty programme</a></div>
+      <div><a href="/api/health">Status page</a></div>
+      <div><a href="/directory.html#policies">House rules &amp; moderators</a></div>
     </div>
   </div>
-  <div class="cols" style="margin-top:26px;grid-template-columns:1fr">
+  <div class="cols" style="margin-top:22px;grid-template-columns:1fr">
+    <div style="font-size:13px"><a href="/directory.html"><b>Full site map — every destination and where it went →</b></a></div>
+  </div>
+  <div class="cols" style="margin-top:18px;grid-template-columns:1fr">
     <div class="disclaimer" id="about-prototype" style="border-top:none;padding-top:0;margin-top:0">
       Unaffiliated case-study prototype built for an internal product review. Not a real platform,
       not operated by or endorsed by any company whose branding appears here. Market data is delayed
@@ -262,6 +326,30 @@ $('refresh').addEventListener('click', async () => {
   $('refresh').textContent = 'Refresh';
   P?.track('markets_refresh', {});
 });
+
+/* The shelf renders from the IA, so a destination that moves in the map moves
+   here too — there is no second list to keep in step. */
+function renderShelf() {
+  const door = window.IA?.DOORS.find(d => d.id === 'markets');
+  if (!door) return;
+  const status = { live: ['LIVE', 'tag-fact'], pilot: ['PILOT', 'tag-warn'], mapped: ['MAPPED', ''] };
+  $('shelf').innerHTML = `<div class="stubs mt-16" style="grid-template-columns:repeat(3,1fr)">` +
+    door.groups.map(g => `
+      <div class="tv-card">
+        <div class="mono" style="font-size:10px;letter-spacing:.08em;color:#5B8DFF">${g.name.toUpperCase()}</div>
+        <div style="display:flex;flex-direction:column;margin-top:10px">
+          ${g.items.map(i => {
+            const [lbl, cls] = status[i.status];
+            return `<a href="${i.url}" style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--tv-line);color:var(--tv-text)">
+              <span style="font-size:13.5px">${Q.esc(i.label)}${i.level === 'pro' ? ' <span class="mono" style="font-size:9px;color:#B48CFF">PRO</span>' : ''}</span>
+              <span class="tag ${cls}" ${cls ? '' : 'style="color:var(--tv-ghost);background:var(--tv-ink-2);border:1px solid var(--tv-ink-3)"'}>${lbl}</span>
+            </a>`;
+          }).join('')}
+        </div>
+      </div>`).join('') + '</div>';
+}
+
+renderShelf();
 
 load().then(() => {
   P?.track('markets_opened', { instruments: snap.universe, failed: (snap.failed || []).length });
