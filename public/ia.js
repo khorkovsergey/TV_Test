@@ -91,7 +91,9 @@ window.IA = (function () {
         ]},
         { name: 'Money', items: [
           D('cp-portfolio', 'Portfolio', '/capital#portfolio', 'pilot', 'standard', 'positions, result, allocation', 'portfolio holdings positions allocation'),
-          D('cp-wealth', 'Wealth Hub', '/capital#wealth', 'pilot', 'standard', 'market assets, cash, deposits, currency', 'wealth hub capital cash deposits'),
+          /* Strategic features open by default at every level (§2.3): a mode
+             may change how they are presented, never whether they exist. */
+          D('cp-wealth', 'Wealth Hub', '/capital/wealth', 'live', 'simple', 'market assets, cash, deposits, currency', 'wealth hub capital cash deposits savings'),
           D('cp-goals', 'Goals & scenarios', '/capital#goals', 'pilot', 'standard', 'what changes if the market falls', 'goals scenarios target horizon')
         ]},
         { name: 'Kept', items: [
@@ -157,7 +159,7 @@ window.IA = (function () {
         { name: 'Ask & win', items: [
           D('cm-experts', 'Expert Marketplace', '/community/experts', 'live', 'simple', 'a licensed human, matched', 'expert consultant advisor marketplace licensed'),
           D('cm-comp', 'Competitions', '/community#competitions', 'mapped', 'standard', 'The Leap', 'leap competition contest prizes'),
-          D('cm-rewards', 'Rewards', '/community#rewards', 'mapped', 'standard', 'referral, gifts, store, programs', 'rewards referral gift store program')
+          D('cm-rewards', 'Rewards', '/community/rewards', 'pilot', 'simple', 'one loop: ideas, teaching, referrals', 'rewards referral gift store program points')
         ]}
       ]
     }
@@ -250,16 +252,30 @@ window.IA = (function () {
     return out;
   }
 
-  /* What a menu shows: the rows that match the visitor's level, capped. The
-     rest is one click away on the section hub — a menu that lists everything
-     is the thing being replaced. */
-  function menuRows(section, mode = 'simple', limit = 6) {
+  /* What a menu shows.
+
+     This used to drop every row above the visitor's level, which meant Simple
+     silently deleted forty-four destinations — Wealth Hub and Rewards among
+     them — with no affordance saying they existed. §7.1 of the mode brief is
+     explicit: navigation categories never disappear by mode, only ordering,
+     grouping and density may change.
+
+     So the split is now shown, not applied: `rows` are the ones this level
+     opens with, `more` is everything else, and the caller renders `more`
+     behind a "More tools" disclosure. Nothing leaves the menu. */
+  function menuSplit(section, mode = 'simple', limit = 6) {
     const max = ORDER[mode] ?? 0;
-    const fit = [];
+    const fit = [], rest = [];
     for (const g of section.groups) for (const i of g.items) {
-      if ((ORDER[i.level] ?? 0) <= max) fit.push({ ...i, group: g.name });
+      ((ORDER[i.level] ?? 0) <= max ? fit : rest).push({ ...i, group: g.name });
     }
-    return fit.slice(0, limit);
+    /* Anything past the cap is not lost either — it joins `more`, in order. */
+    return { rows: fit.slice(0, limit), more: fit.slice(limit).concat(rest) };
+  }
+
+  /* Kept for callers that only want the default rows. */
+  function menuRows(section, mode = 'simple', limit = 6) {
+    return menuSplit(section, mode, limit).rows;
   }
 
   const bySection = id => ALL_DOORS.find(d => d.id === id) || null;
@@ -276,7 +292,7 @@ window.IA = (function () {
 
   return {
     SECTIONS, MY_SPACE, HOME, FOOTER, ALL_DOORS, ORDER,
-    allItems, menuRows, bySection, counts,
+    allItems, menuRows, menuSplit, bySection, counts,
     /* kept so older callers do not break */
     NAV_DOORS: SECTIONS, PANEL_DOORS: SECTIONS, DOORS: ALL_DOORS
   };

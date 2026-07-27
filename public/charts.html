@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="/portal.css">
 <script src="/ia.js"></script>
 <script src="/features.js"></script>
+<script src="/modes.js"></script>
 <script src="/home.js"></script>
 <script src="/quotes.js"></script>
 <script src="/nav.js"></script>
@@ -64,6 +65,12 @@
     <span>Density</span>
     <input type="range" min="1" max="3" value="2" id="density" aria-label="Interface density">
   </div>
+  <!-- §7.5 — the tools above this preset, reachable without leaving it. -->
+  <span class="adv-drawer" id="advDrawer" hidden>
+    <button class="tb-item"><span id="advLabel">Advanced tools</span> <span id="advCount">0</span></button>
+  </span>
+  <button class="btn btn-quiet" id="makeDefault" style="padding:7px 12px;font-size:12px"
+    title="Make the broader preset your default everywhere">Make it my default</button>
   <button class="btn btn-secondary" id="fullBtn" style="padding:7px 14px;font-size:12.5px">Full interface →</button>
 </div>
 
@@ -259,8 +266,13 @@ const TOOLCAP = { simple: '3 of 40 tools', standard: '6 of 40 tools', pro: '40 o
 const HINTS = {
   simple: 'Simple preset: 3 drawing tools, 1 indicator, side panels hidden. Everything unlocks as you level up — or instantly via “Full interface”.',
   standard: 'Standard preset: six tools, indicators, alerts and replay, plus your watchlist. Density is yours to set.',
-  pro: 'Pro preset: the full workspace. The pill goes back to Beginner whenever you want — nothing here is one-way.'
+  pro: 'Pro preset: the full workspace. The pill goes back to Simple whenever you want — nothing here is one-way.'
 };
+
+/* Temporary disclosure for this page only. It never writes the global mode:
+   §4.3 is explicit that showing advanced content once must not silently
+   promote the visitor to another mode. */
+let drawerOpen = false;
 
 /* One function decides everything the mode controls, so a new progressive
    element only needs a data-min attribute to join in. */
@@ -270,11 +282,25 @@ function applyMode(m, source) {
   document.querySelectorAll('#modePill button').forEach(b =>
     b.classList.toggle('on', b.dataset.mode === mode));
 
+  /* Nothing is locked: a tool above the preset is dimmed, still clickable,
+     and clicking it opens it for this page without changing the global mode
+     (§4.3, temporary disclosure). */
+  let below = 0;
   document.querySelectorAll('[data-min]').forEach(el => {
-    const visible = P.allows(mode, el.dataset.min);
+    const visible = P.allows(mode, el.dataset.min) || drawerOpen;
     if (el.classList.contains('t')) el.classList.toggle('locked', !visible);
     else { el.hidden = !visible; el.style.display = visible ? '' : 'none'; }
+    if (!P.allows(mode, el.dataset.min)) below++;
   });
+  const drawer = $('advDrawer');
+  if (drawer) {
+    drawer.hidden = below === 0 && !drawerOpen;
+    /* The count lives in its own span; rewriting the whole button label would
+       delete it and the next repaint would have nowhere to write. */
+    $('advLabel').textContent = drawerOpen ? 'Back to the ' + mode + ' preset' : 'Advanced tools';
+    $('advCount').textContent = below;
+    $('advCount').hidden = drawerOpen;
+  }
 
   $('modeCaption').textContent = CAPTIONS[mode];
   $('toolCap').textContent = TOOLCAP[mode];
@@ -296,7 +322,27 @@ function applyMode(m, source) {
 
 $('modePill').addEventListener('click', e => {
   const b = e.target.closest('[data-mode]');
-  if (b) applyMode(b.dataset.mode, 'pill');
+  if (b) { drawerOpen = false; applyMode(b.dataset.mode, 'pill'); }
+});
+
+/* Advanced tools drawer — everything above the preset, on this page, without
+   leaving the preset. Plus the way back: "Reset to mode preset" (§7.5). */
+$('advDrawer')?.addEventListener('click', e => {
+  if (!e.target.closest('button')) return;
+  drawerOpen = !drawerOpen;
+  applyMode(P.mode(), 'drawer');
+  P.track(drawerOpen ? 'temporary_advanced_opened' : 'temporary_advanced_closed',
+          { surface: 'chart', mode: P.mode() });
+});
+
+$('makeDefault')?.addEventListener('click', () => {
+  /* The explicit, never automatic, promotion. */
+  const to = P.mode() === 'simple' ? 'standard' : 'pro';
+  P.setMode(to, 'make_default');
+  drawerOpen = false;
+  applyMode(to, 'make_default');
+  document.dispatchEvent(new CustomEvent('ui-mode-changed', { detail: { to } }));
+  P.track('make_mode_default_clicked', { to, surface: 'chart' });
 });
 
 /* The header switch and this toolbar pill are two views of one setting, so a

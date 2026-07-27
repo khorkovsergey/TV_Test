@@ -9,7 +9,7 @@
 window.Academy = (function () {
 
   const K_PROGRESS = 'academy_progress';   // array of completed lesson ids
-  const K_MODE     = 'ui_mode';            // 'beginner' | 'standard'
+  const K_MODE     = 'ui_mode';            // mirror of Modes: simple | standard | pro
   const K_FIRST    = 'academy_first_visit';// ms, for Time to First Value
   const K_EVENTS   = 'academy_events';     // local ring buffer, inspectable
 
@@ -83,6 +83,7 @@ window.Academy = (function () {
      ever fails to load, and tolerates the quoted value older builds wrote. */
   function mode() {
     if (window.Portal?.mode) return window.Portal.mode();
+    if (window.Modes) return window.Modes.current();
     const raw = ls.get(K_MODE, 'simple');
     return ['simple', 'standard', 'pro'].includes(raw) ? raw : 'simple';
   }
@@ -95,11 +96,16 @@ window.Academy = (function () {
     applyMode();
   }
 
-  /* In beginner mode the advanced nav items are hidden. Scoped to Academy
-     pages on purpose: the spec requires the other pages to stay untouched. */
+  /* Simple folds the advanced nav items away; it does not delete them. The
+     `[data-advanced]` elements live inside a disclosure on the page, so the
+     Academy keeps the same promise as the rest of the portal: presentation
+     moves, the product does not (§2.3, §7.12). */
   function applyMode() {
-    const beginner = mode() === 'simple';
-    document.querySelectorAll('[data-advanced]').forEach(el => { el.hidden = beginner; });
+    const fold = mode() === 'simple';
+    document.querySelectorAll('[data-advanced]').forEach(el => {
+      el.hidden = false;
+      el.classList.toggle('folded', fold);
+    });
     document.querySelectorAll('[data-mode]').forEach(el =>
       el.classList.toggle('on', el.dataset.mode === mode()));
     document.body.dataset.uiMode = mode();

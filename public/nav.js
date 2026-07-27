@@ -36,11 +36,16 @@
     mapped: { label: 'MAPPED', title: 'Exists on the real platform; kept in the map, not built here' }
   };
 
-  const MODES = [
+  /* Labels and hints come from the mode policy — the header must not be able
+     to call a mode something the rest of the product does not. */
+  const MODES = (window.Modes ? window.Modes.LIST.map(id => {
+    const p = window.Modes.policy(id);
+    return { id, label: p.label, hint: p.hint };
+  }) : [
     { id: 'simple',   label: 'Simple',   hint: 'fewer panels, terms explained, one main action' },
     { id: 'standard', label: 'Standard', hint: 'full asset hub, screeners, fundamentals, saved layouts' },
     { id: 'pro',      label: 'Pro',      hint: 'density, multi-chart, Pine, strategy tester, shortcuts' }
-  ];
+  ]);
 
   /* ------------------------------------------------------------- styles */
 
@@ -130,14 +135,31 @@
 
   const panels = [];
 
+  /* §7.1 — a navigation category never disappears with the mode. The level
+     decides what the menu opens with; everything else moves under "More
+     tools", one click away, in every mode. Before this, Simple silently
+     deleted forty-four destinations and gave no sign they existed. */
   function paintPanel(entry) {
     const { section, panel } = entry;
-    const rows = IA.menuRows(section, P()?.mode?.() || 'simple', 6);
-    panel.innerHTML = `<div class="tl">${esc(section.question)}</div>
-      ${rows.map(i => `<a href="${esc(i.url)}" data-ia="${esc(i.id)}">
+    const mode = P()?.mode?.() || 'simple';
+    const { rows, more } = IA.menuSplit(section, mode, 6);
+    const row = i => `<a href="${esc(i.url)}" data-ia="${esc(i.id)}">
           <span>${esc(i.label)} ${badge(i)}</span>
-          <span class="d">${esc(i.desc || i.group)}</span></a>`).join('')}
+          <span class="d">${esc(i.desc || i.group)}</span></a>`;
+
+    panel.innerHTML = `<div class="tl">${esc(section.question)}</div>
+      ${rows.map(row).join('')}
+      ${more.length ? `<details class="more-tools">
+        <summary>More tools in ${esc(section.label)} <span class="n">${more.length}</span></summary>
+        ${more.map(row).join('')}
+      </details>` : ''}
       <div class="all"><a href="${esc(section.url)}">See everything in ${esc(section.label)} →</a></div>`;
+
+    panel.querySelector('.more-tools')?.addEventListener('toggle', e => {
+      if (e.target.open) track('temporary_advanced_opened',
+        { surface: 'nav_menu', menu: section.id, mode, items: more.length });
+      else track('temporary_advanced_closed', { surface: 'nav_menu', menu: section.id, mode });
+    });
   }
 
   function repaintPanels() { panels.forEach(paintPanel); }
@@ -197,39 +219,131 @@
     const right = document.querySelector('.portal-nav .right');
     if (!right || right.querySelector('.mode-switch')) return;
 
-    const sw = h(`<span class="mode-switch" role="group" aria-label="Interface complexity">
-      ${MODES.map(m => `<button data-mode="${m.id}" title="${esc(m.hint)}">${m.label}</button>`).join('')}
+    /* A radio group, not three toggle buttons: exactly one is chosen, arrow
+       keys move between them, and the state is announced as text rather than
+       as a colour (§12, accessibility). */
+    const sw = h(`<span class="mode-switch" role="radiogroup" aria-label="Interface complexity">
+      ${MODES.map(m => `<button role="radio" data-mode="${m.id}" aria-checked="false"
+        title="${esc(m.label)} — ${esc(m.hint)}">${m.label}</button>`).join('')}
+      <button class="mode-cmp" data-cmp="1" aria-haspopup="dialog"
+        title="What changes when you switch — and what does not">?</button>
     </span>`);
     right.insertBefore(sw, right.firstChild);
 
+    const buttons = () => [...sw.querySelectorAll('[data-mode]')];
+
     const paint = () => {
       const cur = P()?.mode?.() || 'simple';
-      sw.querySelectorAll('button').forEach(b => {
+      buttons().forEach(b => {
         const on = b.dataset.mode === cur;
         b.classList.toggle('on', on);
-        b.setAttribute('aria-pressed', String(on));
+        b.setAttribute('aria-checked', String(on));
+        /* Only the selected radio is in the tab order; arrows move inside. */
+        b.tabIndex = on ? 0 : -1;
       });
-      document.body.dataset.uiMode = cur;
+      /* Portal owns what goes on <body> — density and explanation depth ride
+         along with the mode, and the header must not set only one of three. */
+      P()?.applyBodyMode ? P().applyBodyMode() : (document.body.dataset.uiMode = cur);
     };
 
-    sw.addEventListener('click', e => {
-      const b = e.target.closest('[data-mode]');
-      if (!b) return;
+    function switchTo(to, source) {
       const from = P()?.mode?.() || 'simple';
-      const to = b.dataset.mode;
-      if (from === to) return;
-      P()?.setMode?.(to, 'switch');
+      if (from === to || !to) return;
+      P()?.setMode?.(to, source || 'switch');
       paint();
       repaintPanels();
       document.dispatchEvent(new CustomEvent('ui-mode-changed', { detail: { from, to } }));
       /* Moving up is the moment to say what just appeared — §7.4 asks for a
          short explanation, not a celebration. */
       if (IA.ORDER[to] > IA.ORDER[from]) explainMode(to);
-      track('mode_changed', { from, to, source: 'switch' });
+    }
+
+    sw.addEventListener('click', e => {
+      if (e.target.closest('[data-cmp]')) { openCompare(); return; }
+      const b = e.target.closest('[data-mode]');
+      if (b) switchTo(b.dataset.mode, 'switch');
+    });
+
+    sw.addEventListener('keydown', e => {
+      if (!e.target.closest('[data-mode]')) return;
+      const dir = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1
+                : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0;
+      if (!dir) return;
+      e.preventDefault();
+      const ids = MODES.map(m => m.id);
+      const cur = P()?.mode?.() || 'simple';
+      const next = ids[(ids.indexOf(cur) + dir + ids.length) % ids.length];
+      switchTo(next, 'keyboard');
+      buttons().find(b => b.dataset.mode === next)?.focus();
     });
 
     paint();
     document.addEventListener('ui-mode-changed', paint);
+  }
+
+  /* §5.2 — say what the switch does before it is used. The two lists come
+     from modes.js so the promise in the dialog and the rule in the code are
+     literally the same strings. */
+  function openCompare() {
+    if (document.querySelector('.mode-cmp-back')) return;
+    const M = window.Modes;
+    if (!M) return;
+    const cur = P()?.mode?.() || 'simple';
+
+    const back = h(`<div class="mode-cmp-back" role="dialog" aria-modal="true" aria-label="Compare modes"></div>`);
+    const box = h(`<div class="mode-cmp-box">
+      <div class="hd"><b>Simple · Standard · Pro</b>
+        <button class="x" aria-label="Close">✕</button></div>
+      <p class="lead">One product, one set of routes, one account. The mode is a
+        preset for how much is shown by default — nothing more.</p>
+      <div class="cols">
+        ${M.LIST.map(id => {
+          const p = M.policy(id);
+          return `<div class="col ${id === cur ? 'on' : ''}">
+            <b>${esc(p.label)}${id === cur ? ' <span class="cur">your mode</span>' : ''}</b>
+            <span class="ru">${esc(p.description)}</span>
+            <span class="tg">${esc(p.tagline)}</span>
+            <ul>
+              <li>density: ${esc(p.density)}</li>
+              <li>explanation: ${esc(p.explanationDepth)}</li>
+              <li>up to ${p.maxPrimaryActions} primary actions</li>
+              <li>chart preset: ${esc(p.chartPreset)}</li>
+              <li>tables: ${esc(p.tableDensity)}</li>
+            </ul>
+            <button class="btn ${id === cur ? 'btn-quiet' : 'btn-primary'}" data-pick="${id}"
+              ${id === cur ? 'disabled' : ''}>${id === cur ? 'Current' : 'Switch to ' + esc(p.label)}</button>
+          </div>`;
+        }).join('')}
+      </div>
+      <div class="two">
+        <div><span class="h">Switching changes</span><ul>${M.CHANGES.map(c => `<li>${esc(c)}</li>`).join('')}</ul></div>
+        <div><span class="h">Switching never changes</span><ul>${M.KEEPS.map(c => `<li>${esc(c)}</li>`).join('')}</ul></div>
+      </div>
+    </div>`);
+    back.appendChild(box);
+    document.body.appendChild(back);
+    track('mode_comparison_opened', { mode: cur, route: location.pathname });
+
+    const close = (why) => {
+      back.remove();
+      document.removeEventListener('keydown', onKey);
+      if (why === 'cancel') track('mode_change_cancelled', { mode: P()?.mode?.() });
+    };
+    function onKey(e) { if (e.key === 'Escape') close('cancel'); }
+    document.addEventListener('keydown', onKey);
+
+    back.addEventListener('click', e => {
+      if (e.target === back || e.target.closest('.x')) return close('cancel');
+      const pick = e.target.closest('[data-pick]');
+      if (!pick) return;
+      const to = pick.dataset.pick, from = P()?.mode?.() || 'simple';
+      P()?.setMode?.(to, 'comparison');
+      repaintPanels();
+      document.dispatchEvent(new CustomEvent('ui-mode-changed', { detail: { from, to } }));
+      close();
+    });
+
+    box.querySelector('.x').focus();
   }
 
   function explainMode(to) {

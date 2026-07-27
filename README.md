@@ -130,6 +130,11 @@ sections, three complexity modes, a live market layer and a strategic-feature re
 | [`docs/strategic-feature-visibility-map.md`](docs/strategic-feature-visibility-map.md) | Where each feature is reachable from, and the placement rules |
 | [`docs/phase-3-implementation-summary.md`](docs/phase-3-implementation-summary.md) | The feature-visibility release |
 | [`docs/phase-3-remaining-backlog.md`](docs/phase-3-remaining-backlog.md) | What was deliberately left undone, and why |
+| [`docs/mode-logic-current-state-audit.md`](docs/mode-logic-current-state-audit.md) | What Simple / Standard / Pro actually did before the refactor |
+| [`docs/mode-architecture.md`](docs/mode-architecture.md) | One policy, three presets, and the visibility vocabulary |
+| [`docs/mode-page-behaviour-matrix.md`](docs/mode-page-behaviour-matrix.md) | Per-page behaviour in all three modes, before and after |
+| [`docs/mode-migration.md`](docs/mode-migration.md) | How stored preferences are repaired, and what is never overridden |
+| [`docs/mode-refactor-summary.md`](docs/mode-refactor-summary.md) | The mode release |
 
 Two front doors for a reviewer: **`/new`** (what is new here, and what is only an idea) and
 **`/showcase`** (every idea, its status, the user problem, the metric and the route).

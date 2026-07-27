@@ -166,43 +166,45 @@ window.Portal = (function () {
   const K_DENSITY  = 'chart_density';
   const K_FEATURES = 'features_used';
 
+  /* The mode model itself lives in modes.js — one policy, three presets.
+     Portal keeps the verbs (mode / setMode / allows) because every page
+     already calls them, but it no longer owns a second copy of the rules. */
+  const M = () => window.Modes;
   const MODES = ['simple', 'standard', 'pro'];
   const ORDER = { simple: 0, standard: 1, pro: 2 };
 
-  /* One word for one thing. The first level used to be called "beginner" in
-     the Academy and the chart; it is "simple" everywhere now, and the old value
-     still reads correctly so nobody who switched modes before this release is
-     stranded on a string none of the comparisons match. ui_mode is stored as a
-     PLAIN string because three other scripts read it directly. */
-  const canonical = v => {
-    if (typeof v !== 'string') return null;
-    const s = v.replace(/^"|"$/g, '');
-    if (s === 'beginner') return 'simple';
-    return MODES.includes(s) ? s : null;
-  };
+  const canonical = v => (M() ? M().migrate(v) : null);
 
   function mode() {
-    let v;
-    try { v = localStorage.getItem(K_MODE); } catch { v = null; }
-    return canonical(v) || 'simple';
+    if (M()) return M().current();
+    let v; try { v = localStorage.getItem(K_MODE); } catch { v = null; }
+    v = typeof v === 'string' ? v.replace(/^"|"$/g, '') : null;
+    return MODES.includes(v) ? v : 'simple';
   }
 
   function setMode(input, source) {
     const next = canonical(input);
     if (!next) return mode();
     const from = mode();
-    try { localStorage.setItem(K_MODE, next); } catch {}
+    if (M()) M().savePrefs({ mode: next, source: source || 'manual', selectedAt: new Date().toISOString() });
+    else { try { localStorage.setItem(K_MODE, next); } catch {} }
     applyBodyMode();
     if (from !== next) {
-      const props = { from, to: next, mode: next, source: source || 'pill' };
+      const props = { from, to: next, mode: next, source: source || 'pill',
+                      route: location.pathname, policy: M()?.policy(next).density };
       track('mode_switch', props);
+      track('mode_changed', props);
       // Mirrored so the Academy funnel sees the same switch it always has.
       if (window.Academy?.track) window.Academy.track('mode_switch', props);
     }
     return next;
   }
 
-  const allows = (m, min) => ORDER[m] >= ORDER[min || 'beginner'];
+  const allows = (m, min) => (ORDER[m] ?? 0) >= (ORDER[min] ?? 0);
+
+  /* The policy for the current mode, so a page asks "how dense, how many
+     primary actions, how much explanation" instead of testing for a string. */
+  const policy = m => (M() ? M().policy(m || mode()) : { id: mode(), maxPrimaryActions: 3, density: 'comfortable' });
 
   function density() {
     let v;
@@ -297,7 +299,15 @@ window.Portal = (function () {
      in portal.css hang off it, so a page without its own mode script still
      changes when the visitor switches. */
   function applyBodyMode() {
-    if (document.body) document.body.dataset.uiMode = mode();
+    if (!document.body) return;
+    const m = mode();
+    document.body.dataset.uiMode = m;
+    /* Density and explanation depth are the preset's own properties, so they
+       belong on <body> too — a page then styles by policy instead of writing
+       its own "if simple" rule in CSS. */
+    const p = policy(m);
+    document.body.dataset.density = p.density;
+    document.body.dataset.explain = p.explanationDepth;
   }
 
   function init() {
@@ -313,7 +323,7 @@ window.Portal = (function () {
   return {
     variant, track, events, meaningful, observe,
     watchlist, toggleSymbol, saveWatchlist, registerClick,
-    mode, setMode, allows, MODES, ORDER,
+    mode, setMode, allows, policy, applyBodyMode, MODES, ORDER,
     density, setDensity, featureFirstUse,
     journey, journeyMeta, pushJourney, suggestNext, lastKind, RULES,
     BOUNCE_MS
