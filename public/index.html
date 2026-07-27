@@ -7,6 +7,7 @@
 <title>Platform — what do you want to do today?</title>
 <link rel="stylesheet" href="/tv-theme.css">
 <link rel="stylesheet" href="/portal.css">
+<link rel="stylesheet" href="/backgrounds.css">
 <script src="/home.js"></script>
 <script src="/copilot.js" defer></script>
 </head>
@@ -34,19 +35,21 @@
   </div>
 </nav>
 
+<!-- A question instead of a slogan: the first screen has to answer
+     "what do I do here?", not sell a subscription. The copy sits on the dark
+     left of the image; the candle glow stays on the right, and the task cards
+     below go back to solid black. -->
+<section class="bg-section bg-home">
+  <div class="bg-inner" style="max-width:1180px;margin:0 auto;padding:72px 24px 78px">
+    <span class="tag tag-ai" style="white-space:nowrap">BEGINNER MODE · ON</span>
+    <h1 class="tv-h1" style="font-size:44px;max-width:560px;line-height:1.1;margin-top:14px">What do you want to do today?</h1>
+    <p class="tv-lead" style="margin-top:14px;max-width:520px;color:#C9CEDA">Pick a task — we set up the data, the chart and the next step. No account needed to start.</p>
+  </div>
+</section>
+
 <main class="tv-page" style="max-width:1180px">
 
-  <!-- A question instead of a slogan: the first screen has to answer
-       "what do I do here?", not sell a subscription. -->
-  <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin-top:16px;flex-wrap:wrap">
-    <div>
-      <h1 class="tv-h1" style="font-size:42px">What do you want to do today?</h1>
-      <p class="tv-lead" style="margin-top:12px">Pick a task — we set up the data, the chart and the next step. No account needed to start.</p>
-    </div>
-    <span class="tag tag-ai" style="white-space:nowrap">BEGINNER MODE · ON</span>
-  </div>
-
-  <div class="routes">
+  <div class="routes" style="margin-top:8px">
     <a class="route" href="#brief" data-route="understand_market"><div class="ic">01</div><h3>Understand today's market</h3><p>3 movers, 1 macro event, and why they moved.</p><div class="go">Open the brief ↓</div></a>
     <a class="route" href="/symbol.html?symbol=BTCUSD" data-route="research_asset"><div class="ic">02</div><h3>Research one asset</h3><p>Price → drivers → peers → next event, in one flow.</p><div class="go">Start with BTC →</div></a>
     <a class="route" href="#ideas" data-route="find_idea"><div class="ic">03</div><h3>Find an idea</h3><p>Curated by editors, with the author's track record.</p><div class="go">Editors' picks ↓</div></a>
@@ -54,7 +57,9 @@
     <a class="route" href="/academy.html" data-route="learn"><div class="ic">05</div><h3>Learn without risk</h3><p>Guided lessons on live data + Paper Trading.</p><div class="go">Open Academy →</div></a>
     <a class="route" href="#events" data-route="prepare_event"><div class="ic">06</div><h3>Prepare for an event</h3><p>FOMC in 18h — what it historically touches.</p><div class="go">See events ↓</div></a>
     <a class="route" href="#brokers" data-route="start_trading"><div class="ic">07</div><h3>Start trading</h3><p>Connect a verified broker and trade from the chart.</p><div class="go">Choose a broker ↓</div></a>
-    <a class="route pro" href="/charts.html" data-route="skip_portal"><div class="ic">PRO?</div><h3>Skip the portal</h3><p>The full professional workspace is one click away — and clearly separated from browsing.</p><div class="go">Open Supercharts ↗</div></a>
+    <!-- The only tile in the grid that carries imagery — the one that promises
+         the professional workspace. -->
+    <a class="route bg-card bg-dashboard" href="/charts.html" data-route="skip_portal"><div class="ic" style="color:#9db4ff">PRO?</div><h3>Skip the portal</h3><p>The full professional workspace is one click away — and clearly separated from browsing.</p><div class="go" style="color:#9db4ff">Open Supercharts ↗</div></a>
   </div>
 
   <!-- ONE market brief instead of a quote section per asset class. -->
@@ -68,28 +73,34 @@
       <div class="brief-row"><b style="color:var(--tv-white)">BTCUSD</b><span class="mono" style="font-size:13.5px">118 420.5</span><span class="mono pos" style="font-size:13px">+2.84%</span><span style="font-size:13px;color:var(--tv-muted)">ETF inflows 4th day + softer US CPI</span></div>
       <div class="brief-row"><b style="color:var(--tv-white)">TSLA</b><span class="mono" style="font-size:13.5px">331.62</span><span class="mono neg" style="font-size:13px">−4.10%</span><span style="font-size:13px;color:var(--tv-muted)">Q2 deliveries below consensus</span></div>
       <div class="brief-row"><b style="color:var(--tv-white)">US10Y</b><span class="mono" style="font-size:13.5px">4.118%</span><span class="mono neg" style="font-size:13px">−0.07</span><span style="font-size:13px;color:var(--tv-muted)">CPI 2.6% vs 2.8% expected</span></div>
-      <div id="events" style="padding:13px 18px;border-top:1px solid var(--tv-ink-3);background:var(--tv-blue-dim);display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-        <span class="mono" style="font-size:10.5px;color:var(--tv-orange)">NEXT EVENT</span>
-        <span style="font-size:13.5px"><b style="color:var(--tv-white)">FOMC in 18h 22m</b> · affects BTC, US10Y, XAUUSD</span>
-        <span style="flex:1"></span>
-        <button class="btn btn-quiet" id="followEvent" style="padding:6px 14px;font-size:12.5px">Follow this event</button>
-      </div>
+      <!-- The events header. Imagery stops here: the quote rows above it stay on
+           a solid surface, because nothing decorative belongs behind data. -->
+      <section id="events" class="bg-section bg-arena" style="border-top:1px solid var(--tv-ink-3)">
+        <div class="bg-inner" style="padding:20px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <span class="mono" style="font-size:10.5px;color:#ffb74d">NEXT EVENT</span>
+          <span style="font-size:13.5px;color:#C9CEDA"><b style="color:#fff">FOMC in 18h 22m</b> · affects BTC, US10Y, XAUUSD</span>
+          <span style="flex:1"></span>
+          <button class="btn btn-quiet" id="followEvent" style="padding:6px 14px;font-size:12.5px">Follow this event</button>
+        </div>
+      </section>
     </div>
 
     <div style="display:flex;flex-direction:column;gap:14px">
       <!-- Conversion is value-first: it appears after the visitor has looked at
            symbols, and it never routes to pricing. -->
-      <div class="tv-card accent">
-        <div style="font-size:14px;color:var(--tv-muted);line-height:1.5" id="valueLine">
-          You looked at <b style="color:var(--tv-white)">BTC</b> and <b style="color:var(--tv-white)">TSLA</b>.
-          Save them and get the next event by email — free.
+      <section class="bg-section bg-wave" style="border-radius:12px">
+        <div class="bg-inner" style="padding:20px">
+          <div style="font-size:14px;color:#C9CEDA;line-height:1.5" id="valueLine">
+            You looked at <b style="color:#fff">BTC</b> and <b style="color:#fff">TSLA</b>.
+            Save them and get the next event by email — free.
+          </div>
+          <div class="row mt-16" style="flex-wrap:wrap;gap:10px">
+            <button class="btn btn-primary" id="saveCta">Save my watchlist</button>
+            <button class="btn btn-secondary" id="guestCta" style="border-color:rgba(255,255,255,.4);color:#fff">Continue as guest</button>
+          </div>
+          <div class="mono" style="font-size:10.5px;color:#98a0b0;margin-top:11px">pricing appears when you hit a limit — not before</div>
         </div>
-        <div class="row mt-16" style="flex-wrap:wrap;gap:10px">
-          <button class="btn btn-primary" id="saveCta">Save my watchlist</button>
-          <button class="btn btn-secondary" id="guestCta">Continue as guest</button>
-        </div>
-        <div class="mono" style="font-size:10.5px;color:var(--tv-faint);margin-top:11px">pricing appears when you hit a limit — not before</div>
-      </div>
+      </section>
 
       <div class="tv-card">
         <div style="font-size:14px;font-weight:700;color:var(--tv-white)">Your research journey</div>

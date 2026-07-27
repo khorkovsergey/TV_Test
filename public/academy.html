@@ -7,6 +7,7 @@
 <title>Academy — learn on the live market</title>
 <link rel="stylesheet" href="/tv-theme.css">
 <link rel="stylesheet" href="/portal.css">
+<link rel="stylesheet" href="/backgrounds.css">
 <script src="/academy.js"></script>
 <script src="/home.js"></script>
 <script src="/copilot.js" defer></script>
@@ -37,10 +38,14 @@
 </nav>
 
 <main class="tv-page">
-  <div class="tv-eyebrow">Academy · <span id="modeLabel">Beginner mode</span></div>
-  <h1 class="tv-h1" style="margin-top:8px;">Learn on the live market</h1>
-  <p class="tv-lead">Six short steps on real data and real platform tools: from “what is trading” to
-    your first risk-free trade. Advanced features unlock as you progress.</p>
+  <section class="bg-section bg-wave" style="border-radius:12px;">
+    <div class="bg-inner" style="padding:28px;">
+      <div class="tv-eyebrow" style="color:#9db4ff;">Academy · <span id="modeLabel">Beginner mode</span></div>
+      <h1 class="tv-h1" style="margin-top:8px;">Learn on the live market</h1>
+      <p class="tv-lead" style="color:#C9CEDA;">Six short steps on real data and real platform tools:
+        from “what is trading” to your first risk-free trade. Advanced features unlock as you progress.</p>
+    </div>
+  </section>
 
   <!-- Track progress -->
   <div class="tv-card mt-24" style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;">
@@ -72,24 +77,28 @@
   </div>
 
   <!-- Value-first CTA: only appears once there is something worth saving -->
-  <div class="tv-card accent mt-24" id="saveCta" hidden
-       style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
-    <div style="font-size:13.5px;color:var(--tv-text);flex:1;min-width:260px;">
-      You have completed <b id="ctaCount" style="color:var(--tv-white);">0</b> lessons. Create an
-      account so your progress is not lost — <b style="color:var(--tv-white);">after</b> the value,
-      not before it.
+  <section class="bg-section bg-wave mt-24" id="saveCta" hidden style="border-radius:12px;">
+    <div class="bg-inner" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:22px 24px;">
+      <div style="font-size:13.5px;color:#C9CEDA;flex:1;min-width:260px;">
+        You have completed <b id="ctaCount" style="color:#fff;">0</b> lessons. Create an
+        account so your progress is not lost — <b style="color:#fff;">after</b> the value,
+        not before it.
+      </div>
+      <button class="btn btn-primary" id="saveBtn" style="white-space:nowrap;">Save my progress</button>
     </div>
-    <button class="btn btn-primary" id="saveBtn" style="white-space:nowrap;">Save my progress</button>
-  </div>
+  </section>
 
   <!-- Hand-off to Experts once the track is done -->
-  <div class="tv-card accent mt-24" id="expertsCta" hidden>
-    <span class="tag tag-fact">TRACK COMPLETE</span>
-    <p class="title mt-16" style="margin-bottom:6px;">You now have the vocabulary for a real conversation</p>
-    <p style="font-size:13.5px;color:var(--tv-muted);margin:0;">A licensed consultant can take it from
-      here — matched to your country, capital and question.</p>
-    <a class="btn btn-primary mt-16" href="/experts.html?from=academy">Talk to a consultant</a>
-  </div>
+  <!-- Completion state: the one moment on this page that has earned a celebration. -->
+  <section class="bg-section bg-arena mt-24" id="expertsCta" hidden style="border-radius:12px;">
+    <div class="bg-inner" style="text-align:center;padding:44px 24px 48px;">
+      <span class="tag tag-fact">TRACK COMPLETE</span>
+      <p class="title mt-16" style="margin-bottom:6px;font-size:24px;">You now have the vocabulary for a real conversation</p>
+      <p style="font-size:13.5px;color:#C9CEDA;margin:0;">A licensed consultant can take it from
+        here — matched to your country, capital and question.</p>
+      <a class="btn btn-primary mt-16" href="/experts.html?from=academy">Talk to a consultant</a>
+    </div>
+  </section>
 
   <div class="row mt-24" style="gap:10px;flex-wrap:wrap;">
     <button class="btn btn-quiet" id="resetBtn">Reset my progress</button>

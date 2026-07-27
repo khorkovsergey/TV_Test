@@ -1,0 +1,55 @@
+/* Background imagery layer — decorative only, always behind an overlay.
+   Rules: text sits on the darkest area of each image; cards stay opaque;
+   never behind data tables or live charts.
+
+   Each image ships twice: WebP for browsers that take image-set(), the PNG as
+   the plain-url fallback declaration above it. The WebPs are ~6% of the PNG
+   weight, which is what makes several images on one page affordable at all. */
+
+.bg-section{position:relative;background-color:#000;background-size:cover;overflow:hidden}
+.bg-section > .bg-inner{position:relative;z-index:2}
+.bg-section::before{content:"";position:absolute;inset:0;z-index:1;
+  background:linear-gradient(180deg,rgba(0,0,0,.55) 0%,rgba(0,0,0,.35) 45%,rgba(0,0,0,.82) 100%)}
+
+/* 1 · Home hero — earth horizon, candles on the right, dark centre-left for copy */
+.bg-home{background-image:url("assets/bg-home-hero.png");background-position:center 40%}
+.bg-home{background-image:image-set(url("assets/bg-home-hero.webp") type("image/webp"),
+                                    url("assets/bg-home-hero.png")  type("image/png"))}
+.bg-home::before{background:linear-gradient(90deg,rgba(0,0,0,.72) 0%,rgba(0,0,0,.45) 45%,rgba(0,0,0,.25) 100%),
+  linear-gradient(180deg,rgba(0,0,0,.2) 60%,rgba(0,0,0,.9) 100%)}
+
+/* 2 · Floating dashboards — Supercharts promo / "Skip the portal" card */
+.bg-dashboard{background-image:url("assets/bg-dashboard.png");background-position:center}
+.bg-dashboard{background-image:image-set(url("assets/bg-dashboard.webp") type("image/webp"),
+                                         url("assets/bg-dashboard.png")  type("image/png"))}
+.bg-dashboard::before{background:linear-gradient(90deg,rgba(0,0,0,.7) 0%,rgba(0,0,0,.35) 60%,rgba(0,0,0,.3) 100%)}
+
+/* 3 · Soft wave — quiet banner backdrop (Academy hero, value-first CTA) */
+.bg-wave{background-image:url("assets/bg-wave.png");background-position:center 30%}
+.bg-wave{background-image:image-set(url("assets/bg-wave.webp") type("image/webp"),
+                                    url("assets/bg-wave.png")  type("image/png"))}
+.bg-wave::before{background:linear-gradient(90deg,rgba(0,0,0,.35) 0%,rgba(0,0,0,.55) 100%)}
+
+/* 4 · Arena / horizon — Events header, completion states */
+.bg-arena{background-image:url("assets/bg-arena.png");background-position:center 62%}
+.bg-arena{background-image:image-set(url("assets/bg-arena.webp") type("image/webp"),
+                                     url("assets/bg-arena.png")  type("image/png"))}
+.bg-arena::before{background:radial-gradient(ellipse at 50% 45%, rgba(0,0,0,.15) 0%, rgba(0,0,0,.7) 78%)}
+
+/* Card-scale variant (e.g. one promo card in a grid) */
+.bg-card{position:relative;border:1px solid var(--tv-ink-3);border-radius:var(--tv-r);
+  background-size:cover;background-position:center;overflow:hidden;color:#fff}
+.bg-card::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.25),rgba(0,0,0,.78))}
+.bg-card > *{position:relative;z-index:1}
+
+/* The card variant is also used on a .route tile, whose own background
+   shorthand would otherwise wipe the image out. */
+.route.bg-card{background-color:transparent}
+.route.bg-card:hover{border-color:var(--tv-blue-line)}
+.route.bg-card p{color:#C9CEDA}
+
+/* Accessibility: honour reduced data / keep text readable if the image fails */
+.bg-section, .bg-card{color:#fff}
+@media (prefers-reduced-data: reduce){
+  .bg-section,.bg-card{background-image:none !important;background-color:#000}
+}
