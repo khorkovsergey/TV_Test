@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="/tv-theme.css">
 <link rel="stylesheet" href="/portal.css">
 <script src="/home.js"></script>
+<script src="/quotes.js"></script>
 <script src="/copilot.js" defer></script>
 </head>
 <body>
@@ -26,7 +27,7 @@
   <div class="search"><svg class="g" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="M11 11l4 4"/></svg>Search or ask: &ldquo;why is BTC up?&rdquo;</div>
   <div class="menu">
     <a href="/">Home</a>
-    <a href="/#markets">Markets</a>
+    <a href="/markets.html">Markets</a>
     <a href="/#ideas">Ideas</a>
     <a href="/academy.html">Academy</a>
     <a href="/experts.html">Experts</a>
@@ -84,40 +85,24 @@
   </div>
 
   <div class="work-area">
-    <!-- Sample series: this shell is not wired to a quote feed. -->
-    <svg class="px" viewBox="0 0 820 460" role="img" aria-label="Sample price chart">
+    <!-- The series is real: the last 20 daily closes of whichever instrument
+         the workspace was opened on, fetched server-side. -->
+    <svg class="px" viewBox="0 0 820 460" role="img" aria-label="Price chart" id="px">
+      <defs><linearGradient id="fill" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%" stop-color="#089981" stop-opacity="0.22" id="fillTop"/>
+        <stop offset="100%" stop-color="#089981" stop-opacity="0" id="fillBottom"/></linearGradient></defs>
       <line x1="0" y1="76" x2="820" y2="76" stroke="#1F2430"/><line x1="0" y1="152" x2="820" y2="152" stroke="#1F2430"/><line x1="0" y1="228" x2="820" y2="228" stroke="#1F2430"/><line x1="0" y1="304" x2="820" y2="304" stroke="#1F2430"/><line x1="0" y1="380" x2="820" y2="380" stroke="#1F2430"/>
-      <g stroke="#089981" fill="#089981"><line x1="30" y1="332.6" x2="30" y2="357.9" stroke-width="1.4"/><rect x="25" y="347.7" width="10" height="3"/></g>
-      <g stroke="#089981" fill="#089981"><line x1="64" y1="321.9" x2="64" y2="361.5" stroke-width="1.4"/><rect x="59" y="337.2" width="10" height="10.4"/></g>
-      <g stroke="#F23645" fill="#F23645"><line x1="98" y1="324.4" x2="98" y2="361.3" stroke-width="1.4"/><rect x="93" y="337.2" width="10" height="9.4"/></g>
-      <g stroke="#089981" fill="#089981"><line x1="132" y1="321.7" x2="132" y2="362.2" stroke-width="1.4"/><rect x="127" y="334.4" width="10" height="12.3"/></g>
-      <g stroke="#089981" fill="#089981"><line x1="166" y1="313.1" x2="166" y2="343.6" stroke-width="1.4"/><rect x="161" y="320.9" width="10" height="13.4"/></g>
-      <g stroke="#089981" fill="#089981"><line x1="200" y1="286.2" x2="200" y2="334.0" stroke-width="1.4"/><rect x="195" y="301.4" width="10" height="19.5"/></g>
-      <g stroke="#089981" fill="#089981"><line x1="234" y1="273.1" x2="234" y2="309.2" stroke-width="1.4"/><rect x="229" y="289.1" width="10" height="12.3"/></g>
-      <g stroke="#089981" fill="#089981"><line x1="268" y1="256.7" x2="268" y2="299.6" stroke-width="1.4"/><rect x="263" y="271.8" width="10" height="17.3"/></g>
-      <g stroke="#089981" fill="#089981"><line x1="302" y1="250.0" x2="302" y2="285.9" stroke-width="1.4"/><rect x="297" y="255.4" width="10" height="16.4"/></g>
-      <g stroke="#F23645" fill="#F23645"><line x1="336" y1="251.3" x2="336" y2="276.1" stroke-width="1.4"/><rect x="331" y="255.4" width="10" height="8.9"/></g>
-      <g stroke="#089981" fill="#089981"><line x1="370" y1="249.1" x2="370" y2="272.7" stroke-width="1.4"/><rect x="365" y="253.1" width="10" height="11.2"/></g>
-      <g stroke="#089981" fill="#089981"><line x1="404" y1="228.6" x2="404" y2="262.1" stroke-width="1.4"/><rect x="399" y="238.9" width="10" height="14.2"/></g>
-      <g stroke="#F23645" fill="#F23645"><line x1="438" y1="223.0" x2="438" y2="263.6" stroke-width="1.4"/><rect x="433" y="238.9" width="10" height="18.1"/></g>
-      <g stroke="#F23645" fill="#F23645"><line x1="472" y1="243.2" x2="472" y2="279.2" stroke-width="1.4"/><rect x="467" y="257.0" width="10" height="16.1"/></g>
-      <g stroke="#089981" fill="#089981"><line x1="506" y1="262.2" x2="506" y2="285.7" stroke-width="1.4"/><rect x="501" y="271.2" width="10" height="3"/></g>
-      <g stroke="#089981" fill="#089981"><line x1="540" y1="247.1" x2="540" y2="278.3" stroke-width="1.4"/><rect x="535" y="253.6" width="10" height="17.6"/></g>
-      <g stroke="#089981" fill="#089981"><line x1="574" y1="229.8" x2="574" y2="260.2" stroke-width="1.4"/><rect x="569" y="241.0" width="10" height="12.6"/></g>
-      <g stroke="#089981" fill="#089981"><line x1="608" y1="224.1" x2="608" y2="245.1" stroke-width="1.4"/><rect x="603" y="228.5" width="10" height="12.5"/></g>
-      <g stroke="#F23645" fill="#F23645"><line x1="642" y1="213.7" x2="642" y2="233.7" stroke-width="1.4"/><rect x="637" y="228.5" width="10" height="3"/></g>
-      <g stroke="#F23645" fill="#F23645"><line x1="676" y1="217.8" x2="676" y2="244.0" stroke-width="1.4"/><rect x="671" y="229.3" width="10" height="3"/></g>
-      <g stroke="#F23645" fill="#F23645"><line x1="710" y1="219.6" x2="710" y2="250.2" stroke-width="1.4"/><rect x="705" y="231.1" width="10" height="8.9"/></g>
-      <g stroke="#089981" fill="#089981"><line x1="744" y1="228.5" x2="744" y2="253.5" stroke-width="1.4"/><rect x="739" y="236.3" width="10" height="3.7"/></g>
-      <g stroke="#089981" fill="#089981"><line x1="778" y1="213.2" x2="778" y2="252.1" stroke-width="1.4"/><rect x="773" y="218.7" width="10" height="17.6"/></g>
+      <g id="priceLayer"></g>
+      <text x="12" y="26" fill="#787B86" font-family="Consolas,monospace" font-size="12" id="pxLabel">loading…</text>
 
       <!-- Pro adds a second pane. SVG ignores the hidden attribute, so these
            groups are driven by style.display and opacity, not by [hidden]. -->
       <g id="proOverlay" style="opacity:0">
-        <polyline points="30,347.7 64,342.5 98,343.9 132,341.5 166,337.4 200,328.1 234,318.5 268,303.5 302,287.7 336,276.4 370,266.7 404,256.7 438,253.7 472,257.3 506,258.6 540,258.7 574,259.2 608,253.5 642,244.7 676,236.7 710,234.0 744,233.1 778,231.1" fill="none" stroke="#2962FF" stroke-width="1.4" opacity="0.85"/>
+        <polyline id="smaLine" points="" fill="none" stroke="#2962FF" stroke-width="1.4" opacity="0.85"/>
         <rect x="0" y="392" width="820" height="60" fill="#161A23"/>
-        <polyline points="0,432 140,420 280,436 420,412 560,424 700,404 820,416" fill="none" stroke="#9C27B0" stroke-width="1.5"/>
-        <text x="10" y="408" fill="#787B86" font-family="Consolas,monospace" font-size="11">RSI(14) · 58.2</text>
+        <line x1="0" y1="410" x2="820" y2="410" stroke="#2A2E39" stroke-dasharray="4 4"/>
+        <polyline id="rsiLine" points="" fill="none" stroke="#9C27B0" stroke-width="1.5"/>
+        <text x="10" y="408" fill="#787B86" font-family="Consolas,monospace" font-size="11" id="rsiLabel">RSI(14)</text>
       </g>
       <g id="chartNews" style="opacity:0">
         <rect x="358" y="0" width="140" height="392" fill="#2962FF" opacity="0.07"/>
@@ -181,13 +166,67 @@ $('symLink').href = '/symbol.html?symbol=' + encodeURIComponent(symbol);
 $('rangeLabel').textContent = range + ' · Candles' + (compare.length ? ' · vs ' + compare.join(', ') : '');
 try { localStorage.setItem('active_symbol', symbol); } catch {}
 
-/* The watchlist panel shows the visitor's own list when there is one. */
-const watch = P.watchlist();
-const SAMPLE = [['BTCUSD', '118,420 +2.84%', 'pos'], ['ETHUSD', '3,842 +1.92%', 'pos'],
-                ['SPX', '5,612 +0.42%', 'pos'], ['EURUSD', '1.0842 −0.18%', 'neg']];
-$('watchRows').innerHTML = (watch.length ? watch.map(s => [s, 'saved', '']) : SAMPLE)
-  .map(([s, v, cls]) => `<div class="wl-row"><span style="color:var(--tv-text)">${s}</span><span class="${cls}">${v}</span></div>`)
-  .join('');
+/* ----------------------------------------------------- live series & panel */
+
+const Q = window.Quotes;
+
+/* The workspace draws the instrument it was opened on. Sample candles were
+   fine while this page was a boundary stub; now that it is the chart, drawing
+   invented prices under a real symbol name would be the wrong kind of demo. */
+async function drawSymbol() {
+  try {
+    const d = await Q.symbol(symbol);
+    if (!d.ok) throw new Error(d.error || 'no data for this instrument');
+
+    const s = d.series || [];
+    if (s.length < 2) throw new Error('not enough history');
+
+    const W = 820, TOP = 20, BOT = 380;
+    const lo = Math.min(...s), hi = Math.max(...s), span = (hi - lo) || 1;
+    const x = i => (i / (s.length - 1)) * W;
+    const y = v => BOT - ((v - lo) / span) * (BOT - TOP);
+    const up = s.at(-1) >= s[0];
+    const colour = up ? '#089981' : '#F23645';
+
+    const line = s.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+    $('priceLayer').innerHTML =
+      `<polygon points="${line} ${W},${BOT} 0,${BOT}" fill="url(#fill)"/>
+       <polyline points="${line}" fill="none" stroke="${colour}" stroke-width="2.2"/>`;
+    $('fillTop').setAttribute('stop-color', colour);
+    $('fillBottom').setAttribute('stop-color', colour);
+
+    $('pxLabel').textContent =
+      `${d.symbol} · ${d.name} · ${Q.price(d.price, d)} ${Q.pct(d.changePct)} · ${d.source}`;
+    $('pxLabel').setAttribute('fill', up ? '#089981' : '#F23645');
+
+    /* Pro pane: a 5-period average over the same closes and the RSI the symbol
+       page shows — the same numbers, computed once on the server. */
+    const sma = s.map((_, i) => i < 4 ? null : (s.slice(i - 4, i + 1).reduce((a, b) => a + b, 0) / 5));
+    $('smaLine').setAttribute('points',
+      sma.map((v, i) => v == null ? null : `${x(i).toFixed(1)},${y(v).toFixed(1)}`).filter(Boolean).join(' '));
+
+    const r = d.technicals?.rsi14;
+    if (Number.isFinite(r)) {
+      const ry = 452 - (r / 100) * 60;
+      $('rsiLine').setAttribute('points', `0,${ry.toFixed(1)} 820,${ry.toFixed(1)}`);
+      $('rsiLabel').textContent = `RSI(14) · ${r.toFixed(1)} — ${d.technicals.rsi_zone || ''}`;
+    }
+
+    /* The side panel shows real quotes for the visitor's own list. */
+    const snap = await Q.snapshot();
+    const bySym = new Map(snap.items.map(i => [i.symbol, i]));
+    const want = (P.watchlist() || []).filter(x => bySym.has(x));
+    const rows = (want.length ? want : ['SPX', 'BTCUSD', 'ETHUSD', 'EURUSD']).map(x => bySym.get(x)).filter(Boolean);
+    $('watchRows').innerHTML = rows.map(i =>
+      `<div class="wl-row"><a href="/symbol.html?symbol=${encodeURIComponent(i.symbol)}" style="color:var(--tv-text)">${Q.esc(i.symbol)}</a>
+       <span class="${Q.cls(i.changePct)}">${Q.price(i.price, i)} ${Q.pct(i.changePct)}</span></div>`).join('') +
+      (want.length ? '' : '<div class="mono" style="font-size:10px;color:var(--tv-ghost);margin-top:6px">your list is empty — showing four benchmarks</div>');
+  } catch (err) {
+    $('pxLabel').textContent = `${symbol} · live quotes unavailable (${err.message}) — nothing drawn rather than invented`;
+    $('pxLabel').setAttribute('fill', '#FF9800');
+    $('watchRows').innerHTML = '<div class="mono" style="font-size:11px;color:var(--tv-orange)">quotes unavailable</div>';
+  }
+}
 
 /* -------------------------------------------------- progressive complexity */
 
@@ -313,6 +352,7 @@ $('density').value = P.density();
 renderNextStep();
 
 P.track('chart_workspace_opened', { symbol, range, compare_count: compare.length, mode: P.mode() });
+drawSymbol();
 </script>
 </body>
 </html>

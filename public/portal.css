@@ -121,6 +121,61 @@
 #proOverlay,#chartNews{transition:opacity .25s ease}
 .side,.tb-item,.density{transition:opacity .2s ease}
 
+/* ---------- Котировочные таблицы, движения дня, тепловая карта ---------- */
+.q-table{width:100%;border-collapse:collapse;font-size:13.5px}
+.q-table th{font-family:var(--tv-mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--tv-faint);text-align:left;font-weight:400;padding:10px 12px;border-bottom:1px solid var(--tv-ink-3);white-space:nowrap;cursor:pointer;user-select:none}
+.q-table th:hover{color:var(--tv-text)}
+.q-table th.num{text-align:right}
+.q-table th .dir{color:var(--tv-blue)}
+.q-table td{padding:11px 12px;border-bottom:1px solid var(--tv-line);color:var(--tv-text);white-space:nowrap}
+.q-table tr:last-child td{border-bottom:none}
+.q-table tbody tr:hover{background:var(--tv-ink)}
+.q-table td.num{font-family:var(--tv-mono);text-align:right;font-variant-numeric:tabular-nums}
+.q-table .sym{font-weight:700;color:var(--tv-white)}
+.q-table .nm{color:var(--tv-faint);font-size:12.5px;max-width:210px;overflow:hidden;text-overflow:ellipsis}
+.q-wrap{overflow-x:auto}
+.spark{width:64px;height:20px;display:block}
+.rangebar{display:inline-block;position:relative;width:74px;height:4px;border-radius:2px;background:var(--tv-ink-2);vertical-align:middle}
+.rangebar i{position:absolute;top:-3px;width:2px;height:10px;border-radius:1px;background:var(--tv-blue)}
+.src{font-size:11px;color:var(--tv-faint)}
+
+.class-tabs{display:flex;gap:3px;background:var(--tv-ink);border:1px solid var(--tv-ink-3);border-radius:var(--tv-r-pill);padding:3px;flex-wrap:wrap}
+.class-tabs button{font-family:var(--tv-font);font-size:12.5px;font-weight:700;padding:7px 15px;border-radius:var(--tv-r-pill);color:var(--tv-muted);background:none;border:none;cursor:pointer}
+.class-tabs button.on{background:var(--tv-blue);color:#fff}
+
+.movers{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}
+.mover-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--tv-line);font-size:13px}
+.mover-row:last-child{border-bottom:none}
+.mover-row .s{font-weight:700;color:var(--tv-white);width:74px;flex:0 0 74px}
+.mover-row .p{font-family:var(--tv-mono);font-size:12.5px;color:var(--tv-muted);flex:1;text-align:right}
+.mover-row .c{font-family:var(--tv-mono);font-size:12.5px;width:66px;text-align:right}
+
+.heat{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:6px;margin-top:12px}
+.heat a{border-radius:8px;padding:11px 10px;display:block;color:#fff;border:1px solid rgba(255,255,255,.06)}
+.heat .s{font-size:12.5px;font-weight:700}
+.heat .c{font-family:var(--tv-mono);font-size:11.5px;opacity:.92;margin-top:4px}
+
+/* ---------- Скринер ---------- */
+.filters{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;align-items:end}
+.filters .f{display:flex;flex-direction:column;gap:6px}
+.filters label{font-family:var(--tv-mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--tv-faint)}
+.filters input[type=number],.filters select{padding:9px 12px;font-size:13.5px}
+.presets{display:flex;gap:8px;flex-wrap:wrap}
+.preset{background:var(--tv-ink-2);border:1px solid var(--tv-ink-3);border-radius:var(--tv-r-pill);padding:7px 14px;font-size:12.5px;font-weight:700;color:var(--tv-text);cursor:pointer;font-family:var(--tv-font)}
+.preset:hover,.preset.on{border-color:var(--tv-blue-line);color:#5B8DFF}
+
+/* ---------- Ключевые цифры инструмента ---------- */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--tv-ink-3);border:1px solid var(--tv-ink-3);border-radius:var(--tv-r);overflow:hidden}
+.stats .st{background:var(--tv-ink);padding:14px 16px}
+.stats .st .k{font-family:var(--tv-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--tv-faint)}
+.stats .st .v{font-family:var(--tv-mono);font-size:16px;color:var(--tv-white);margin-top:7px;font-variant-numeric:tabular-nums}
+
+@media (max-width:960px){
+  .movers{grid-template-columns:1fr}
+  .filters{grid-template-columns:repeat(2,1fr)}
+  .stats{grid-template-columns:repeat(2,1fr)}
+}
+
 /* ---------- Contextual research journey ---------- */
 .next-step{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--tv-ink-2);border:1px solid var(--tv-ink-3);border-radius:8px;padding:10px 12px;font-size:12.5px;color:var(--tv-text);cursor:pointer;text-align:left;width:100%;font-family:var(--tv-font)}
 .next-step:hover{border-color:var(--tv-blue-line)}

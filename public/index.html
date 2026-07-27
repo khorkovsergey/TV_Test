@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="/portal.css">
 <link rel="stylesheet" href="/backgrounds.css">
 <script src="/home.js"></script>
+<script src="/quotes.js"></script>
 <script src="/copilot.js" defer></script>
 </head>
 <body>
@@ -23,7 +24,7 @@
   <div class="search"><svg class="g" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="M11 11l4 4"/></svg>Search or ask: &ldquo;why is BTC up?&rdquo;</div>
   <div class="menu">
     <a href="/" class="active">Home</a>
-    <a href="#markets">Markets</a>
+    <a href="/markets.html">Markets</a>
     <a href="#ideas">Ideas</a>
     <a href="/academy.html">Academy</a>
     <a href="/experts.html">Experts</a>
@@ -64,15 +65,21 @@
 
   <!-- ONE market brief instead of a quote section per asset class. -->
   <div class="grid-2 mt-32" style="grid-template-columns:1.5fr 1fr;align-items:start" id="markets">
+    <!-- Live: the day's largest moves across all six asset classes, fetched
+         server-side. If the source fails the rows say so rather than falling
+         back to numbers that would look exactly as convincing. -->
     <div class="tv-card" style="padding:0;overflow:hidden" id="brief">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid var(--tv-ink-3)">
-        <p class="title" style="margin:0">Today's brief</p>
-        <span class="tag tag-fact">FACT · MARKET DATA · SAMPLE</span>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid var(--tv-ink-3);flex-wrap:wrap;gap:8px">
+        <p class="title" style="margin:0">Today's brief · biggest moves</p>
+        <span id="briefTag" class="tag tag-fact">FACT · MARKET DATA</span>
       </div>
-      <!-- Sample figures: this shell is not wired to a quote feed. -->
-      <div class="brief-row"><b style="color:var(--tv-white)">BTCUSD</b><span class="mono" style="font-size:13.5px">118 420.5</span><span class="mono pos" style="font-size:13px">+2.84%</span><span style="font-size:13px;color:var(--tv-muted)">ETF inflows 4th day + softer US CPI</span></div>
-      <div class="brief-row"><b style="color:var(--tv-white)">TSLA</b><span class="mono" style="font-size:13.5px">331.62</span><span class="mono neg" style="font-size:13px">−4.10%</span><span style="font-size:13px;color:var(--tv-muted)">Q2 deliveries below consensus</span></div>
-      <div class="brief-row"><b style="color:var(--tv-white)">US10Y</b><span class="mono" style="font-size:13.5px">4.118%</span><span class="mono neg" style="font-size:13px">−0.07</span><span style="font-size:13px;color:var(--tv-muted)">CPI 2.6% vs 2.8% expected</span></div>
+      <div id="briefRows">
+        <div class="brief-row" style="grid-template-columns:1fr"><span style="color:var(--tv-faint);font-size:13px">Loading live quotes…</span></div>
+      </div>
+      <div style="padding:11px 18px;border-top:1px solid var(--tv-ink-3);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+        <span class="mono src" id="briefSource"></span>
+        <a href="/markets.html" style="font-size:13px;font-weight:700">All 49 instruments →</a>
+      </div>
     </div>
 
     <div style="display:flex;flex-direction:column;gap:14px">
@@ -199,12 +206,19 @@ $('variantName').textContent = P.variant();
 /* ------------------------------------------------------------- watchlist */
 
 const OFFERED = ['BTCUSD', 'TSLA', 'US10Y', 'ETHUSD', 'XAUUSD'];
+const Q = window.Quotes;
+let quotes = null;   // symbol → live item, once the snapshot lands
 
 function renderChips() {
   const list = P.watchlist();
-  $('chips').innerHTML = OFFERED.map(s =>
-    `<button class="chip ${list.includes(s) ? 'on' : ''}" data-sym="${s}">${s}${list.includes(s) ? ' <span class="x">✓</span>' : ''}</button>`
-  ).join('');
+  $('chips').innerHTML = OFFERED.map(s => {
+    const q = quotes?.get(s);
+    /* The chip carries today's move once it is known: choosing what to follow
+       is easier when the choice is not a bare ticker. */
+    const move = q && Number.isFinite(q.changePct)
+      ? ` <span class="${Q.cls(q.changePct)}">${Q.pct(q.changePct)}</span>` : '';
+    return `<button class="chip ${list.includes(s) ? 'on' : ''}" data-sym="${s}">${s}${move}${list.includes(s) ? ' <span class="x">✓</span>' : ''}</button>`;
+  }).join('');
   $('watchState').textContent = list.length
     ? `${list.length} saved on this device`
     : 'nothing saved yet';
@@ -339,9 +353,46 @@ $('feedTabs').addEventListener('click', e => {
   P.meaningful('ideas_feed_switched', { feed: b.dataset.feed });
 });
 
+/* ------------------------------------------------------- live market data */
+
+/* The brief is the first thing route 01 promises, so it has to be real. Three
+   biggest moves of the day across all classes, with the size of the move as
+   the reason to look — and an explicit gap when a quote is missing. */
+async function loadBrief() {
+  try {
+    const [snap, m] = await Promise.all([Q.snapshot(), Q.movers(3)]);
+    quotes = new Map(snap.items.map(i => [i.symbol, i]));
+    renderChips();
+
+    const rows = m.biggest_moves.slice(0, 3);
+    $('briefRows').innerHTML = rows.map(i => `
+      <div class="brief-row">
+        <a class="sym" style="color:var(--tv-white);font-weight:700" href="/symbol.html?symbol=${encodeURIComponent(i.symbol)}">${Q.esc(i.symbol)}</a>
+        <span class="mono" style="font-size:13.5px">${Q.price(i.price, i)}</span>
+        <span class="mono ${Q.cls(i.changePct)}" style="font-size:13px">${Q.pct(i.changePct)}</span>
+        <span style="font-size:13px;color:var(--tv-muted);overflow:hidden;text-overflow:ellipsis">${Q.esc(i.name)} · largest move in its class today</span>
+      </div>`).join('');
+
+    $('briefSource').textContent = `${snap.source} · updated ${Q.ago(snap.asOf)}` +
+      ((snap.failed || []).length ? ` · ${snap.failed.length} unavailable` : '');
+    if (snap.stale) {
+      $('briefTag').className = 'tag tag-warn';
+      $('briefTag').textContent = 'STALE — last good snapshot';
+    }
+  } catch (err) {
+    $('briefRows').innerHTML =
+      `<div class="brief-row" style="grid-template-columns:1fr"><span style="color:var(--tv-orange);font-size:13px">
+         Live quotes are unavailable right now (${Q.esc(err.message)}). Nothing is shown rather than invented.
+       </span></div>`;
+    $('briefTag').className = 'tag tag-warn';
+    $('briefTag').textContent = 'NO DATA';
+  }
+}
+
 renderChips();
 renderFeed('editors');
 renderTrail();
+loadBrief();
 </script>
 </body>
 </html>

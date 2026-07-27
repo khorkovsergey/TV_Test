@@ -19,6 +19,7 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import { logAiCall } from './db.js';
+import * as market from './market.js';
 
 /* The handoff names claude-sonnet-4-5, which is a legacy model and would put
    the Copilot on a different tier from the rest of the service. Default to the
@@ -86,6 +87,30 @@ Hard limits:
 - Never claim to know the user's portfolio, balance or personal situation.
 `.trim();
 
+/* The live quote for whatever the user is looking at, so the model answers
+   about the actual price instead of a remembered one. Fetched from the same
+   cached snapshot the pages use, so it costs nothing extra, and it is labelled
+   as delayed — an answer built on it must not claim to be real-time. */
+async function quoteLine(symbol) {
+  if (!symbol) return '- Live quote: no symbol in context';
+  try {
+    const q = await market.one(symbol);
+    if (!q) return `- Live quote: ${symbol} is not in this pilot's instrument universe`;
+    if (!q.ok) return `- Live quote for ${symbol}: unavailable (${q.error}) — do not invent one`;
+    const pct = Number.isFinite(q.changePct) ? `${q.changePct >= 0 ? '+' : ''}${q.changePct.toFixed(2)}%` : 'unknown';
+    const parts = [
+      `- Live quote for ${q.symbol} (${q.name}): ${q.price} ${q.currency}, ${pct} today`,
+      `  1 week ${q.perf?.w1?.toFixed(1) ?? '?'}%, 1 month ${q.perf?.m1?.toFixed(1) ?? '?'}%,`,
+      ` 52-week range ${q.wk52Low ?? '?'}–${q.wk52High ?? '?'}.`,
+      ` Source: ${q.source}, snapshot taken ${q.asOf}.`,
+      ' These figures are delayed — say so if you quote them, and never present them as real-time.'
+    ];
+    return parts.join('');
+  } catch {
+    return `- Live quote for ${symbol}: lookup failed — do not invent one`;
+  }
+}
+
 function contextBlock(ctx = {}) {
   // Standard and Pro are both "has seen a chart before"; only beginner needs
   // every term defined. Anything unrecognised falls back to the careful side.
@@ -101,8 +126,9 @@ function contextBlock(ctx = {}) {
     `- Page they are on: ${ctx.page || 'unknown'} (${ctx.url || '/'})`,
     `- Active symbol: ${ctx.symbol || 'none'}`,
     `- Chart range: ${ctx.chartRange || 'none'}`,
-    `- Recent research steps: ${journey}`
-  ].join('\n');
+    `- Recent research steps: ${journey}`,
+    ctx.quote || ''
+  ].filter(Boolean).join('\n');
 }
 
 /* ------------------------------------------------------------------- tools */
@@ -233,9 +259,14 @@ export async function ask({ messages, context }) {
   }));
   if (!history.length) throw Object.assign(new Error('No message to answer'), { code: 'EMPTY' });
 
+  /* The quote is looked up before the call so the model never has to guess a
+     price it could have been told. It goes after the cache breakpoint, since
+     it changes every minute. */
+  const quote = await quoteLine(context?.symbol);
+
   const system = [
     { type: 'text', text: SYSTEM_STABLE, cache_control: { type: 'ephemeral' } },
-    { type: 'text', text: contextBlock(context) }
+    { type: 'text', text: contextBlock({ ...context, quote }) }
   ];
 
   const tools = [

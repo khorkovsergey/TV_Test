@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Screener — filter the market</title>
+<link rel="stylesheet" href="/tv-theme.css">
+<link rel="stylesheet" href="/portal.css">
+<script src="/home.js"></script>
+<script src="/quotes.js"></script>
+<script src="/copilot.js" defer></script>
+</head>
+<body>
+
+<div class="mock-strip">
+  UNAFFILIATED CASE-STUDY MOCKUP · NOT A REAL PLATFORM · NOT INVESTMENT ADVICE
+</div>
+
+<nav class="portal-nav">
+  <div class="logo"><a href="/"><img src="/assets/tv-logo-white.svg" alt="Platform"></a></div>
+  <div class="search"><svg class="g" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="M11 11l4 4"/></svg>Search or ask: &ldquo;why is BTC up?&rdquo;</div>
+  <div class="menu">
+    <a href="/">Home</a>
+    <a href="/markets.html" class="active">Markets</a>
+    <a href="/#ideas">Ideas</a>
+    <a href="/academy.html">Academy</a>
+    <a href="/experts.html">Experts</a>
+  </div>
+  <div class="right">
+    <a class="btn btn-secondary" href="/charts.html" style="padding:8px 16px">Open Supercharts ↗</a>
+    <span style="font-size:14px;color:var(--tv-muted)">Sign in</span>
+    <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
+  </div>
+</nav>
+
+<main class="tv-page" style="max-width:1180px">
+
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap">
+    <div>
+      <div class="tv-eyebrow">Screener</div>
+      <h1 class="tv-h1" style="margin-top:8px">Ask the market a question</h1>
+      <p class="tv-lead" style="margin-top:10px">Filters run against the same live quotes as the rest of the
+        portal. Start from a question, not from an empty form.</p>
+    </div>
+    <a class="btn btn-secondary" href="/markets.html" style="padding:9px 16px">← Back to markets</a>
+  </div>
+
+  <div class="row mt-16" id="sourceLine" style="flex-wrap:wrap;gap:10px"></div>
+
+  <!-- Questions first. An empty screener is the reason most people never use one. -->
+  <div class="tv-card mt-24">
+    <p class="title">Start from a question</p>
+    <div class="presets mt-16" id="presets"></div>
+  </div>
+
+  <div class="tv-card mt-16">
+    <div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:10px">
+      <p class="title" style="margin:0">Filters</p>
+      <button class="btn btn-quiet" id="reset" style="padding:6px 14px;font-size:12px">Clear all</button>
+    </div>
+    <div class="filters mt-16">
+      <div class="f">
+        <label for="fCls">Asset class</label>
+        <select id="fCls"><option value="all">All classes</option></select>
+      </div>
+      <div class="f">
+        <label for="fChgMin">Today's change, from %</label>
+        <input type="number" id="fChgMin" step="0.5" placeholder="any">
+      </div>
+      <div class="f">
+        <label for="fChgMax">Today's change, to %</label>
+        <input type="number" id="fChgMax" step="0.5" placeholder="any">
+      </div>
+      <div class="f">
+        <label for="fMonth">1-month performance, from %</label>
+        <input type="number" id="fMonth" step="1" placeholder="any">
+      </div>
+      <div class="f">
+        <label for="fRangeMin">52-week position, from %</label>
+        <input type="number" id="fRangeMin" step="5" min="0" max="100" placeholder="0">
+      </div>
+      <div class="f">
+        <label for="fRangeMax">52-week position, to %</label>
+        <input type="number" id="fRangeMax" step="5" min="0" max="100" placeholder="100">
+      </div>
+      <div class="f">
+        <label for="fText">Symbol or name contains</label>
+        <input type="text" id="fText" placeholder="e.g. gold, BTC, tech">
+      </div>
+      <div class="f">
+        <label>&nbsp;</label>
+        <button class="btn btn-primary" id="saveScreen">Save this screen</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="savedBox" class="mt-16" hidden>
+    <div class="mono" style="font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--tv-faint)">Saved screens</div>
+    <div class="presets mt-16" id="saved"></div>
+  </div>
+
+  <div class="row mt-24" style="justify-content:space-between;flex-wrap:wrap;gap:12px">
+    <h2 style="font-size:22px;font-weight:700;color:var(--tv-white);margin:0" id="count">—</h2>
+    <span class="mono" style="font-size:11px;color:var(--tv-faint)" id="explain"></span>
+  </div>
+
+  <div class="tv-card mt-16 q-wrap" style="padding:0;overflow-x:auto">
+    <table class="q-table" id="table">
+      <thead><tr id="head"></tr></thead>
+      <tbody id="rows"><tr><td style="padding:22px;color:var(--tv-faint)">Loading live quotes…</td></tr></tbody>
+    </table>
+  </div>
+
+  <div class="disclaimer" id="disclaimer"></div>
+</main>
+
+<footer class="portal-footer">
+  <div class="cols" style="grid-template-columns:repeat(3,1fr)">
+    <div class="col"><b>Do</b><div><a href="/#brief">Today's brief</a></div><div><a href="/markets.html">Markets</a></div><div><a href="/screener.html">Screener</a></div><div><a href="/charts.html">Open Supercharts</a></div></div>
+    <div class="col"><b>Learn &amp; decide</b><div><a href="/academy.html">Academy</a></div><div><a href="/#ideas">Editors' Picks</a></div><div><a href="/experts.html">Experts</a></div></div>
+    <div class="col"><b>Company</b><div>About</div><div>Pricing</div><div>Help center</div></div>
+  </div>
+  <div class="cols" style="margin-top:26px;grid-template-columns:1fr">
+    <div class="disclaimer" style="border-top:none;padding-top:0;margin-top:0">
+      Unaffiliated case-study prototype built for an internal product review. Filters describe past and
+      current prices; a screen is not a recommendation.
+    </div>
+  </div>
+</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+const Q = window.Quotes, P = window.Portal;
+
+let snap = null;
+let sortKey = 'changePct', sortDir = -1;
+let activePreset = null;
+
+/* Each preset is a question in the user's words plus the filter values that
+   answer it — the point is that nobody has to know the field names first. */
+const PRESETS = [
+  { id: 'up',       q: 'What is up today?',                 f: { chgMin: 1 },                     sort: 'changePct', dir: -1 },
+  { id: 'down',     q: 'What is down today?',               f: { chgMax: -1 },                    sort: 'changePct', dir: 1 },
+  { id: 'nearHigh', q: 'What is near its 52-week high?',    f: { rangeMin: 90 },                  sort: 'range',     dir: -1 },
+  { id: 'nearLow',  q: 'What is near its 52-week low?',     f: { rangeMax: 15 },                  sort: 'range',     dir: 1 },
+  { id: 'month',    q: 'What has run in the last month?',   f: { month: 10 },                     sort: 'm1',        dir: -1 },
+  { id: 'quiet',    q: 'What barely moved today?',          f: { chgMin: -0.3, chgMax: 0.3 },     sort: 'changePct', dir: -1 },
+  { id: 'crypto',   q: 'How is crypto doing?',              f: { cls: 'crypto' },                 sort: 'changePct', dir: -1 },
+  { id: 'macro',    q: 'What are rates and the dollar doing?', f: { cls: 'rates' },               sort: 'changePct', dir: -1 }
+];
+
+const COLUMNS = [
+  { k: 'symbol',    label: 'Symbol',    num: false },
+  { k: 'name',      label: 'Name',      num: false },
+  { k: 'cls',       label: 'Class',     num: false },
+  { k: 'price',     label: 'Price',     num: true },
+  { k: 'changePct', label: 'Chg %',     num: true },
+  { k: 'w1',        label: '1W',        num: true },
+  { k: 'm1',        label: '1M',        num: true },
+  { k: 'range',     label: '52w pos',   num: true },
+  { k: 'spark',     label: '1 month',   num: false },
+  { k: 'act',       label: '',          num: false }
+];
+
+const rangePos = i => (Number.isFinite(i.price) && Number.isFinite(i.wk52High) && Number.isFinite(i.wk52Low) && i.wk52High > i.wk52Low)
+  ? ((i.price - i.wk52Low) / (i.wk52High - i.wk52Low)) * 100 : null;
+
+const val = (i, k) => k === 'w1' ? i.perf?.w1 : k === 'm1' ? i.perf?.m1 : k === 'range' ? rangePos(i) : i[k];
+
+function readFilters() {
+  const num = id => { const v = parseFloat($(id).value); return Number.isFinite(v) ? v : null; };
+  return {
+    cls: $('fCls').value,
+    chgMin: num('fChgMin'), chgMax: num('fChgMax'),
+    month: num('fMonth'),
+    rangeMin: num('fRangeMin'), rangeMax: num('fRangeMax'),
+    text: $('fText').value.trim().toLowerCase()
+  };
+}
+
+function writeFilters(f) {
+  $('fCls').value = f.cls || 'all';
+  $('fChgMin').value = f.chgMin ?? '';
+  $('fChgMax').value = f.chgMax ?? '';
+  $('fMonth').value = f.month ?? '';
+  $('fRangeMin').value = f.rangeMin ?? '';
+  $('fRangeMax').value = f.rangeMax ?? '';
+  $('fText').value = f.text ?? '';
+}
+
+function apply(f) {
+  return snap.items.filter(i => {
+    if (!i.ok) return false;                       // never screen on a number we do not have
+    if (f.cls && f.cls !== 'all' && i.cls !== f.cls) return false;
+    if (f.chgMin != null && !(i.changePct >= f.chgMin)) return false;
+    if (f.chgMax != null && !(i.changePct <= f.chgMax)) return false;
+    if (f.month != null && !(i.perf?.m1 >= f.month)) return false;
+    const rp = rangePos(i);
+    if (f.rangeMin != null && !(rp >= f.rangeMin)) return false;
+    if (f.rangeMax != null && !(rp <= f.rangeMax)) return false;
+    if (f.text && !(`${i.symbol} ${i.name} ${i.cls}`.toLowerCase().includes(f.text))) return false;
+    return true;
+  });
+}
+
+function describe(f) {
+  const bits = [];
+  if (f.cls && f.cls !== 'all') bits.push((snap.classes.find(c => c.id === f.cls) || {}).label);
+  if (f.chgMin != null) bits.push(`today ≥ ${f.chgMin}%`);
+  if (f.chgMax != null) bits.push(`today ≤ ${f.chgMax}%`);
+  if (f.month != null) bits.push(`1 month ≥ ${f.month}%`);
+  if (f.rangeMin != null) bits.push(`52w position ≥ ${f.rangeMin}%`);
+  if (f.rangeMax != null) bits.push(`52w position ≤ ${f.rangeMax}%`);
+  if (f.text) bits.push(`matching “${f.text}”`);
+  return bits.length ? bits.join(' · ') : 'no filters — the whole pilot universe';
+}
+
+function renderHead() {
+  $('head').innerHTML = COLUMNS.map(c => {
+    const active = c.k === sortKey;
+    const arrow = active ? `<span class="dir">${sortDir < 0 ? '▼' : '▲'}</span>` : '';
+    const sortable = !['spark', 'act'].includes(c.k);
+    return `<th class="${c.num ? 'num' : ''}" ${sortable ? `data-sort="${c.k}"` : ''}>${c.label} ${arrow}</th>`;
+  }).join('');
+}
+
+function render() {
+  const f = readFilters();
+  const rows = apply(f).sort((a, b) => {
+    const x = val(a, sortKey), y = val(b, sortKey);
+    if (typeof x === 'string' || typeof y === 'string') return String(x).localeCompare(String(y)) * -sortDir;
+    const xv = Number.isFinite(x) ? x : -Infinity, yv = Number.isFinite(y) ? y : -Infinity;
+    return (xv - yv) * sortDir;
+  });
+
+  const watch = P?.watchlist?.() || [];
+  $('count').textContent = `${rows.length} of ${snap.ok_count} instruments match`;
+  $('explain').textContent = describe(f);
+
+  $('rows').innerHTML = rows.map(i => {
+    const rp = rangePos(i);
+    const saved = watch.includes(i.symbol);
+    return `<tr>
+      <td><a class="sym" href="/symbol.html?symbol=${encodeURIComponent(i.symbol)}">${Q.esc(i.symbol)}</a></td>
+      <td class="nm">${Q.esc(i.name)}</td>
+      <td style="color:var(--tv-faint);font-size:12px">${Q.esc((snap.classes.find(c => c.id === i.cls) || {}).label || i.cls)}</td>
+      <td class="num">${Q.price(i.price, i)}</td>
+      <td class="num ${Q.cls(i.changePct)}">${Q.pct(i.changePct)}</td>
+      <td class="num ${Q.cls(i.perf?.w1)}">${Q.pct(i.perf?.w1)}</td>
+      <td class="num ${Q.cls(i.perf?.m1)}">${Q.pct(i.perf?.m1)}</td>
+      <td class="num">${Number.isFinite(rp) ? rp.toFixed(0) + '%' : '—'}</td>
+      <td>${Q.spark(i.series)}</td>
+      <td><button class="preset" data-add="${Q.esc(i.symbol)}" ${saved ? 'disabled' : ''}>${saved ? '✓ saved' : '+ watchlist'}</button></td>
+    </tr>`;
+  }).join('') || `<tr><td colspan="10" style="padding:22px;color:var(--tv-faint)">
+      Nothing matches. That is an answer too — try widening one filter.</td></tr>`;
+}
+
+/* ------------------------------------------------------------ saved screens */
+
+const K_SAVED = 'screener_saved';
+const readSaved = () => { try { return JSON.parse(localStorage.getItem(K_SAVED) || '[]'); } catch { return []; } };
+const writeSaved = v => { try { localStorage.setItem(K_SAVED, JSON.stringify(v.slice(-12))); } catch {} };
+
+function renderSaved() {
+  const list = readSaved();
+  $('savedBox').hidden = list.length === 0;
+  $('saved').innerHTML = list.map((s, idx) =>
+    `<button class="preset" data-saved="${idx}">${Q.esc(s.name)}</button>`).join('') +
+    (list.length ? `<button class="preset" data-clear-saved="1" style="color:var(--tv-faint)">clear saved</button>` : '');
+}
+
+/* ---------------------------------------------------------------- wiring */
+
+$('presets').addEventListener('click', e => {
+  const b = e.target.closest('[data-preset]');
+  if (!b) return;
+  const p = PRESETS.find(x => x.id === b.dataset.preset);
+  activePreset = p.id;
+  writeFilters({ cls: 'all', ...p.f });
+  sortKey = p.sort; sortDir = p.dir;
+  document.querySelectorAll('#presets .preset').forEach(x => x.classList.toggle('on', x === b));
+  renderHead(); render();
+  P?.track('screener_preset', { preset: p.id, question: p.q });
+  P?.meaningful('screener_preset', { preset: p.id });
+});
+
+document.querySelectorAll('.filters input, .filters select').forEach(el => {
+  el.addEventListener('input', () => {
+    activePreset = null;
+    document.querySelectorAll('#presets .preset').forEach(x => x.classList.remove('on'));
+    render();
+  });
+});
+
+$('reset').addEventListener('click', () => {
+  writeFilters({});
+  activePreset = null;
+  document.querySelectorAll('#presets .preset').forEach(x => x.classList.remove('on'));
+  render();
+});
+
+$('head').addEventListener('click', e => {
+  const th = e.target.closest('[data-sort]');
+  if (!th) return;
+  sortDir = th.dataset.sort === sortKey ? -sortDir : -1;
+  sortKey = th.dataset.sort;
+  renderHead(); render();
+  P?.track('screener_sort', { column: sortKey, dir: sortDir });
+});
+
+$('rows').addEventListener('click', e => {
+  const b = e.target.closest('[data-add]');
+  if (!b) return;
+  const sym = b.dataset.add;
+  if (!(P?.watchlist() || []).includes(sym)) P.toggleSymbol(sym);
+  P.saveWatchlist('screener');
+  b.disabled = true; b.textContent = '✓ saved';
+  P.track('screener_add_to_watchlist', { symbol: sym });
+});
+
+$('saveScreen').addEventListener('click', () => {
+  const f = readFilters();
+  const name = describe(f).slice(0, 48);
+  const list = readSaved();
+  list.push({ name, f, sortKey, sortDir });
+  writeSaved(list);
+  renderSaved();
+  P?.track('screener_screen_saved', { name });
+  P?.meaningful('screener_screen_saved');
+});
+
+$('saved').addEventListener('click', e => {
+  if (e.target.closest('[data-clear-saved]')) { writeSaved([]); renderSaved(); return; }
+  const b = e.target.closest('[data-saved]');
+  if (!b) return;
+  const s = readSaved()[Number(b.dataset.saved)];
+  if (!s) return;
+  writeFilters(s.f); sortKey = s.sortKey; sortDir = s.sortDir;
+  renderHead(); render();
+  P?.track('screener_screen_opened', { name: s.name });
+});
+
+(async () => {
+  snap = await Q.snapshot();
+  $('sourceLine').innerHTML = Q.sourceLine(snap);
+  $('disclaimer').textContent = snap.note +
+    ' The screener runs over a fixed pilot universe of ' + snap.universe +
+    ' instruments, so an empty result means nothing here matches — not that nothing in the market does.';
+
+  $('fCls').innerHTML = '<option value="all">All classes</option>' +
+    snap.classes.map(c => `<option value="${c.id}">${c.label}</option>`).join('');
+
+  $('presets').innerHTML = PRESETS.map(p =>
+    `<button class="preset" data-preset="${p.id}">${Q.esc(p.q)}</button>`).join('');
+
+  const q = new URLSearchParams(location.search);
+  if (q.get('cls')) $('fCls').value = q.get('cls');
+
+  renderHead();
+  renderSaved();
+  render();
+  P?.track('screener_opened', { instruments: snap.ok_count });
+})();
+</script>
+</body>
+</html>

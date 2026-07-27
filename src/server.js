@@ -19,6 +19,7 @@ import {
   hasKey, MODEL, RefusalError
 } from './claude.js';
 import { ask as copilotAsk, MODEL as COPILOT_MODEL } from './copilot.js';
+import * as market from './market.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -392,6 +393,32 @@ app.get('/api/metrics', staffOnly, wrap(async (_req, res) => {
 
 app.get('/api/ai-calls', staffOnly, wrap(async (_req, res) => {
   res.json(await db.listAiCalls(100));
+}));
+
+/* ----------------------------------------------------------------- markets */
+
+/* The quote layer is public because every page needs it and it holds no
+   secrets — but it is cached server-side, so a hundred open tabs still cost the
+   upstream one request a minute. */
+app.get('/api/markets', wrap(async (req, res) => {
+  const snap = await market.snapshot();
+  const cls = String(req.query.cls || '').trim();
+  const items = cls ? snap.items.filter(i => i.cls === cls) : snap.items;
+  res.set('Cache-Control', 'public, max-age=30');
+  res.json({ ...snap, classes: market.CLASSES, items });
+}));
+
+app.get('/api/markets/movers', wrap(async (req, res) => {
+  const limit = Math.min(12, Math.max(3, Number(req.query.limit) || 6));
+  res.set('Cache-Control', 'public, max-age=30');
+  res.json(await market.movers(limit));
+}));
+
+app.get('/api/symbol/:symbol', wrap(async (req, res) => {
+  const data = await market.one(req.params.symbol);
+  if (!data) return res.status(404).json({ error: 'Unknown symbol', universe: market.UNIVERSE.map(i => i.symbol) });
+  res.set('Cache-Control', 'public, max-age=30');
+  res.json(data);
 }));
 
 /* ----------------------------------------------------------------- copilot */

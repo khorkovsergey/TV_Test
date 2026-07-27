@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Markets — live quotes</title>
+<link rel="stylesheet" href="/tv-theme.css">
+<link rel="stylesheet" href="/portal.css">
+<script src="/home.js"></script>
+<script src="/quotes.js"></script>
+<script src="/copilot.js" defer></script>
+</head>
+<body>
+
+<div class="mock-strip">
+  UNAFFILIATED CASE-STUDY MOCKUP · NOT A REAL PLATFORM · NOT INVESTMENT ADVICE
+</div>
+
+<nav class="portal-nav">
+  <div class="logo"><a href="/"><img src="/assets/tv-logo-white.svg" alt="Platform"></a></div>
+  <div class="search"><svg class="g" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="M11 11l4 4"/></svg>Search or ask: &ldquo;why is BTC up?&rdquo;</div>
+  <div class="menu">
+    <a href="/">Home</a>
+    <a href="/markets.html" class="active">Markets</a>
+    <a href="/#ideas">Ideas</a>
+    <a href="/academy.html">Academy</a>
+    <a href="/experts.html">Experts</a>
+  </div>
+  <div class="right">
+    <a class="btn btn-secondary" href="/charts.html" style="padding:8px 16px">Open Supercharts ↗</a>
+    <span style="font-size:14px;color:var(--tv-muted)">Sign in</span>
+    <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
+  </div>
+</nav>
+
+<main class="tv-page" style="max-width:1180px">
+
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap">
+    <div>
+      <div class="tv-eyebrow">Markets</div>
+      <h1 class="tv-h1" style="margin-top:8px">What is moving right now</h1>
+      <p class="tv-lead" style="margin-top:10px">Forty-nine instruments across six asset classes, with the reason
+        to look at each one: today's move, the week, the month, and where the price sits in its own year.</p>
+    </div>
+    <div class="row" style="gap:10px;flex-wrap:wrap">
+      <a class="btn btn-secondary" href="/screener.html" style="padding:9px 16px">Open the screener →</a>
+      <button class="btn btn-quiet" id="refresh" style="padding:9px 16px">Refresh</button>
+    </div>
+  </div>
+
+  <div class="row mt-16" id="sourceLine" style="flex-wrap:wrap;gap:10px"></div>
+
+  <!-- Movers first: the answer to "what happened today" before any table. -->
+  <div class="movers" id="movers"></div>
+
+  <div class="row mt-32" style="justify-content:space-between;flex-wrap:wrap;gap:12px">
+    <h2 style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0" id="tableTitle">All instruments</h2>
+    <div class="class-tabs" id="tabs"></div>
+  </div>
+
+  <div class="tv-card mt-16 q-wrap" style="padding:0;overflow-x:auto">
+    <table class="q-table" id="table">
+      <thead><tr id="head"></tr></thead>
+      <tbody id="rows"><tr><td style="padding:22px;color:var(--tv-faint)">Loading live quotes…</td></tr></tbody>
+    </table>
+  </div>
+
+  <h2 class="mt-32" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">Heatmap · today's change</h2>
+  <div style="font-size:13px;color:var(--tv-faint);margin-top:6px">Colour is the size of the move, not a judgement about it.</div>
+  <div id="heat"></div>
+
+  <div class="disclaimer" id="disclaimer"></div>
+</main>
+
+<footer class="portal-footer">
+  <div class="cols" style="grid-template-columns:repeat(3,1fr)">
+    <div class="col"><b>Do</b><div><a href="/#brief">Today's brief</a></div><div><a href="/markets.html">Markets</a></div><div><a href="/screener.html">Screener</a></div><div><a href="/charts.html">Open Supercharts</a></div></div>
+    <div class="col"><b>Learn &amp; decide</b><div><a href="/academy.html">Academy</a></div><div><a href="/#ideas">Editors' Picks</a></div><div><a href="/experts.html">Experts</a></div></div>
+    <div class="col"><b>Company</b><div>About</div><div>Pricing</div><div>Help center</div></div>
+  </div>
+  <div class="cols" style="margin-top:26px;grid-template-columns:1fr">
+    <div class="disclaimer" style="border-top:none;padding-top:0;margin-top:0">
+      Unaffiliated case-study prototype built for an internal product review. Not a real platform,
+      not operated by or endorsed by any company whose branding appears here. Not investment advice.
+    </div>
+  </div>
+</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+const Q = window.Quotes, P = window.Portal;
+
+let snap = null;
+let activeClass = new URLSearchParams(location.search).get('cls') || 'all';
+let sortKey = 'changePct', sortDir = -1;
+
+const COLUMNS = [
+  { k: 'symbol',    label: 'Symbol',   num: false },
+  { k: 'name',      label: 'Name',     num: false },
+  { k: 'price',     label: 'Price',    num: true },
+  { k: 'change',    label: 'Change',   num: true },
+  { k: 'changePct', label: 'Chg %',    num: true },
+  { k: 'w1',        label: '1W',       num: true },
+  { k: 'm1',        label: '1M',       num: true },
+  { k: 'volume',    label: 'Volume',   num: true },
+  { k: 'range',     label: '52w range',num: false },
+  { k: 'spark',     label: '1 month',  num: false }
+];
+
+const val = (i, k) => k === 'w1' ? i.perf?.w1 : k === 'm1' ? i.perf?.m1 : i[k];
+
+function renderHead() {
+  $('head').innerHTML = COLUMNS.map(c => {
+    const active = c.k === sortKey;
+    const arrow = active ? `<span class="dir">${sortDir < 0 ? '▼' : '▲'}</span>` : '';
+    const sortable = !['range', 'spark'].includes(c.k);
+    return `<th class="${c.num ? 'num' : ''}" ${sortable ? `data-sort="${c.k}"` : ''}>${c.label} ${arrow}</th>`;
+  }).join('');
+}
+
+function renderRows() {
+  const items = snap.items
+    .filter(i => activeClass === 'all' || i.cls === activeClass)
+    .sort((a, b) => {
+      // Instruments that failed to load sink to the bottom instead of sorting as zero.
+      if (a.ok !== b.ok) return a.ok ? -1 : 1;
+      const x = val(a, sortKey), y = val(b, sortKey);
+      if (typeof x === 'string' || typeof y === 'string') return String(x).localeCompare(String(y)) * -sortDir;
+      const xv = Number.isFinite(x) ? x : -Infinity, yv = Number.isFinite(y) ? y : -Infinity;
+      return (xv - yv) * sortDir;
+    });
+
+  $('tableTitle').textContent = activeClass === 'all'
+    ? `All instruments · ${items.length}`
+    : `${(snap.classes.find(c => c.id === activeClass) || {}).label} · ${items.length}`;
+
+  $('rows').innerHTML = items.map(i => {
+    if (!i.ok) {
+      return `<tr><td class="sym">${Q.esc(i.symbol)}</td><td class="nm">${Q.esc(i.name)}</td>
+        <td colspan="8" style="color:var(--tv-orange);font-size:12.5px">could not be loaded — ${Q.esc(i.error || 'source unavailable')}</td></tr>`;
+    }
+    return `<tr>
+      <td><a class="sym" href="/symbol.html?symbol=${encodeURIComponent(i.symbol)}">${Q.esc(i.symbol)}</a></td>
+      <td class="nm">${Q.esc(i.name)}</td>
+      <td class="num">${Q.price(i.price, i)}</td>
+      <td class="num ${Q.cls(i.change)}">${Q.change(i.change, i)}</td>
+      <td class="num ${Q.cls(i.changePct)}">${Q.pct(i.changePct)}</td>
+      <td class="num ${Q.cls(i.perf?.w1)}">${Q.pct(i.perf?.w1)}</td>
+      <td class="num ${Q.cls(i.perf?.m1)}">${Q.pct(i.perf?.m1)}</td>
+      <td class="num">${Q.volume(i.volume)}</td>
+      <td>${Q.rangeBar(i)}</td>
+      <td>${Q.spark(i.series)}</td>
+    </tr>`;
+  }).join('') || '<tr><td style="padding:22px;color:var(--tv-faint)">Nothing in this class.</td></tr>';
+}
+
+function renderMovers(m) {
+  const box = (title, list, note) => `
+    <div class="tv-card">
+      <div class="row" style="justify-content:space-between"><p class="title" style="margin:0">${title}</p></div>
+      <div class="mono" style="font-size:10.5px;color:var(--tv-ghost);margin-bottom:6px">${note}</div>
+      ${list.map(i => `<div class="mover-row">
+        <a class="s" href="/symbol.html?symbol=${encodeURIComponent(i.symbol)}">${Q.esc(i.symbol)}</a>
+        <span class="p">${Q.price(i.price, i)}</span>
+        <span class="c ${Q.cls(i.changePct)}">${Q.pct(i.changePct)}</span>
+      </div>`).join('')}
+    </div>`;
+
+  $('movers').innerHTML =
+    box('Biggest gains today', m.gainers, 'across all six classes') +
+    box('Biggest falls today', m.losers, 'across all six classes') +
+    /* Not "most active": a free chart endpoint has no comparable turnover for
+       every class, so this is named for what it measures. */
+    box('Largest absolute moves', m.biggest_moves, 'by size of move, direction ignored');
+}
+
+function renderHeat() {
+  const items = snap.items.filter(i => i.ok && Number.isFinite(i.changePct))
+    .filter(i => activeClass === 'all' || i.cls === activeClass);
+  const max = Math.max(2, ...items.map(i => Math.abs(i.changePct)));
+
+  $('heat').innerHTML = '<div class="heat">' + items.map(i => {
+    const t = Math.min(1, Math.abs(i.changePct) / max);
+    const bg = i.changePct >= 0
+      ? `rgba(8,153,129,${(0.18 + t * 0.72).toFixed(2)})`
+      : `rgba(242,54,69,${(0.18 + t * 0.72).toFixed(2)})`;
+    return `<a href="/symbol.html?symbol=${encodeURIComponent(i.symbol)}" style="background:${bg}">
+      <div class="s">${Q.esc(i.symbol)}</div><div class="c">${Q.pct(i.changePct)}</div></a>`;
+  }).join('') + '</div>';
+}
+
+function renderTabs() {
+  const all = [{ id: 'all', label: 'All' }, ...snap.classes];
+  $('tabs').innerHTML = all.map(c =>
+    `<button data-cls="${c.id}" class="${c.id === activeClass ? 'on' : ''}">${c.label}</button>`).join('');
+}
+
+async function load(force) {
+  snap = await Q.snapshot(force);
+  $('sourceLine').innerHTML = Q.sourceLine(snap);
+  $('disclaimer').textContent =
+    snap.note + ' Instrument coverage is a fixed pilot universe of ' + snap.universe +
+    ' symbols, not a full market. Nothing here is investment advice.';
+  renderTabs();
+  renderHead();
+  renderRows();
+  renderHeat();
+  renderMovers(await Q.movers(6));
+}
+
+$('tabs').addEventListener('click', e => {
+  const b = e.target.closest('[data-cls]');
+  if (!b) return;
+  activeClass = b.dataset.cls;
+  history.replaceState(null, '', activeClass === 'all' ? '/markets.html' : '/markets.html?cls=' + activeClass);
+  renderTabs(); renderRows(); renderHeat();
+  P?.track('markets_class_filter', { cls: activeClass });
+  P?.meaningful('markets_filter', { cls: activeClass });
+});
+
+$('head').addEventListener('click', e => {
+  const th = e.target.closest('[data-sort]');
+  if (!th) return;
+  const k = th.dataset.sort;
+  sortDir = (k === sortKey) ? -sortDir : (k === 'symbol' || k === 'name' ? -1 : -1);
+  sortKey = k;
+  renderHead(); renderRows();
+  P?.track('markets_sort', { column: k, dir: sortDir });
+});
+
+$('refresh').addEventListener('click', async () => {
+  $('refresh').disabled = true;
+  $('refresh').textContent = 'Refreshing…';
+  await load(true);
+  $('refresh').disabled = false;
+  $('refresh').textContent = 'Refresh';
+  P?.track('markets_refresh', {});
+});
+
+load().then(() => {
+  P?.track('markets_opened', { instruments: snap.universe, failed: (snap.failed || []).length });
+  /* Arriving at the markets overview is the "understand today" research step. */
+  if (P?.lastKind() !== 'market') {
+    P?.pushJourney({ from: P.lastKind() || 'entry', to: 'market', rule: 'open_markets', label: "Today's markets" });
+  }
+});
+</script>
+</body>
+</html>

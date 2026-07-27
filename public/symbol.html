@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="/tv-theme.css">
 <link rel="stylesheet" href="/portal.css">
 <script src="/home.js"></script>
+<script src="/quotes.js"></script>
 <script src="/copilot.js" defer></script>
 </head>
 <body>
@@ -18,14 +19,15 @@
 
 <!-- The symbol page is where the research journey is most visible: what the
      visitor just looked at decides what is offered next, and the trail makes
-     the path itself a thing they can see and come back to. -->
+     the path itself a thing they can see and come back to. Every number on it
+     is fetched, and anything computed here says so. -->
 
 <nav class="portal-nav">
   <div class="logo"><a href="/"><img src="/assets/tv-logo-white.svg" alt="Platform"></a></div>
   <div class="search"><svg class="g" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="M11 11l4 4"/></svg>Search or ask: &ldquo;why is BTC up?&rdquo;</div>
   <div class="menu">
     <a href="/">Home</a>
-    <a href="/#markets" class="active">Markets</a>
+    <a href="/markets.html" class="active">Markets</a>
     <a href="/#ideas">Ideas</a>
     <a href="/academy.html">Academy</a>
     <a href="/experts.html">Experts</a>
@@ -40,13 +42,14 @@
 <main class="tv-page" style="max-width:1180px">
   <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:24px;flex-wrap:wrap">
     <div>
-      <div class="tv-eyebrow" id="eyebrow">BTCUSD · Crypto</div>
-      <h1 class="tv-h1" style="margin-top:6px" id="assetName">Bitcoin</h1>
-      <div class="row" style="margin-top:8px">
-        <span class="mono" style="font-size:28px;font-weight:700;color:var(--tv-white)">118,420.50</span>
-        <span class="mono pos" style="font-size:14px">+3,272.10 (+2.84%)</span>
-        <span class="tag tag-fact">FACT · MARKET DATA · SAMPLE</span>
+      <div class="tv-eyebrow" id="eyebrow">—</div>
+      <h1 class="tv-h1" style="margin-top:6px" id="assetName">Loading…</h1>
+      <div class="row" style="margin-top:8px;flex-wrap:wrap;gap:12px">
+        <span class="mono" style="font-size:28px;font-weight:700;color:var(--tv-white)" id="price">—</span>
+        <span class="mono" style="font-size:14px" id="change">—</span>
+        <span class="tag tag-fact" id="factTag">FACT · MARKET DATA</span>
       </div>
+      <div class="mono src mt-16" id="sourceLine"></div>
     </div>
     <div class="row" style="flex-wrap:wrap;gap:10px">
       <button class="btn btn-primary" id="addWatch">Add to watchlist</button>
@@ -54,28 +57,41 @@
     </div>
   </div>
 
-  <div class="grid-2 mt-24" style="grid-template-columns:1.6fr 1fr;align-items:start">
+  <div id="loadError" hidden class="tv-card mt-24" style="border-color:#5c2029;background:var(--tv-red-dim)">
+    <p class="title" style="margin:0">This instrument could not be loaded</p>
+    <div style="font-size:13.5px;color:#ffc2cb;margin-top:6px" id="loadErrorText"></div>
+    <a class="btn btn-secondary mt-16" href="/markets.html" style="padding:9px 16px">Back to markets</a>
+  </div>
+
+  <div class="grid-2 mt-24" style="grid-template-columns:1.6fr 1fr;align-items:start" id="content" hidden>
     <div style="display:flex;flex-direction:column;gap:16px">
+
       <div class="tv-card" style="padding:0;overflow:hidden">
-        <!-- Sample series: this shell is not wired to a quote feed. -->
-        <svg viewBox="0 0 640 210" style="display:block;width:100%;height:210px" role="img" aria-label="Sample price chart">
-          <line x1="0" y1="52" x2="640" y2="52" stroke="#1F2430"/><line x1="0" y1="104" x2="640" y2="104" stroke="#1F2430"/><line x1="0" y1="156" x2="640" y2="156" stroke="#1F2430"/>
-          <polyline points="0,164 50,156 100,170 150,146 200,154 250,132 300,140 350,114 400,124 450,96 500,104 550,76 600,62 640,48" fill="none" stroke="#089981" stroke-width="2"/>
-        </svg>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--tv-ink-3)">
+          <span class="mono" style="font-size:11px;color:var(--tv-faint)">LAST 20 DAILY CLOSES</span>
+          <span class="mono" style="font-size:11px;color:var(--tv-faint)" id="seriesRange"></span>
+        </div>
+        <div style="padding:14px 16px"><svg id="chart" viewBox="0 0 640 210" style="display:block;width:100%;height:210px" role="img" aria-label="Price over the last month"></svg></div>
+      </div>
+
+      <div class="stats" id="stats"></div>
+
+      <div class="tv-card">
+        <div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <p class="title" style="margin:0">Technical readings</p>
+          <span class="tag tag-fact" id="techTag">FACT · COMPUTED HERE</span>
+        </div>
+        <div id="technicals" style="display:flex;flex-direction:column;gap:10px;margin-top:12px;font-size:13.5px;color:var(--tv-text);line-height:1.5"></div>
+        <div class="mono" style="font-size:10.5px;color:var(--tv-ghost);margin-top:12px" id="techNote"></div>
       </div>
 
       <div class="tv-card">
-        <div class="row" style="justify-content:space-between">
-          <p class="title" style="margin:0">Why it moves today</p>
-          <span class="tag tag-ai">AI · SOURCED</span>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:10px;margin-top:12px;font-size:13.5px;color:var(--tv-text);line-height:1.5">
-          <div><span class="mono" style="font-size:10.5px;color:var(--tv-green)">MACRO</span> · CPI 2.6% vs 2.8% expected → rate-cut odds up <span class="mono" style="font-size:11px;color:var(--tv-faint)">Reuters 13:31</span></div>
-          <div><span class="mono" style="font-size:10.5px;color:#5B8DFF">FLOWS</span> · Spot ETF net inflow $612M, 4th day <span class="mono" style="font-size:11px;color:var(--tv-faint)">Farside 09:10</span></div>
-        </div>
+        <div class="row" style="justify-content:space-between"><p class="title" style="margin:0">Peers in the same class</p></div>
+        <div class="mono" style="font-size:10.5px;color:var(--tv-ghost)">ranked by size of today's move</div>
+        <div id="peers" class="mt-16"></div>
         <!-- Journey rule: News → related assets -->
         <button class="next-step" style="margin-top:12px" data-rule="related" data-to="symbol"
-                data-label="Related assets">These news also touch: <b>ETH, COIN, IBIT, XAUUSD →</b></button>
+                data-label="Related assets">Compare the whole class side by side <b>→</b></button>
       </div>
     </div>
 
@@ -84,13 +100,8 @@
       <div class="tv-card accent">
         <div class="mono" style="font-size:10.5px;color:#5B8DFF;letter-spacing:.08em">NEXT RESEARCH STEP</div>
         <div style="font-size:14.5px;font-weight:700;color:var(--tv-white);margin-top:8px;line-height:1.4">
-          You've seen the price and the drivers. Where next?</div>
-        <div style="display:flex;flex-direction:column;gap:7px;margin-top:12px" id="steps">
-          <button class="next-step" data-rule="peers" data-to="peers" data-label="Peers: BTC vs ETH vs SOL">Peers: <b>BTC vs ETH vs SOL — 6M →</b></button>
-          <button class="next-step" data-rule="sector" data-to="sector" data-label="Sector: crypto heatmap">Sector: <b>crypto heatmap today →</b></button>
-          <button class="next-step" data-rule="etf" data-to="etf" data-label="ETFs holding BTC">ETFs holding it: <b>IBIT, FBTC →</b></button>
-          <button class="next-step" data-rule="next_event" data-to="event" data-label="Next event: FOMC">Next event: <b>FOMC in 18h — alert me →</b></button>
-        </div>
+          You've seen the price and the readings. Where next?</div>
+        <div style="display:flex;flex-direction:column;gap:7px;margin-top:12px" id="steps"></div>
         <div class="mono" style="font-size:10px;color:var(--tv-faint);margin-top:11px">recommendations follow the journey graph, not popularity</div>
       </div>
 
@@ -117,55 +128,47 @@
     </div>
   </div>
 
-  <div class="disclaimer">
-    Data on this page is illustrative. Recommendations are research navigation, not investment
-    advice.
+  <div class="disclaimer" id="disclaimer">
+    Recommendations here are research navigation, not investment advice.
   </div>
 </main>
 
 <script>
 const $ = id => document.getElementById(id);
-const P = window.Portal;
+const Q = window.Quotes, P = window.Portal;
 const params = new URLSearchParams(location.search);
-
-/* ------------------------------------------------------------- the symbol */
-
-const NAMES = { BTCUSD: 'Bitcoin', ETHUSD: 'Ethereum', TSLA: 'Tesla', SPX: 'S&P 500',
-                EURUSD: 'Euro / US Dollar', XAUUSD: 'Gold', US10Y: 'US 10-year yield' };
-const CLASS = { BTCUSD: 'Crypto', ETHUSD: 'Crypto', TSLA: 'Stocks', SPX: 'Indices',
-                EURUSD: 'Forex', XAUUSD: 'Commodities', US10Y: 'Bonds' };
 
 function lsRaw(k, fallback) {
   try { const v = localStorage.getItem(k); return v === null ? fallback : v; } catch { return fallback; }
 }
 
 const symbol = (params.get('symbol') || lsRaw('active_symbol', '') || 'BTCUSD').toUpperCase();
-document.title = symbol + ' — research journey';
-$('eyebrow').textContent = symbol + ' · ' + (CLASS[symbol] || 'Instrument');
-$('assetName').textContent = NAMES[symbol] || symbol;
+try { localStorage.setItem('active_symbol', symbol); } catch {}
 $('openChart').href = '/charts.html?symbol=' + encodeURIComponent(symbol);
 $('navChart').href = '/charts.html?symbol=' + encodeURIComponent(symbol);
-try { localStorage.setItem('active_symbol', symbol); } catch {}
-
-/* Arriving on a symbol page IS a research step — the rest of the rail is
-   recommended relative to it. */
-if (P.lastKind() !== 'symbol' || P.journey().slice(-1)[0] !== symbol) {
-  P.pushJourney({ from: P.lastKind() || 'entry', to: 'symbol', rule: 'open_symbol', label: symbol });
-}
 
 /* ------------------------------------------------------------- the trail */
+
+const STEPS = [
+  { rule: 'peers',      to: 'peers',  label: 'Peers in this class' },
+  { rule: 'sector',     to: 'sector', label: 'The whole asset class' },
+  { rule: 'etf',        to: 'etf',    label: 'Instruments that track it' },
+  { rule: 'next_event', to: 'event',  label: 'Next event to watch' }
+];
 
 function renderTrail() {
   const labels = P.journey();
   const next = P.suggestNext();
-  const parts = labels.slice(-6).map(l => `<span class="n">${l.replace(/[<>&]/g, '')}</span>`);
+  const parts = labels.slice(-6).map(l => `<span class="n">${Q.esc(l)}</span>`);
   $('trail').innerHTML =
     (parts.length ? parts.join('<span class="a">→</span>') + '<span class="a">→</span>' : '') +
-    `<span class="sug">suggested: ${next.label}</span>`;
+    `<span class="sug">suggested: ${Q.esc(next.label)}</span>`;
 }
 
-/* Every recommendation click extends the trail, persists it and reports the
-   rule it came from — that is the whole measurement of the journey. */
+$('steps').innerHTML = STEPS.map(s =>
+  `<button class="next-step" data-rule="${s.rule}" data-to="${s.to}" data-label="${Q.esc(s.label)}">
+     ${Q.esc(s.label)} <b>→</b></button>`).join('');
+
 document.addEventListener('click', e => {
   const b = e.target.closest('.next-step[data-rule]');
   if (!b) return;
@@ -173,6 +176,11 @@ document.addEventListener('click', e => {
   renderTrail();
   b.disabled = true;
   b.style.opacity = '.55';
+  /* Two of the rules have a real destination in this build; the rest record the
+     step and say so rather than pretending to navigate somewhere. */
+  if (b.dataset.rule === 'sector' || b.dataset.rule === 'peers') {
+    setTimeout(() => { location.href = '/markets.html?cls=' + encodeURIComponent(current?.cls || 'crypto'); }, 220);
+  }
 });
 
 $('resetTrail').addEventListener('click', () => {
@@ -181,19 +189,153 @@ $('resetTrail').addEventListener('click', () => {
   renderTrail();
 });
 
+$('openChart').addEventListener('click', () =>
+  P.pushJourney({ from: 'symbol', to: 'chart', rule: 'open_chart', label: symbol + ' chart' }));
+
+/* ------------------------------------------------------------- the data */
+
+let current = null;
+
+function drawChart(series) {
+  if (!Array.isArray(series) || series.length < 2) { $('chart').innerHTML = ''; return; }
+  const W = 640, H = 210, pad = 8;
+  const lo = Math.min(...series), hi = Math.max(...series), span = (hi - lo) || 1;
+  const x = i => (i / (series.length - 1)) * W;
+  const y = v => pad + (H - pad * 2) - ((v - lo) / span) * (H - pad * 2);
+  const up = series.at(-1) >= series[0];
+  const colour = up ? '#089981' : '#F23645';
+  const line = series.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+  const area = `${line} ${W},${H} 0,${H}`;
+
+  $('chart').innerHTML = `
+    <defs><linearGradient id="g" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="${colour}" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="${colour}" stop-opacity="0"/></linearGradient></defs>
+    <line x1="0" y1="52" x2="640" y2="52" stroke="#1F2430"/>
+    <line x1="0" y1="105" x2="640" y2="105" stroke="#1F2430"/>
+    <line x1="0" y1="158" x2="640" y2="158" stroke="#1F2430"/>
+    <polygon points="${area}" fill="url(#g)"/>
+    <polyline points="${line}" fill="none" stroke="${colour}" stroke-width="2"/>`;
+  $('seriesRange').textContent = `low ${Q.price(lo, current)} · high ${Q.price(hi, current)}`;
+}
+
+function renderStats(d) {
+  const rp = d.technicals?.range_position;
+  const cells = [
+    ['Day range', Number.isFinite(d.dayLow) && Number.isFinite(d.dayHigh) ? `${Q.price(d.dayLow, d)} – ${Q.price(d.dayHigh, d)}` : '—'],
+    ['52-week range', Number.isFinite(d.wk52Low) && Number.isFinite(d.wk52High) ? `${Q.price(d.wk52Low, d)} – ${Q.price(d.wk52High, d)}` : '—'],
+    ['Position in that range', Number.isFinite(rp) ? (rp * 100).toFixed(0) + '%' : '—'],
+    ['Volume', Q.volume(d.volume)],
+    ['1 week', Q.pct(d.perf?.w1)],
+    ['1 month', Q.pct(d.perf?.m1)],
+    ['Previous close', Q.price(d.prevClose, d)],
+    ['Exchange', d.exchange || '—']
+  ];
+  $('stats').innerHTML = cells.map(([k, v]) =>
+    `<div class="st"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
+}
+
+function renderTechnicals(d) {
+  const t = d.technicals || {};
+  const rows = [];
+  if (Number.isFinite(t.sma20)) {
+    rows.push([t.above_sma20 ? 'ABOVE' : 'BELOW', t.above_sma20 ? 'var(--tv-green)' : 'var(--tv-red)',
+      `Price is ${t.above_sma20 ? 'above' : 'below'} its 20-day average of <b style="color:var(--tv-white)">${Q.price(t.sma20, d)}</b>.`]);
+  }
+  if (Number.isFinite(t.sma5)) {
+    rows.push(['5-DAY', '#5B8DFF', `The 5-day average is <b style="color:var(--tv-white)">${Q.price(t.sma5, d)}</b>.`]);
+  }
+  if (Number.isFinite(t.rsi14)) {
+    rows.push(['RSI 14', '#5B8DFF', `<b style="color:var(--tv-white)">${t.rsi14.toFixed(1)}</b> — ${Q.esc(t.rsi_zone || '')}.`]);
+  }
+  if (Number.isFinite(t.range_position)) {
+    rows.push(['52W', '#5B8DFF',
+      `The price sits <b style="color:var(--tv-white)">${(t.range_position * 100).toFixed(0)}%</b> of the way up its 52-week range.`]);
+  }
+
+  $('technicals').innerHTML = rows.length
+    ? rows.map(([tag, colour, text]) =>
+        `<div><span class="mono" style="font-size:10.5px;color:${colour}">${tag}</span> · ${text}</div>`).join('')
+    : '<div style="color:var(--tv-faint)">Not enough history to compute anything honestly.</div>';
+
+  /* The platform this stand is modelled on prints a Buy / Sell rating here.
+     The case argues that a computed signal dressed as a recommendation is the
+     "success feel" the user research complained about — so the readings ship
+     without a verdict, and the page says why. */
+  $('techNote').textContent =
+    `${t.disclaimer || ''} Computed from ${t.computed_from || 'recent closes'}. Deliberately no buy/sell rating: a formula over 20 closes is a description, not advice.`;
+}
+
+function renderPeers(d) {
+  $('peers').innerHTML = (d.peers || []).map(p => `
+    <div class="mover-row">
+      <a class="s" href="/symbol.html?symbol=${encodeURIComponent(p.symbol)}">${Q.esc(p.symbol)}</a>
+      <span style="color:var(--tv-faint);font-size:12.5px;flex:1;overflow:hidden;text-overflow:ellipsis">${Q.esc(p.name)}</span>
+      <span class="p" style="flex:0 0 auto">${Q.price(p.price, p)}</span>
+      <span class="c ${Q.cls(p.changePct)}">${Q.pct(p.changePct)}</span>
+    </div>`).join('') || '<div style="color:var(--tv-faint);font-size:13px">No peers loaded.</div>';
+}
+
 $('addWatch').addEventListener('click', () => {
-  const list = P.watchlist();
-  if (!list.includes(symbol)) P.toggleSymbol(symbol);
+  if (!(P.watchlist() || []).includes(symbol)) P.toggleSymbol(symbol);
   P.saveWatchlist('symbol_page');
   $('addWatch').textContent = '✓ In your watchlist';
   $('addWatch').disabled = true;
 });
 
-$('openChart').addEventListener('click', () =>
-  P.pushJourney({ from: 'symbol', to: 'chart', rule: 'open_chart', label: symbol + ' chart' }));
+(async () => {
+  renderTrail();
+  try {
+    const d = await Q.symbol(symbol);
+    current = d;
 
-renderTrail();
-P.track('symbol_page_opened', { symbol, mode: P.mode() });
+    if (!d.ok) {
+      $('assetName').textContent = symbol;
+      $('eyebrow').textContent = symbol;
+      $('loadError').hidden = false;
+      $('loadErrorText').textContent =
+        (d.error || 'The quote source did not return data for this instrument.') +
+        ' Nothing is shown rather than a made-up price.';
+      $('factTag').className = 'tag tag-warn';
+      $('factTag').textContent = 'NO DATA';
+      return;
+    }
+
+    document.title = `${d.symbol} · ${d.name} — research journey`;
+    $('eyebrow').textContent = `${d.symbol} · ${(d.exchange || d.cls)}`;
+    $('assetName').textContent = d.name;
+    $('price').textContent = Q.price(d.price, d);
+    $('change').textContent = `${Q.change(d.change, d)} (${Q.pct(d.changePct)})`;
+    $('change').className = 'mono ' + Q.cls(d.changePct);
+    $('sourceLine').textContent = `${d.source} · updated ${Q.ago(d.asOf)}` +
+      (d.quotedAt ? ` · last trade ${new Date(d.quotedAt).toUTCString().slice(5, 22)} UTC` : '');
+
+    $('content').hidden = false;
+    drawChart(d.series);
+    renderStats(d);
+    renderTechnicals(d);
+    renderPeers(d);
+
+    if ((P.watchlist() || []).includes(symbol)) {
+      $('addWatch').textContent = '✓ In your watchlist';
+      $('addWatch').disabled = true;
+    }
+
+    $('disclaimer').textContent = (d.note || '') +
+      ' Recommendations here are research navigation, not investment advice.';
+
+    /* Arriving on a symbol page IS a research step. */
+    if (P.journey().slice(-1)[0] !== d.symbol) {
+      P.pushJourney({ from: P.lastKind() || 'entry', to: 'symbol', rule: 'open_symbol', label: d.symbol });
+      renderTrail();
+    }
+    P.track('symbol_page_opened', { symbol: d.symbol, cls: d.cls, mode: P.mode() });
+  } catch (err) {
+    $('assetName').textContent = symbol;
+    $('loadError').hidden = false;
+    $('loadErrorText').textContent = String(err.message || err);
+  }
+})();
 </script>
 </body>
 </html>
