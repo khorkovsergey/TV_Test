@@ -491,6 +491,7 @@ const server = await (async () => {
     console.log(`  storage: ${db.MODE}${db.MODE === 'memory' ? ' (non-persistent — set DATABASE_URL)' : ''}`);
     console.log(`  AI: ${hasKey() ? MODEL : 'no key set, AI steps will return 503'}`);
     if (!STAFF_TOKEN) console.log('  STAFF_TOKEN not set — internal screens are open');
+    market.warm();          // fills the quote cache before the first visitor asks
   });
 })();
 

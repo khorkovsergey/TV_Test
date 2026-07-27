@@ -33,7 +33,7 @@
     <a href="/experts.html">Experts</a>
   </div>
   <div class="right">
-    <a class="btn btn-secondary" href="/charts.html" style="padding:8px 16px;border-color:var(--tv-blue-line);color:#5B8DFF">Open Supercharts ↗</a>
+    <a class="btn btn-secondary" href="/charts.html" style="padding:8px 16px">Open Supercharts ↗</a>
     <span style="font-size:14px;color:var(--tv-muted)">Sign in</span>
     <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
   </div>
@@ -93,7 +93,7 @@
         <stop offset="100%" stop-color="#089981" stop-opacity="0" id="fillBottom"/></linearGradient></defs>
       <line x1="0" y1="76" x2="820" y2="76" stroke="#1F2430"/><line x1="0" y1="152" x2="820" y2="152" stroke="#1F2430"/><line x1="0" y1="228" x2="820" y2="228" stroke="#1F2430"/><line x1="0" y1="304" x2="820" y2="304" stroke="#1F2430"/><line x1="0" y1="380" x2="820" y2="380" stroke="#1F2430"/>
       <g id="priceLayer"></g>
-      <text x="12" y="26" fill="#787B86" font-family="Consolas,monospace" font-size="12" id="pxLabel">loading…</text>
+      <text x="12" y="26" fill="#787B86" font-family="Consolas,monospace" font-size="12" id="pxLabel"></text>
 
       <!-- Pro adds a second pane. SVG ignores the hidden attribute, so these
            groups are driven by style.display and opacity, not by [hidden]. -->
@@ -195,9 +195,10 @@ async function drawSymbol() {
     $('fillTop').setAttribute('stop-color', colour);
     $('fillBottom').setAttribute('stop-color', colour);
 
-    $('pxLabel').textContent =
-      `${d.symbol} · ${d.name} · ${Q.price(d.price, d)} ${Q.pct(d.changePct)} · ${d.source}`;
-    $('pxLabel').setAttribute('fill', up ? '#089981' : '#F23645');
+    $('pxLabel').textContent = d.isSample
+      ? `${d.symbol} · ${d.name} · ${Q.price(d.price, d)} ${Q.pct(d.changePct)} · SAMPLE — NOT LIVE, snapshot bundled with this build`
+      : `${d.symbol} · ${d.name} · ${Q.price(d.price, d)} ${Q.pct(d.changePct)} · ${d.source}`;
+    $('pxLabel').setAttribute('fill', d.isSample ? '#FF9800' : (up ? '#089981' : '#F23645'));
 
     /* Pro pane: a 5-period average over the same closes and the RSI the symbol
        page shows — the same numbers, computed once on the server. */
@@ -205,11 +206,25 @@ async function drawSymbol() {
     $('smaLine').setAttribute('points',
       sma.map((v, i) => v == null ? null : `${x(i).toFixed(1)},${y(v).toFixed(1)}`).filter(Boolean).join(' '));
 
-    const r = d.technicals?.rsi14;
+    /* The RSI pane is drawn from whatever we have: the live reading when the
+       source answered, otherwise one computed here from the snapshot's own
+       closes — never a stuck placeholder. */
+    let r = d.technicals?.rsi14;
+    if (!Number.isFinite(r) && s.length >= 15) {
+      let g = 0, l = 0;
+      for (let i = s.length - 14; i < s.length; i++) {
+        const diff = s[i] - s[i - 1];
+        if (diff >= 0) g += diff; else l -= diff;
+      }
+      r = l === 0 ? 100 : 100 - 100 / (1 + (g / 14) / (l / 14));
+    }
     if (Number.isFinite(r)) {
       const ry = 452 - (r / 100) * 60;
       $('rsiLine').setAttribute('points', `0,${ry.toFixed(1)} 820,${ry.toFixed(1)}`);
-      $('rsiLabel').textContent = `RSI(14) · ${r.toFixed(1)} — ${d.technicals.rsi_zone || ''}`;
+      $('rsiLabel').textContent = `RSI(14) · ${r.toFixed(1)}` +
+        (d.technicals?.rsi_zone ? ` — ${d.technicals.rsi_zone}` : ' — computed from the bundled snapshot');
+    } else {
+      $('rsiLabel').textContent = 'RSI(14) · not enough history';
     }
 
     /* The side panel shows real quotes for the visitor's own list. */
@@ -354,5 +369,34 @@ renderNextStep();
 P.track('chart_workspace_opened', { symbol, range, compare_count: compare.length, mode: P.mode() });
 drawSymbol();
 </script>
+
+<footer class="portal-footer">
+  <div class="cols" style="grid-template-columns:repeat(3,1fr)">
+    <div class="col"><b>Do</b>
+      <div><a href="/#brief">Today's brief</a></div>
+      <div><a href="/markets.html">Markets</a></div>
+      <div><a href="/screener.html">Screener</a></div>
+      <div><a href="/charts.html">Open Supercharts</a></div>
+    </div>
+    <div class="col"><b>Learn &amp; decide</b>
+      <div><a href="/academy.html">Academy</a></div>
+      <div><a href="/#ideas">Editors' Picks</a></div>
+      <div><a href="/experts.html">Experts</a></div>
+    </div>
+    <div class="col"><b>Company</b>
+      <div><a href="#about-prototype">About this prototype</a></div>
+      <div><span style="color:var(--tv-ghost)">Pricing — not part of the pilot</span></div>
+      <div><span style="color:var(--tv-ghost)">Help centre — not part of the pilot</span></div>
+    </div>
+  </div>
+  <div class="cols" style="margin-top:26px;grid-template-columns:1fr">
+    <div class="disclaimer" id="about-prototype" style="border-top:none;padding-top:0;margin-top:0">
+      Unaffiliated case-study prototype built for an internal product review. Not a real platform,
+      not operated by or endorsed by any company whose branding appears here. Market data is delayed
+      and comes from a free public source; the Experts flow and the Copilot are the only functional
+      services. Nothing here is investment advice.
+    </div>
+  </div>
+</footer>
 </body>
 </html>

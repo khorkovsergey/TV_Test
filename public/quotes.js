@@ -11,26 +11,121 @@ window.Quotes = (function () {
 
   let cached = null;         // { at, data }
   const TTL = 30_000;
+  const BUDGET_MS = 3_000;   // никто не смотрит на «Loading…» дольше трёх секунд
   let inflight = null;
+  let samplePromise = null;
+
+  /* A frozen snapshot shipped with the build. It exists so that a slow or
+     unreachable quote source degrades into numbers that are honestly labelled
+     SAMPLE, instead of a page that sits on "Loading…" indefinitely. */
+  function sample() {
+    if (!samplePromise) {
+      samplePromise = fetch('/assets/quotes-sample.json')
+        .then(r => r.json())
+        .then(d => ({
+          ...d,
+          asOf: d.captured_at,
+          age_ms: Date.now() - new Date(d.captured_at).getTime(),
+          stale: false,
+          isSample: true,
+          ok_count: d.items.length,
+          failed: []
+        }))
+        .catch(() => null);
+    }
+    return samplePromise;
+  }
+
+  /* The live call and a three-second stopwatch race each other. Whoever wins,
+     the page renders; a late live answer still lands in the cache for the next
+     surface that asks. */
+  function withBudget(live, fallback) {
+    return new Promise((resolve, reject) => {
+      let settled = false;
+      /* A null from the fallback is a real answer ("nothing to show"), not a
+         missing one — resolving on truthiness alone would leave the caller
+         waiting forever, which is the exact failure this whole file exists to
+         prevent. */
+      const finish = fn => v => { if (!settled) { settled = true; fn(v); } };
+      const toFallback = () => fallback().then(finish(resolve), finish(reject));
+
+      const timer = setTimeout(() => { if (!settled) toFallback(); }, BUDGET_MS);
+
+      live.then(
+        v => { clearTimeout(timer); finish(resolve)(v); },
+        err => {
+          clearTimeout(timer);
+          // A definitive answer from the server (an unknown symbol) is not a
+          // timeout: pass it through instead of covering it with sample data.
+          if (err && err.fatal) finish(reject)(err);
+          else toFallback();
+        });
+    });
+  }
 
   async function snapshot(force) {
     if (!force && cached && Date.now() - cached.at < TTL) return cached.data;
     if (!inflight) {
       inflight = fetch('/api/markets')
-        .then(r => r.json())
+        .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
         .then(data => { cached = { at: Date.now(), data }; return data; })
         .finally(() => { inflight = null; });
     }
-    return inflight;
+    const data = await withBudget(inflight, sample);
+    if (!data) throw new Error('quotes unavailable and no bundled fallback');
+    return data;
   }
 
+  /* One instrument, with the same budget. The bundled snapshot has no computed
+     technicals, so a sample answer says so rather than showing empty boxes. */
   async function symbol(sym) {
-    const r = await fetch('/api/symbol/' + encodeURIComponent(sym));
-    if (!r.ok) throw new Error((await r.json()).error || 'Symbol not found');
-    return r.json();
+    const live = fetch('/api/symbol/' + encodeURIComponent(sym))
+      .then(async r => {
+        const body = await r.json();
+        if (!r.ok) {
+          const err = new Error(body.error || 'Symbol not found');
+          err.fatal = true;      // the server knows: this ticker does not exist here
+          throw err;
+        }
+        return body;
+      });
+
+    return withBudget(
+      live,
+      async () => {
+        const s = await sample();
+        const item = s?.items.find(i => i.symbol === String(sym).toUpperCase());
+        if (!item) return null;
+        return {
+          ...item, isSample: true, asOf: s.captured_at, source: s.source, note: s.note,
+          technicals: null,
+          peers: s.items.filter(i => i.cls === item.cls && i.symbol !== item.symbol)
+            .sort((a, b) => Math.abs(b.changePct ?? 0) - Math.abs(a.changePct ?? 0)).slice(0, 5)
+        };
+      }
+    ).then(v => {
+      if (!v) throw new Error('quotes unavailable and this symbol is not in the bundled snapshot');
+      return v;
+    });
   }
 
-  const movers = limit => fetch('/api/markets/movers?limit=' + (limit || 6)).then(r => r.json());
+  async function movers(limit) {
+    const n = limit || 6;
+    const live = fetch('/api/markets/movers?limit=' + n)
+      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+
+    return withBudget(live, async () => {
+      const s = await sample();
+      if (!s) return null;
+      const live2 = s.items.filter(i => Number.isFinite(i.changePct));
+      const by = dir => [...live2].sort((a, b) => dir * (a.changePct - b.changePct)).slice(0, n);
+      return {
+        asOf: s.captured_at, source: s.source, stale: false, isSample: true,
+        gainers: by(-1), losers: by(1),
+        biggest_moves: [...live2].sort((a, b) => Math.abs(b.changePct) - Math.abs(a.changePct)).slice(0, n)
+      };
+    });
+  }
 
   /* ------------------------------------------------------------ formatting */
 
@@ -107,6 +202,16 @@ window.Quotes = (function () {
   function sourceLine(snap) {
     if (!snap) return '';
     const failed = (snap.failed || []).length;
+
+    /* The tag is the whole point: a visitor must be able to tell at a glance
+       whether the numbers in front of them came from the market a minute ago
+       or from a snapshot frozen into the build. */
+    if (snap.isSample) {
+      return `<span class="tag tag-warn">SAMPLE · NOT LIVE</span>
+        <span class="mono src">the live quote source did not answer in time — showing the snapshot
+        bundled with this build, taken ${esc(new Date(snap.asOf).toUTCString().slice(5, 22))} UTC</span>`;
+    }
+
     const bits = [
       `<span class="tag tag-fact">FACT · MARKET DATA</span>`,
       `<span class="mono src">${esc(snap.source || 'unknown source')} · updated ${ago(snap.asOf)}</span>`

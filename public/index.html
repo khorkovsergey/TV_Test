@@ -25,12 +25,12 @@
   <div class="menu">
     <a href="/" class="active">Home</a>
     <a href="/markets.html">Markets</a>
-    <a href="#ideas">Ideas</a>
+    <a href="/#ideas">Ideas</a>
     <a href="/academy.html">Academy</a>
     <a href="/experts.html">Experts</a>
   </div>
   <div class="right">
-    <a class="btn btn-secondary" href="/charts.html" data-route="skip_portal" style="padding:8px 16px">Open Supercharts ↗</a>
+    <a class="btn btn-secondary" href="/charts.html" style="padding:8px 16px">Open Supercharts ↗</a>
     <span style="font-size:14px;color:var(--tv-muted)">Sign in</span>
     <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
   </div>
@@ -42,7 +42,7 @@
      below go back to solid black. -->
 <section class="bg-section bg-home">
   <div class="bg-inner" style="max-width:1180px;margin:0 auto;padding:72px 24px 78px">
-    <span class="tag tag-ai" style="white-space:nowrap">BEGINNER MODE · ON</span>
+    <a class="tag tag-ai" href="/academy.html#modePill" style="white-space:nowrap" title="What beginner mode changes">BEGINNER MODE · ON</a>
     <h1 class="tv-h1" style="font-size:44px;max-width:560px;line-height:1.1;margin-top:14px">What do you want to do today?</h1>
     <p class="tv-lead" style="margin-top:14px;max-width:520px;color:#C9CEDA">Pick a task — we set up the data, the chart and the next step. No account needed to start.</p>
   </div>
@@ -99,7 +99,9 @@
         </div>
       </section>
 
-      <div class="tv-card">
+      <!-- Hidden until there is a journey to show: an empty trail with a bare
+           "Continue →" promises a thread the visitor has not started yet. -->
+      <div class="tv-card" id="journeyCard" hidden>
         <div style="font-size:14px;font-weight:700;color:var(--tv-white)">Your research journey</div>
         <div class="trail" style="margin-top:11px" id="trail"></div>
         <button class="next-step" id="continueJourney" style="margin-top:12px"><span id="continueText">Continue</span> <b>→</b></button>
@@ -168,7 +170,24 @@
     <div style="font-size:13px;color:var(--tv-faint);margin-top:8px" id="feedNote">
       Curated for new users by default — with the author's tracked outcome.
     </div>
-    <div class="cards-4" style="grid-template-columns:repeat(3,1fr)" id="ideaCards"></div>
+    <!-- Rendered in the markup, not by script: a nav item points at this
+         module, and an ideas section that needs JavaScript to be non-empty is a
+         dead end for anyone whose script has not run yet. The switcher below
+         replaces these three with the feed the visitor asks for. -->
+    <div class="cards-4" style="grid-template-columns:repeat(3,1fr)" id="ideaCards">
+      <div class="tv-card">
+        <div style="font-size:14.5px;font-weight:700;color:var(--tv-white);line-height:1.35">BTC range structure into FOMC</div>
+        <div class="mono" style="font-size:11px;color:var(--tv-faint);margin-top:8px">@mkt_notes · outcome tracked: 3/5 hit</div>
+      </div>
+      <div class="tv-card">
+        <div style="font-size:14.5px;font-weight:700;color:var(--tv-white);line-height:1.35">Why ETF flows matter more than the halving</div>
+        <div class="mono" style="font-size:11px;color:var(--tv-faint);margin-top:8px">@onchain · outcome tracked: 4/6 hit</div>
+      </div>
+      <div class="tv-card">
+        <div style="font-size:14.5px;font-weight:700;color:var(--tv-white);line-height:1.35">Utilities: the defensive trade, explained</div>
+        <div class="mono" style="font-size:11px;color:var(--tv-faint);margin-top:8px">@macro_view · outcome tracked: 2/3 hit</div>
+      </div>
+    </div>
   </div>
 
   <div class="disclaimer">
@@ -179,21 +198,34 @@
 <!-- Three columns instead of thirty-odd links. Pricing stays reachable here. -->
 <footer class="portal-footer">
   <div class="cols" style="grid-template-columns:repeat(3,1fr)">
-    <div class="col"><b>Do</b><div><a href="#brief">Today's brief</a></div><div><a href="#asset">Research an asset</a></div><div><a href="#events">Events</a></div><div><a href="/charts.html">Open Supercharts</a></div></div>
-    <div class="col"><b>Learn &amp; decide</b><div><a href="/academy.html">Academy</a></div><div><a href="#ideas">Editors' Picks</a></div><div><a href="/experts.html">Experts</a></div></div>
-    <div class="col"><b>Company</b><div>About</div><div>Pricing</div><div>Help center</div></div>
+    <div class="col"><b>Do</b>
+      <div><a href="/#brief">Today's brief</a></div>
+      <div><a href="/markets.html">Markets</a></div>
+      <div><a href="/screener.html">Screener</a></div>
+      <div><a href="/charts.html">Open Supercharts</a></div>
+    </div>
+    <div class="col"><b>Learn &amp; decide</b>
+      <div><a href="/academy.html">Academy</a></div>
+      <div><a href="/#ideas">Editors' Picks</a></div>
+      <div><a href="/experts.html">Experts</a></div>
+    </div>
+    <div class="col"><b>Company</b>
+      <div><a href="#about-prototype">About this prototype</a></div>
+      <div><span style="color:var(--tv-ghost)">Pricing — not part of the pilot</span></div>
+      <div><span style="color:var(--tv-ghost)">Help centre — not part of the pilot</span></div>
+    </div>
   </div>
   <div class="cols" style="margin-top:26px;grid-template-columns:1fr">
-    <div class="disclaimer" style="border-top:none;padding-top:0;margin-top:0">
+    <div class="disclaimer" id="about-prototype" style="border-top:none;padding-top:0;margin-top:0">
       Unaffiliated case-study prototype built for an internal product review. Not a real platform,
-      not operated by or endorsed by any company whose branding appears here. Only the Experts
-      section and the Copilot are functional; everything else is a static placeholder.
-      Not investment advice.
+      not operated by or endorsed by any company whose branding appears here. Market data is delayed
+      and comes from a free public source; the Experts flow and the Copilot are the only functional
+      services. Nothing here is investment advice.
     </div>
   </div>
 </footer>
 
-<div class="variant-note" style="padding-bottom:34px">
+<div class="variant-note" style="padding-bottom:34px;font-size:10px">
   home variant: <b id="variantName">task</b> · <a href="/?home=classic">see the A/B control (the old promo home)</a>
 </div>
 
@@ -279,16 +311,16 @@ $('assetPage').addEventListener('click', () => P.meaningful('asset_research', { 
    suggestion comes from the rule map given the last step. */
 function renderTrail() {
   const labels = P.journey();
-  const next = P.suggestNext();
   const esc = s => String(s).replace(/[<>&]/g, '');
 
-  $('trail').innerHTML = labels.length
-    ? labels.slice(-5).map(l => `<span class="n">${esc(l)}</span>`).join('<span class="a">→</span>')
-    : '<span class="n">nothing yet — pick a task above</span>';
+  /* A fresh visitor has no journey, so the card stays out of the way until the
+     first symbol or market they open creates one. */
+  $('journeyCard').hidden = labels.length === 0;
+  if (!labels.length) return;
 
-  $('continueText').textContent = labels.length
-    ? 'Suggested next: ' + next.label
-    : 'Start with BTCUSD';
+  $('trail').innerHTML =
+    labels.slice(-5).map(l => `<span class="n">${esc(l)}</span>`).join('<span class="a">→</span>');
+  $('continueText').textContent = 'Suggested next: ' + P.suggestNext().label;
 }
 
 $('continueJourney').addEventListener('click', () => {
@@ -307,26 +339,26 @@ const FEEDS = {
     note: "Curated for new users by default — with the author's tracked outcome.",
     items: [
       ['BTC range structure into FOMC', '@mkt_notes · outcome tracked: 3/5 hit'],
-      ['Why ETF flows matter more than the halving', '@onchain · editorial review'],
-      ['Utilities: the defensive trade, explained', '@macro_view · editorial review']
+      ['Why ETF flows matter more than the halving', '@onchain · outcome tracked: 4/6 hit'],
+      ['Utilities: the defensive trade, explained', '@macro_view · outcome tracked: 2/3 hit']
     ]
   },
   popular: {
     tag: 'OPINION · UNREVIEWED',
     note: 'Community feed, ranked by engagement. Headlines are not moderated and outcomes are not tracked.',
     items: [
-      ['Placeholder community post', 'sample_author · 4.2k views'],
-      ['Placeholder community post', 'sample_author · 3.1k views'],
-      ['Placeholder community post', 'sample_author · 2.7k views']
+      ['Gold at a decision point after the CPI print', 'sample_author · 4.2k views · no outcome tracking'],
+      ['Nasdaq: the level everyone is watching', 'sample_author · 3.1k views · no outcome tracking'],
+      ['Three charts on the dollar this week', 'sample_author · 2.7k views · no outcome tracking']
     ]
   },
   newest: {
     tag: 'OPINION · UNREVIEWED',
     note: 'Newest first, unfiltered. Nothing here has been reviewed.',
     items: [
-      ['Placeholder community post', 'sample_author · 2 min ago'],
-      ['Placeholder community post', 'sample_author · 9 min ago'],
-      ['Placeholder community post', 'sample_author · 14 min ago']
+      ['EURUSD into the European session', 'sample_author · 2 min ago · unreviewed'],
+      ['A note on copper and the industrial cycle', 'sample_author · 9 min ago · unreviewed'],
+      ['Bitcoin funding rates, plainly', 'sample_author · 14 min ago · unreviewed']
     ]
   }
 };
@@ -373,11 +405,18 @@ async function loadBrief() {
         <span style="font-size:13px;color:var(--tv-muted);overflow:hidden;text-overflow:ellipsis">${Q.esc(i.name)} · largest move in its class today</span>
       </div>`).join('');
 
-    $('briefSource').textContent = `${snap.source} · updated ${Q.ago(snap.asOf)}` +
-      ((snap.failed || []).length ? ` · ${snap.failed.length} unavailable` : '');
-    if (snap.stale) {
+    if (snap.isSample) {
       $('briefTag').className = 'tag tag-warn';
-      $('briefTag').textContent = 'STALE — last good snapshot';
+      $('briefTag').textContent = 'SAMPLE · NOT LIVE';
+      $('briefSource').textContent =
+        `the live quote source did not answer in time — showing the snapshot bundled with this build, taken ${new Date(snap.asOf).toUTCString().slice(5, 22)} UTC`;
+    } else {
+      $('briefSource').textContent = `${snap.source} · updated ${Q.ago(snap.asOf)}` +
+        ((snap.failed || []).length ? ` · ${snap.failed.length} unavailable` : '');
+      if (snap.stale) {
+        $('briefTag').className = 'tag tag-warn';
+        $('briefTag').textContent = 'STALE — last good snapshot';
+      }
     }
   } catch (err) {
     $('briefRows').innerHTML =

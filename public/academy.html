@@ -30,9 +30,7 @@
   </div>
   <div class="right">
     <a class="btn btn-secondary" href="/charts.html" style="padding:8px 16px">Open Supercharts ↗</a>
-    <span class="mode-pill" id="modePill" title="Interface complexity mode">
-      <span data-mode="beginner">Beginner</span><span data-mode="standard">Standard</span>
-    </span>
+    <span style="font-size:14px;color:var(--tv-muted)">Sign in</span>
     <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
   </div>
 </nav>
@@ -44,6 +42,14 @@
       <h1 class="tv-h1" style="margin-top:8px;">Learn on the live market</h1>
       <p class="tv-lead" style="color:#C9CEDA;">Six short steps on real data and real platform tools:
         from “what is trading” to your first risk-free trade. Advanced features unlock as you progress.</p>
+      <!-- The complexity switch belongs to this page, not to the global header:
+           the top navigation has to look the same everywhere. -->
+      <div class="row mt-16" style="gap:10px;flex-wrap:wrap;align-items:center">
+        <span class="mode-pill" id="modePill" title="Interface complexity mode">
+          <span data-mode="beginner">Beginner</span><span data-mode="standard">Standard</span>
+        </span>
+        <span class="mono" style="font-size:11px;color:#98a0b0">beginner hides advanced tools until you ask for them — the same setting the chart uses</span>
+      </div>
     </div>
   </section>
 
@@ -110,15 +116,30 @@
 </main>
 
 <footer class="portal-footer">
-  <div class="cols" style="grid-template-columns:repeat(3,1fr);">
-    <div class="col"><b>Do</b><div><a href="/#brief">Today's brief</a></div><div><a href="/markets.html">Markets</a></div><div><a href="/screener.html">Screener</a></div><div><a href="/charts.html">Open Supercharts</a></div></div>
-    <div class="col"><b>Learn &amp; decide</b><div><a href="/academy.html">Learning track</a></div><div><a href="/#ideas">Editors' Picks</a></div><div><a href="/experts.html">Experts</a></div></div>
-    <div class="col"><b>Company</b><div>About</div><div>Pricing</div><div>Help center</div></div>
+  <div class="cols" style="grid-template-columns:repeat(3,1fr)">
+    <div class="col"><b>Do</b>
+      <div><a href="/#brief">Today's brief</a></div>
+      <div><a href="/markets.html">Markets</a></div>
+      <div><a href="/screener.html">Screener</a></div>
+      <div><a href="/charts.html">Open Supercharts</a></div>
+    </div>
+    <div class="col"><b>Learn &amp; decide</b>
+      <div><a href="/academy.html">Academy</a></div>
+      <div><a href="/#ideas">Editors' Picks</a></div>
+      <div><a href="/experts.html">Experts</a></div>
+    </div>
+    <div class="col"><b>Company</b>
+      <div><a href="#about-prototype">About this prototype</a></div>
+      <div><span style="color:var(--tv-ghost)">Pricing — not part of the pilot</span></div>
+      <div><span style="color:var(--tv-ghost)">Help centre — not part of the pilot</span></div>
+    </div>
   </div>
-  <div class="cols" style="margin-top:26px;grid-template-columns:1fr;">
-    <div class="disclaimer" style="border-top:none;padding-top:0;margin-top:0;">
-      Unaffiliated case-study prototype built for an internal product review. Not operated by or
-      endorsed by any company whose branding appears here.
+  <div class="cols" style="margin-top:26px;grid-template-columns:1fr">
+    <div class="disclaimer" id="about-prototype" style="border-top:none;padding-top:0;margin-top:0">
+      Unaffiliated case-study prototype built for an internal product review. Not a real platform,
+      not operated by or endorsed by any company whose branding appears here. Market data is delayed
+      and comes from a free public source; the Experts flow and the Copilot are the only functional
+      services. Nothing here is investment advice.
     </div>
   </div>
 </footer>

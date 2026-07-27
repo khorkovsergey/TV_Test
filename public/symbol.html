@@ -33,7 +33,7 @@
     <a href="/experts.html">Experts</a>
   </div>
   <div class="right">
-    <a class="btn btn-secondary" href="/charts.html" id="navChart" style="padding:8px 16px">Open Supercharts ↗</a>
+    <a class="btn btn-secondary" href="/charts.html" style="padding:8px 16px">Open Supercharts ↗</a>
     <span style="font-size:14px;color:var(--tv-muted)">Sign in</span>
     <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
   </div>
@@ -42,11 +42,13 @@
 <main class="tv-page" style="max-width:1180px">
   <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:24px;flex-wrap:wrap">
     <div>
+      <!-- The symbol comes from the URL, so the heading is right before a single
+           byte of market data arrives. Only the numbers wait. -->
       <div class="tv-eyebrow" id="eyebrow">—</div>
-      <h1 class="tv-h1" style="margin-top:6px" id="assetName">Loading…</h1>
+      <h1 class="tv-h1" style="margin-top:6px" id="assetName">—</h1>
       <div class="row" style="margin-top:8px;flex-wrap:wrap;gap:12px">
-        <span class="mono" style="font-size:28px;font-weight:700;color:var(--tv-white)" id="price">—</span>
-        <span class="mono" style="font-size:14px" id="change">—</span>
+        <span class="mono skel" style="font-size:28px;font-weight:700;color:var(--tv-white)" id="price">—</span>
+        <span class="mono skel" style="font-size:14px" id="change">—</span>
         <span class="tag tag-fact" id="factTag">FACT · MARKET DATA</span>
       </div>
       <div class="mono src mt-16" id="sourceLine"></div>
@@ -145,7 +147,14 @@ function lsRaw(k, fallback) {
 const symbol = (params.get('symbol') || lsRaw('active_symbol', '') || 'BTCUSD').toUpperCase();
 try { localStorage.setItem('active_symbol', symbol); } catch {}
 $('openChart').href = '/charts.html?symbol=' + encodeURIComponent(symbol);
-$('navChart').href = '/charts.html?symbol=' + encodeURIComponent(symbol);
+
+/* Paint the shell from the URL immediately — the ticker is knowledge we already
+   have, and a heading that admits to waiting reads as broken even when the page
+   is merely being patient. Only the numbers get a skeleton. */
+document.title = symbol + ' — research journey';
+$('eyebrow').textContent = symbol;
+$('assetName').textContent = symbol;
+$('content').hidden = false;
 
 /* ------------------------------------------------------------- the trail */
 
@@ -220,7 +229,11 @@ function drawChart(series) {
 }
 
 function renderStats(d) {
-  const rp = d.technicals?.range_position;
+  /* The bundled snapshot carries no computed technicals, so the range position
+     is derived here from figures the snapshot does have. */
+  const rp = d.technicals?.range_position ?? (
+    [d.price, d.wk52Low, d.wk52High].every(Number.isFinite) && d.wk52High > d.wk52Low
+      ? (d.price - d.wk52Low) / (d.wk52High - d.wk52Low) : null);
   const cells = [
     ['Day range', Number.isFinite(d.dayLow) && Number.isFinite(d.dayHigh) ? `${Q.price(d.dayLow, d)} – ${Q.price(d.dayHigh, d)}` : '—'],
     ['52-week range', Number.isFinite(d.wk52Low) && Number.isFinite(d.wk52High) ? `${Q.price(d.wk52Low, d)} – ${Q.price(d.wk52High, d)}` : '—'],
@@ -236,7 +249,20 @@ function renderStats(d) {
 }
 
 function renderTechnicals(d) {
-  const t = d.technicals || {};
+  /* No technicals in the bundled snapshot: say so instead of leaving an empty
+     card that reads as a bug. */
+  if (!d.technicals) {
+    $('techTag').className = 'tag tag-warn';
+    $('techTag').textContent = 'UNAVAILABLE';
+    $('technicals').innerHTML =
+      '<div style="color:var(--tv-muted)">Technical readings are computed from live daily closes. ' +
+      'The quote source did not answer in time, so there is nothing here to compute from — ' +
+      'and a reading from stale prices would be worse than none.</div>';
+    $('techNote').textContent = 'Reload in a moment to get the live readings.';
+    return;
+  }
+
+  const t = d.technicals;
   const rows = [];
   if (Number.isFinite(t.sma20)) {
     rows.push([t.above_sma20 ? 'ABOVE' : 'BELOW', t.above_sma20 ? 'var(--tv-green)' : 'var(--tv-red)',
@@ -288,6 +314,7 @@ $('addWatch').addEventListener('click', () => {
   try {
     const d = await Q.symbol(symbol);
     current = d;
+    document.querySelectorAll('.skel').forEach(el => el.classList.remove('skel'));
 
     if (!d.ok) {
       $('assetName').textContent = symbol;
@@ -307,10 +334,17 @@ $('addWatch').addEventListener('click', () => {
     $('price').textContent = Q.price(d.price, d);
     $('change').textContent = `${Q.change(d.change, d)} (${Q.pct(d.changePct)})`;
     $('change').className = 'mono ' + Q.cls(d.changePct);
-    $('sourceLine').textContent = `${d.source} · updated ${Q.ago(d.asOf)}` +
-      (d.quotedAt ? ` · last trade ${new Date(d.quotedAt).toUTCString().slice(5, 22)} UTC` : '');
 
-    $('content').hidden = false;
+    if (d.isSample) {
+      $('factTag').className = 'tag tag-warn';
+      $('factTag').textContent = 'SAMPLE · NOT LIVE';
+      $('sourceLine').textContent =
+        `the live quote source did not answer in time — showing the snapshot bundled with this build, taken ${new Date(d.asOf).toUTCString().slice(5, 22)} UTC`;
+    } else {
+      $('sourceLine').textContent = `${d.source} · updated ${Q.ago(d.asOf)}` +
+        (d.quotedAt ? ` · last trade ${new Date(d.quotedAt).toUTCString().slice(5, 22)} UTC` : '');
+    }
+
     drawChart(d.series);
     renderStats(d);
     renderTechnicals(d);
@@ -337,5 +371,34 @@ $('addWatch').addEventListener('click', () => {
   }
 })();
 </script>
+
+<footer class="portal-footer">
+  <div class="cols" style="grid-template-columns:repeat(3,1fr)">
+    <div class="col"><b>Do</b>
+      <div><a href="/#brief">Today's brief</a></div>
+      <div><a href="/markets.html">Markets</a></div>
+      <div><a href="/screener.html">Screener</a></div>
+      <div><a href="/charts.html">Open Supercharts</a></div>
+    </div>
+    <div class="col"><b>Learn &amp; decide</b>
+      <div><a href="/academy.html">Academy</a></div>
+      <div><a href="/#ideas">Editors' Picks</a></div>
+      <div><a href="/experts.html">Experts</a></div>
+    </div>
+    <div class="col"><b>Company</b>
+      <div><a href="#about-prototype">About this prototype</a></div>
+      <div><span style="color:var(--tv-ghost)">Pricing — not part of the pilot</span></div>
+      <div><span style="color:var(--tv-ghost)">Help centre — not part of the pilot</span></div>
+    </div>
+  </div>
+  <div class="cols" style="margin-top:26px;grid-template-columns:1fr">
+    <div class="disclaimer" id="about-prototype" style="border-top:none;padding-top:0;margin-top:0">
+      Unaffiliated case-study prototype built for an internal product review. Not a real platform,
+      not operated by or endorsed by any company whose branding appears here. Market data is delayed
+      and comes from a free public source; the Experts flow and the Copilot are the only functional
+      services. Nothing here is investment advice.
+    </div>
+  </div>
+</footer>
 </body>
 </html>

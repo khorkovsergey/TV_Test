@@ -25,8 +25,11 @@ const RANGE = 'range=1mo&interval=1d';
 const UA = 'Mozilla/5.0 (compatible; case-study-prototype/1.0)';
 
 const TTL_MS = Number(process.env.MARKET_TTL_MS || 60_000);
-const TIMEOUT_MS = Number(process.env.MARKET_TIMEOUT_MS || 9_000);
-const CONCURRENCY = 12;
+/* Six seconds, not nine: with 49 symbols at a concurrency of 16 the worst case
+   is now about twelve seconds instead of forty-five, which is the difference
+   between a slow page and a page that looks broken. */
+const TIMEOUT_MS = Number(process.env.MARKET_TIMEOUT_MS || 6_000);
+const CONCURRENCY = 16;
 
 /* ---------------------------------------------------------------- universe */
 
@@ -281,6 +284,15 @@ export async function one(sym) {
 }
 
 /* ---------------------------------------------------------------- movers */
+
+/* Warm the cache at boot so the first visitor after a deploy is not the one who
+   pays for forty-nine upstream requests. Failure here is not fatal: the next
+   request will try again. */
+export function warm() {
+  return refresh()
+    .then(c => console.log(`  markets: warmed ${c.items.filter(i => i.ok).length}/${UNIVERSE.length} instruments`))
+    .catch(err => console.log('  markets: warm-up failed, will retry on first request —', err.message));
+}
 
 export async function movers(limit = 6) {
   const snap = await snapshot();
