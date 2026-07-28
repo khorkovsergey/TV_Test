@@ -49,8 +49,24 @@
     { id: 'investor', label: 'Review my investments', desc: 'I already hold instruments', path: 'investor' }
   ];
 
+  /* §12 — the preset changes what is offered FIRST, not what exists. Somebody
+     in Pro already holds instruments and does not need "I write it in a
+     notebook" at the top; somebody in Simple does, and should not have to
+     scroll past a portfolio review to find it. All six stay, in every mode. */
+  const ORDER_BY_MODE = {
+    simple:   ['track', 'where', 'buffer', 'goal', 'savings', 'investor'],
+    standard: ['track', 'where', 'goal', 'buffer', 'savings', 'investor'],
+    pro:      ['investor', 'savings', 'goal', 'buffer', 'where', 'track']
+  };
+
+  function orderedChoices() {
+    const mode = P?.mode?.() || 'simple';
+    const order = ORDER_BY_MODE[mode] || ORDER_BY_MODE.simple;
+    return order.map(id => CHOICES.find(c => c.id === id)).filter(Boolean);
+  }
+
   function paintOnboarding() {
-    $('onboardChoices').innerHTML = CHOICES.map(c => `
+    $('onboardChoices').innerHTML = orderedChoices().map(c => `
       <button type="button" class="tv-card" data-choice="${c.id}"
         style="text-align:left;cursor:pointer;border-color:var(--tv-line);background:var(--tv-ink)">
         <p class="title" style="margin:0">${esc(c.label)}</p>
