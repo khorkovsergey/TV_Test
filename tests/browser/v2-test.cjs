@@ -148,7 +148,14 @@ const stuck = d => /Loading live quotes|Loading…|loading…/.test(visibleText(
     const nav = r.d.querySelector('.portal-nav .menu');
     const right = r.d.querySelector('.portal-nav .right');
     const foot = r.d.querySelector('.portal-footer');
-    navs.add(nav.innerHTML.replace(/ class="active"/g, '').replace(/\s+/g, ' ').trim());
+    /* Активный пункт теперь помечается на любой странице (включая дверь More,
+       когда открыт вытесненный раздел), поэтому из сравнения убираются все
+       маркеры активности, а не одна конкретная форма записи. Смысл проверки
+       прежний: набор пунктов один и тот же везде. */
+    navs.add(nav.innerHTML
+      .replace(/ class="[^"]*"/g, '')
+      .replace(/ aria-expanded="[^"]*"/g, '')
+      .replace(/\s+/g, ' ').trim());
     rights.add(right.innerHTML.replace(/\s+/g, ' ').trim());
     footers.add(foot.innerHTML.replace(/\s+/g, ' ').trim());
     ok(p + ' — Copilot FAB на месте', Boolean(r.d.querySelector('.cp-fab')));
