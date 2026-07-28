@@ -100,7 +100,7 @@ window.Features = (function () {
       problem: 'At some point a person needs a human — and the internet offers them an unlicensed one with a course to sell.',
       solution: 'Advisers matched to country, capital and question, with explicit control over what context is shared and a standardised written result. Licence and jurisdiction are shown on every profile — and in this prototype they are demo records, checked against no registry.',
       audience: 'Anyone who has hit the limit of doing it alone',
-      route: '/community/experts',
+      route: '/capital/experts',
       surfaces: ['home', 'megaMenu', 'commandPalette', 'search', 'assetHub', 'portfolio', 'wealthHub', 'academy', 'copilot', 'whatsNew', 'showcase'],
       related: ['NEW-05', 'NEW-02'],
       metric: 'Matching completed · booking · repeat booking',

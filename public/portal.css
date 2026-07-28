@@ -398,7 +398,7 @@ body[data-ui-mode="pro"]      [data-only~="pro"]{display:revert}
 
 /* Floating showcase control — a demo aid, never part of the product. */
 .sc-fab{position:fixed;left:16px;bottom:16px;z-index:80;display:flex;align-items:center;gap:8px;
-  padding:8px 13px;border-radius:20px;border:1px solid var(--tv-line);background:var(--tv-panel);
+  padding:8px 13px;border-radius:20px;border:1px solid var(--tv-line);background:var(--tv-ink);
   color:var(--tv-muted);font-size:12px;font-weight:600;cursor:pointer;box-shadow:0 6px 22px rgba(0,0,0,.4)}
 .sc-fab:hover{border-color:#2962FF;color:var(--tv-white)}
 .sc-fab.on{border-color:#F7931A;color:#F7931A}
@@ -419,17 +419,20 @@ body[data-ui-mode="pro"]      [data-only~="pro"]{display:revert}
 /* --- Mode comparison dialog (§5.2) --------------------------------------- */
 .mode-switch .mode-cmp{min-width:22px;padding:5px 8px;color:var(--tv-ghost);font-weight:700}
 .mode-switch .mode-cmp:hover{color:var(--tv-white)}
-.mode-cmp-back{position:fixed;inset:0;z-index:9400;background:rgba(6,8,12,.72);
+.mode-cmp-back{position:fixed;inset:0;z-index:9700;background:rgba(6,8,12,.92);
   display:flex;align-items:flex-start;justify-content:center;padding:7vh 16px;overflow-y:auto}
-.mode-cmp-box{width:min(920px,100%);background:var(--tv-panel);border:1px solid var(--tv-line);
-  border-radius:12px;padding:20px 22px;box-shadow:0 24px 70px rgba(0,0,0,.6)}
+.mode-cmp-box{width:min(920px,100%);background:#0E1116;border:1px solid var(--tv-ink-3);
+  border-radius:12px;padding:22px 24px;box-shadow:0 30px 90px rgba(0,0,0,.85);
+  /* The dialog had no opaque surface of its own — the page showed straight
+     through it and the two texts fought each other. */
+  position:relative;isolation:isolate}
 .mode-cmp-box .hd{display:flex;justify-content:space-between;align-items:center;gap:12px}
 .mode-cmp-box .hd b{font-size:17px;color:var(--tv-white)}
 .mode-cmp-box .hd .x{background:none;border:none;color:var(--tv-muted);font-size:16px;cursor:pointer}
 .mode-cmp-box .lead{font-size:13px;color:var(--tv-faint);line-height:1.55;margin:8px 0 0;max-width:64ch}
 .mode-cmp-box .cols{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
-.mode-cmp-box .col{border:1px solid var(--tv-line);border-radius:9px;padding:13px 14px;
-  display:flex;flex-direction:column;gap:6px}
+.mode-cmp-box .col{border:1px solid var(--tv-ink-3);border-radius:9px;padding:14px 15px;
+  background:var(--tv-ink-2);display:flex;flex-direction:column;gap:6px}
 .mode-cmp-box .col.on{border-color:#2962FF;background:rgba(41,98,255,.06)}
 .mode-cmp-box .col b{font-size:14px;color:var(--tv-white)}
 .mode-cmp-box .col .cur{font-family:var(--tv-mono, monospace);font-size:9.5px;color:#5B8DFF;
@@ -438,8 +441,8 @@ body[data-ui-mode="pro"]      [data-only~="pro"]{display:revert}
 .mode-cmp-box .col .tg{font-size:12px;color:var(--tv-faint)}
 .mode-cmp-box .col ul{margin:6px 0 10px;padding-left:16px;font-size:11.5px;color:var(--tv-faint);line-height:1.7}
 .mode-cmp-box .col .btn{margin-top:auto;padding:7px 12px;font-size:12.5px}
-.mode-cmp-box .two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px;
-  border-top:1px solid var(--tv-line);padding-top:14px}
+.mode-cmp-box .two{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:20px;
+  border-top:1px solid var(--tv-ink-3);padding-top:16px}
 .mode-cmp-box .two .h{font-family:var(--tv-mono, monospace);font-size:10px;letter-spacing:.08em;color:var(--tv-ghost)}
 .mode-cmp-box .two ul{margin:8px 0 0;padding-left:16px;font-size:12.5px;color:var(--tv-faint);line-height:1.65}
 @media (max-width:760px){
@@ -459,9 +462,9 @@ body[data-ui-mode="pro"]      [data-only~="pro"]{display:revert}
 
 
 /* --- Alert dialog (§UI-002) ---------------------------------------------- */
-.alert-back{position:fixed;inset:0;z-index:9400;background:rgba(6,8,12,.72);
+.alert-back{position:fixed;inset:0;z-index:9700;background:rgba(6,8,12,.92);
   display:flex;align-items:flex-start;justify-content:center;padding:10vh 16px;overflow-y:auto}
-.alert-box{width:min(520px,100%);background:var(--tv-panel);border:1px solid var(--tv-line);
+.alert-box{width:min(520px,100%);background:#0E1116;border:1px solid var(--tv-ink-3);
   border-radius:12px;padding:20px 22px;box-shadow:0 24px 70px rgba(0,0,0,.6)}
 .alert-box .hd{display:flex;justify-content:space-between;align-items:center;gap:12px}
 .alert-box .hd b{font-size:16px;color:var(--tv-white)}

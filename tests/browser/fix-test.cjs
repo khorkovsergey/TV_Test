@@ -28,7 +28,7 @@ async function open(path, cookie) {
 }
 
 const PAGES = ['/', '/charts', '/symbols/BTCUSD', '/learn/academy', '/learn/academy/lesson',
-               '/community/experts', '/staff', '/metrics'];
+               '/capital/experts', '/staff', '/metrics'];
 
 (async () => {
 
@@ -116,7 +116,7 @@ const PAGES = ['/', '/charts', '/symbols/BTCUSD', '/learn/academy', '/learn/acad
   ok('строки брифа на сплошной поверхности',
      !d.getElementById('brief').classList.contains('bg-section') &&
      [...d.querySelectorAll('.brief-row')].every(r => !r.classList.contains('bg-section')));
-  for (const p of ['/metrics', '/staff', '/charts', '/symbols/BTCUSD', '/community/experts', '/learn/academy/lesson']) {
+  for (const p of ['/metrics', '/staff', '/charts', '/symbols/BTCUSD', '/capital/experts', '/learn/academy/lesson']) {
     const page = await open(p);
     ok(p + ' — без фонов', page.d.querySelectorAll('.bg-section, .bg-card').length === 0);
   }

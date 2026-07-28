@@ -250,7 +250,7 @@ const text = d => d.body.textContent.replace(/\s+/g, ' ');
   const w = await open('/capital/wealth', { wait: 2000 });
   ok('есть конструктор профиля', w.d.querySelectorAll('.wstep').length === 4, String(w.d.querySelectorAll('.wstep').length));
   ok('громко раскрыт статус прототипа', /NOTHING IS CONNECTED|PROTOTYPE/i.test(text(w.d)));
-  ok('есть переход к эксперту', !!w.d.querySelector('[href*="/community/experts"]'));
+  ok('есть переход к эксперту', !!w.d.querySelector('[href*="/capital/experts"]'));
   ok('нет ошибок исполнения', w.events.length === 0, w.events.join(' | '));
 
   /* ------------------------------------------------------------ аналитика */

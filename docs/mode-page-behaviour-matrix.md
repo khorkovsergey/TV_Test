@@ -33,7 +33,7 @@ alone. Measuring the deployed stand afterwards showed what that actually meant:
 
 | Route | Before the follow-up |
 |---|---|
-| `/`, `/screeners`, `/capital/wealth`, `/learn/academy`, `/community/experts`, `/new` | the mode changed **nothing** — padding only |
+| `/`, `/screeners`, `/capital/wealth`, `/learn/academy`, `/capital/experts`, `/new` | the mode changed **nothing** — padding only |
 | `/overview`, `/research`, `/capital`, `/trade`, `/learn`, `/community` | only the number of folded disclosures |
 | **Standard vs Pro** | **identical on 8 of 11 routes** |
 | explaining words | **identical in all three modes, on every page** |

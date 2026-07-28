@@ -28,7 +28,7 @@ export const ROUTES = {
 
   academy:     '/learn/academy',
   lesson:      '/learn/academy/lesson',
-  experts:     '/community/experts',
+  experts:     '/capital/experts',
   rewards:     '/community/rewards',
   wealth:      '/capital/wealth',
   aiPrivate:   '/research/ai-private',
@@ -96,6 +96,9 @@ export const LEGACY = {
   '/academy.html':    ROUTES.academy,
   '/lesson.html':     ROUTES.lesson,
   '/experts.html':    ROUTES.experts,
+  /* The marketplace moved from Community to Capital: it belongs with somebody's
+     money, not with the forum. The old address keeps working. */
+  '/community/experts': ROUTES.experts,
   '/directory.html':  ROUTES.sitemap,
   '/staff.html':      ROUTES.staff,
   '/metrics.html':    ROUTES.metrics,

@@ -365,7 +365,7 @@ async function switchTo(p, mode) {
 
   const ROUTES = ['/', '/overview', '/markets', '/research', '/screeners', '/symbols/BTCUSD',
                   '/charts', '/capital', '/capital/wealth', '/trade', '/learn', '/learn/academy',
-                  '/community', '/community/experts', '/new'];
+                  '/community', '/capital/experts', '/new'];
   for (const path of ROUTES) {
     const sh = {};
     for (const mode of M.LIST) sh[mode] = shape((await open(path, { store: modeStore(mode), wait: 2600 })).d);

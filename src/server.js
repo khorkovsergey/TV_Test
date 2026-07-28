@@ -122,7 +122,7 @@ const send = file => (_req, res) => res.sendFile(path.join(PUBLIC, file));
    route cannot exist in Express and be spelled differently in an API response
    (§ROUTE-001). */
 for (const [route, file] of Object.entries(PAGE_OF)) {
-  if (route === ROUTES.home || route === ROUTES.classic) continue;   // handled by the A/B gate
+  if (route === ROUTES.home) continue;   // the A/B gate decides what `/` serves
   app.get(route, send(file));
 }
 

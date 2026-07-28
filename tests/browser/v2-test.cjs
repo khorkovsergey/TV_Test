@@ -38,7 +38,7 @@ async function open(path, opts = {}) {
 }
 
 const PAGES = ['/', '/markets', '/screeners', '/symbols/BTCUSD',
-               '/charts', '/learn/academy', '/learn/academy/lesson', '/community/experts', '/staff', '/metrics'];
+               '/charts', '/learn/academy', '/learn/academy/lesson', '/capital/experts', '/staff', '/metrics'];
 
 const visibleText = d => {
   const c = d.body.cloneNode(true);

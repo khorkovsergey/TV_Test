@@ -117,6 +117,11 @@
 
   const h = html => { const d = document.createElement('div'); d.innerHTML = html.trim(); return d.firstElementChild; };
 
+  /* Which modifier this visitor's keyboard actually has. Both shortcuts stay
+     bound either way — only the label changes. */
+  const isApple = () => /Mac|iPhone|iPad/i.test(navigator.platform || navigator.userAgent || '');
+  const shortcutLabel = () => (isApple() ? 'Cmd K' : 'Ctrl K');
+
   const badge = it => {
     const bits = [];
     if (it.status !== 'live') bits.push(`<span class="st st-${it.status}" title="${esc(STATUS[it.status].title)}">${STATUS[it.status].label}</span>`);
@@ -543,7 +548,10 @@
     box.setAttribute('role', 'button');
     box.setAttribute('tabindex', '0');
     box.setAttribute('aria-label', 'Search everything. Keyboard shortcut: Control or Command K');
-    if (!box.querySelector('.kbd')) box.appendChild(h('<span class="kbd">⌘K</span>'));
+    /* The ⌘ glyph is missing from Consolas — the first font in the mono stack —
+       so it rendered as a tofu box on Windows. The shortcut is named after the
+       key the visitor actually has: Ctrl on Windows and Linux, Cmd elsewhere. */
+    if (!box.querySelector('.kbd')) box.appendChild(h('<span class="kbd">' + shortcutLabel() + '</span>'));
     box.addEventListener('click', () => openPalette());
     box.addEventListener('keydown', e => {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPalette(); }

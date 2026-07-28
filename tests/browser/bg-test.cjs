@@ -109,7 +109,7 @@ async function open(path) {
   ok('трек из 6 уроков цел', d.querySelectorAll('.lesson').length === 6);
 
   console.log('\n[7] Страницы, которые должны остаться без картинок');
-  for (const p of ['/metrics', '/staff', '/charts', '/symbols/BTCUSD', '/community/experts', '/learn/academy/lesson', '/classic.html']) {
+  for (const p of ['/metrics', '/staff', '/charts', '/symbols/BTCUSD', '/capital/experts', '/learn/academy/lesson', '/classic.html']) {
     const page = await open(p);
     ok(p + ' — без фоновых классов',
        page.d.querySelectorAll('.bg-section, .bg-card').length === 0,

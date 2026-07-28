@@ -6,7 +6,7 @@
    Every destination the real platform offers is listed here once, with where
    it lives, whether this prototype implements it, and the mode from which it
    is worth showing. Five surfaces render from this one structure — the nav
-   panels, the ⌘K palette, the section hubs, the site map and the footer —
+   panels, the Ctrl K palette, the section hubs, the site map and the footer —
    which is the only way "listed once" survives a change.
 
    status: 'live'   — works here
@@ -63,7 +63,7 @@ window.IA = (function () {
       question: 'How do I find, study and check an opportunity?',
       groups: [
         { name: 'Find', items: [
-          D('rs-search', 'Search everything', '/research#search', 'live', 'simple', '⌘K — assets, pages, actions', 'search find command palette'),
+          D('rs-search', 'Search everything', '/research#search', 'live', 'simple', 'Ctrl K — assets, pages, actions', 'search find command palette'),
           D('rs-asset', 'Asset Hub', '/symbols/BTCUSD', 'live', 'simple', 'one page per instrument', 'asset hub symbol instrument ticker'),
           D('rs-screeners', 'Screeners', '/screeners', 'live', 'simple', 'ask the market a question', 'screener filter scan stocks etf bonds crypto'),
           D('rs-maps', 'Market maps', '/markets#heatmap', 'live', 'standard', 'heatmaps by class and sector', 'heatmap map sectors countries')
@@ -94,6 +94,10 @@ window.IA = (function () {
           /* Strategic features open by default at every level (§2.3): a mode
              may change how they are presented, never whether they exist. */
           D('cp-wealth', 'Wealth Hub', '/capital/wealth', 'live', 'simple', 'market assets, cash, deposits, currency', 'wealth hub capital cash deposits savings'),
+          /* The marketplace lives with the money, not with the forum. Somebody
+             looking for a human is looking at their capital, not reading other
+             people's ideas — and Community is where the reading happens. */
+          D('cp-experts', 'Expert Marketplace', '/capital/experts', 'live', 'simple', 'a human adviser, matched to your situation', 'expert consultant advisor marketplace licensed human help'),
           D('cp-goals', 'Goals & scenarios', '/capital#goals', 'pilot', 'standard', 'what changes if the market falls', 'goals scenarios target horizon')
         ]},
         { name: 'Kept', items: [
@@ -157,7 +161,6 @@ window.IA = (function () {
           D('cm-authors', 'Authors', '/community#authors', 'mapped', 'standard', '', 'authors profiles wizards reputation')
         ]},
         { name: 'Ask & win', items: [
-          D('cm-experts', 'Expert Marketplace', '/community/experts', 'live', 'simple', 'a licensed human, matched', 'expert consultant advisor marketplace licensed'),
           D('cm-comp', 'Competitions', '/community#competitions', 'mapped', 'standard', 'The Leap', 'leap competition contest prizes'),
           D('cm-rewards', 'Rewards', '/community/rewards', 'pilot', 'simple', 'one loop: ideas, teaching, referrals', 'rewards referral gift store program points')
         ]}

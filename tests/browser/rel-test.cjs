@@ -29,7 +29,7 @@ const navOf = d => [...d.querySelectorAll('.portal-nav .menu a:not(.nav-panel a)
 const SECTIONS = ['Overview', 'Research', 'Capital', 'Trade', 'Learn', 'Community'];
 const PAGES = ['/', '/overview', '/research', '/capital', '/trade', '/learn', '/community',
                '/markets', '/screeners', '/symbols/BTCUSD', '/charts', '/learn/academy',
-               '/learn/academy/lesson', '/community/experts', '/staff', '/metrics', '/sitemap'];
+               '/learn/academy/lesson', '/capital/experts', '/staff', '/metrics', '/sitemap'];
 
 (async () => {
 
@@ -68,7 +68,7 @@ const PAGES = ['/', '/overview', '/research', '/capital', '/trade', '/learn', '/
   const LEGACY = [['/index.html', '/'], ['/markets.html?cls=crypto', '/markets?cls=crypto'],
     ['/symbol.html?symbol=ETHUSD', '/symbols/ETHUSD'], ['/screener.html', '/screeners'],
     ['/charts.html', '/charts'], ['/academy.html', '/learn/academy'],
-    ['/lesson.html', '/learn/academy/lesson'], ['/experts.html', '/community/experts'],
+    ['/lesson.html', '/learn/academy/lesson'], ['/experts.html', '/capital/experts'],
     ['/directory.html', '/sitemap']];
   for (const [from, to] of LEGACY) {
     const r = await fetch(B + from, { redirect: 'manual' });
@@ -147,7 +147,8 @@ const PAGES = ['/', '/overview', '/research', '/capital', '/trade', '/learn', '/
   }
 
   console.log('\n[Asset Hub]');
-  const ah = await open('/symbols/BTCUSD', { wait: 2500 });
+  // живой запрос котировки: 2.5 с иногда не хватает, и тогда карточка ещё пуста
+  const ah = await open('/symbols/BTCUSD', { wait: 4000 });
   ok('символ взят из пути', ah.d.getElementById('assetName').textContent === 'Bitcoin', ah.d.getElementById('assetName').textContent);
   ok('в Simple пять вкладок открыто сразу', ah.d.querySelectorAll('#hubTabs > [data-tab]').length === 5,
      String(ah.d.querySelectorAll('#hubTabs > [data-tab]').length));
@@ -158,9 +159,17 @@ const PAGES = ['/', '/overview', '/research', '/capital', '/trade', '/learn', '/
   ok('чип события с действием', /FOMC/.test(ah.d.getElementById('eventChip').textContent) &&
      Boolean(ah.d.querySelector('#eventChip [data-act="follow"]')));
   ok('панель действий', ah.d.querySelectorAll('#actionBar a, #actionBar button').length >= 3);
-  ok('рейтинг объяснён, а не сведён к вердикту',
-     /readings are above their reference/.test(ah.d.getElementById('ratingBox').textContent));
-  ok('назван таймфрейм', /Timeframe: daily closes/.test(ah.d.getElementById('ratingBox').textContent));
+  /* §ASSET-003 — «above their reference» ничего не сообщало: непонятно,
+     относительно чего. Теперь названо, что именно меряет каждое чтение. */
+  /* Проверяем смысл, а не вёрстку: перенос строки внутри абзаца не должен
+     ронять тест — на этом уже попались дважды. */
+  const rating = ah.d.getElementById('ratingBox').textContent.replace(/\s+/g, ' ');
+  ok('сводка объяснена, а не сведена к вердикту',
+     /put the current price above the level each one measures/.test(rating), rating.slice(0, 80));
+  ok('названы пороги', /Thresholds: price vs the 5- and 20-day averages/.test(rating));
+  ok('время взято из котировки, а не из часов браузера', /Quote as of/.test(rating));
+
+  ok('назван таймфрейм', /Timeframe: daily closes/.test(rating));
   ok('названы противоречия', /Contradictions:/.test(ah.d.getElementById('ratingBox').textContent));
   ok('сказано, что это не рекомендация', /not a recommendation/.test(ah.d.getElementById('ratingBox').textContent));
   ok('нет голого Buy/Sell', !/\bBuy\b|\bSell\b/.test(ah.d.getElementById('ratingBox').textContent));
@@ -221,7 +230,7 @@ const PAGES = ['/', '/overview', '/research', '/capital', '/trade', '/learn', '/
   ok('первый экран не ведёт в прайсинг', !/Get started|See plans/i.test(home.d.querySelector('main').textContent));
   const ac = await open('/learn/academy', { wait: 1500 });
   ok('Академия: шесть уроков', ac.d.querySelectorAll('.lesson').length === 6);
-  const ex = await open('/community/experts', { wait: 1200 });
+  const ex = await open('/capital/experts', { wait: 1200 });
   ok('Эксперты: форма заявки жива', Boolean(ex.d.getElementById('buildBrief')));
   const mk2 = await open('/markets', { wait: 2500 });
   ok('Рынки: 49 инструментов', mk2.d.querySelectorAll('#rows tr').length === 49,

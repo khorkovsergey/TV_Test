@@ -28,7 +28,7 @@ Community     what do other people think, build and recommend
 | `/charts.html` | `/charts` | move + redirect | lives under Research; the workspace is unchanged |
 | `/academy.html` | `/learn/academy` | move + redirect | lives under Learn |
 | `/lesson.html` | `/learn/academy/lesson` | move + redirect | a step of the track |
-| `/experts.html` | `/community/experts` | move + redirect | the marketplace is community-supplied expertise, per §13.8 |
+| `/experts.html` | `/capital/experts` | move + redirect | the marketplace is community-supplied expertise, per §13.8 |
 | `/staff.html` | `/staff` | preserve | internal, out of the public IA |
 | `/metrics.html` | `/metrics` | preserve | internal |
 | `/directory.html` | `/sitemap` | move + redirect | the map of everything, linked from the footer |

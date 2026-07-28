@@ -161,7 +161,7 @@ const navText = d => [...d.querySelectorAll('.portal-nav .menu a:not(.nav-panel 
 
   console.log('\n[7] Навигация одинакова на всех страницах');
   const NAV = ['Overview', 'Research', 'Capital', 'Trade', 'Learn', 'Community'];
-  for (const p of ['/', '/charts', '/learn/academy', '/learn/academy/lesson', '/community/experts', '/staff', '/metrics']) {
+  for (const p of ['/', '/charts', '/learn/academy', '/learn/academy/lesson', '/capital/experts', '/staff', '/metrics']) {
     store.clear(); session.clear();
     const page = await open(p, 'home_variant=task; tv_seen=1');
     ok(p + ' — 6 пунктов', JSON.stringify(navText(page.d)) === JSON.stringify(NAV), navText(page.d).join(','));
@@ -192,7 +192,7 @@ const navText = d => [...d.querySelectorAll('.portal-nav .menu a:not(.nav-panel 
 
   console.log('\n[9] Контрольный вариант рабочий');
   store.clear(); session.clear();
-  const cl = await open('/classic.html', 'home_variant=classic; tv_seen=1');
+  const cl = await open('/classic', 'home_variant=classic; tv_seen=1');
   ok('старый герой на месте', /Look first/.test(cl.d.body.textContent));
   ok('контроль тоже пишет вариант в события',
      (cl.w.Portal.track('probe', {}), cl.w.Portal.events().slice(-1)[0].home_variant === 'classic'),

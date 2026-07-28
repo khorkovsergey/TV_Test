@@ -55,7 +55,7 @@ destination listed once" survives a change.
 /charts               chart workspace
 /learn/academy        guided track
 /learn/academy/lesson interactive lesson
-/community/experts    Expert Marketplace
+/capital/experts    Expert Marketplace
 /sitemap              every destination with status
 /staff /metrics       internal
 ```
