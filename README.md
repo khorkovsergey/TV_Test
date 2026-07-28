@@ -1,6 +1,6 @@
 # TradingView portal prototype
 
-A case-study prototype of a TradingView-style portal: six sections, three experience presets, a live
+A case-study prototype of a TradingView-style portal: four product domains, three experience presets, a live
 market layer over 49 instruments, an AI research assistant, and eight strategic product bets — of
 which Expert Marketplace is one.
 
@@ -13,7 +13,7 @@ every screen says so.
 
 | | |
 |---|---|
-| Architecture | Six sections — Markets · Research · My Money · Learn · Community · Practice. 98 destinations in the inventory, none of them lost in any mode. |
+| Architecture | Four domains — **Home · Market · Symbols · Economy** — identical in every mode. A mode changes which entries lead a domain's menu, how the page composes and how much is explained; it never changes the domains, the routes or what is reachable. 98 destinations in the inventory, each owned by exactly one domain, none of them lost in any mode. |
 | Experience presets | Simple / Standard / **Professional** are three compositions of one product: which sections lead the menu, what the home page opens with, module order, density, explanation depth, form layout and the Copilot's register. Never access, never the plan — the internal id stays `pro`. |
 | Market layer | 49 instruments, delayed quotes from a public provider, 60-second cache, honest degradation — the last good snapshot survives a provider outage. Historical OHLCV per symbol/interval/range behind its own cache. |
 | AI | Research Copilot on every page; on `/charts` it sees the candle you selected and searches around that session rather than today. Brief, matching and summary in the Expert Marketplace flow. Claude Opus 5. |

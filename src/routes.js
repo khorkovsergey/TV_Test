@@ -20,6 +20,7 @@ export const ROUTES = {
   learn:       '/learn',
   community:   '/community',
 
+  economy:     '/economy',
   markets:     '/markets',
   screeners:   '/screeners',
   charts:      '/charts',
@@ -57,6 +58,7 @@ export const PAGE_OF = {
   [ROUTES.trade]:      'trade.html',
   [ROUTES.learn]:      'learn.html',
   [ROUTES.community]:  'community.html',
+  [ROUTES.economy]:    'economy.html',
   [ROUTES.markets]:    'markets.html',
   [ROUTES.screeners]:  'screener.html',
   [ROUTES.charts]:     'charts.html',
@@ -104,6 +106,7 @@ export const LEGACY = {
   '/trade.html':      ROUTES.trade,
   '/learn.html':      ROUTES.learn,
   '/community.html':  ROUTES.community,
+  '/economy.html':    ROUTES.economy,
   '/markets.html':    ROUTES.markets,
   '/screener.html':   ROUTES.screeners,
   '/screeners.html':  ROUTES.screeners,
@@ -114,7 +117,7 @@ export const LEGACY = {
   /* The marketplace moved from Community to Capital: it belongs with somebody's
      money, not with the forum. The old address keeps working. */
   '/community/experts': ROUTES.experts,
-  /* §3.2 — Capital was abstract and investment-first. The section is My Money
+  /* §3.2 — Capital was abstract and investment-first. The section is My Budget
      now, and it starts with everyday money rather than a portfolio. */
   '/capital':        ROUTES.money,
   '/capital/wealth': ROUTES.money,

@@ -293,8 +293,68 @@ window.IA = (function () {
     };
   }
 
+  /* ------------------------------------------------- four-domain metadata
+
+     The inventory keeps its six legacy sections and all of its destination
+     IDs — the coverage tests, the site map and the showcase read them, and
+     renaming an ID would lose the audit trail for no gain. What is added is
+     the answer to a question the inventory could not previously answer:
+     WHICH OF THE FOUR DOMAINS OWNS THIS.
+
+     Ownership is derived from the URL, not hand-listed, so a destination
+     cannot drift out of sync with where it actually goes. `Navigation.ownerOf`
+     is the same resolver the header and the palette use; the fallback here
+     exists only for the case where `navigation.js` has not loaded. */
+
+  const DOMAINS = [
+    { id: 'home',    label: 'Home',    question: 'What matters to me today and what should I do next?' },
+    { id: 'market',  label: 'Market',  question: 'What is happening across asset classes?' },
+    { id: 'symbols', label: 'Symbols', question: 'What is happening with this instrument?' },
+    { id: 'economy', label: 'Economy', question: 'Which macro indicators and events are moving markets?' }
+  ];
+
+  const FALLBACK_OWNER = [
+    ['/economy', 'economy'], ['/markets', 'market'], ['/screeners', 'market'],
+    ['/symbols', 'symbols'], ['/charts', 'symbols'], ['/research', 'symbols']
+  ];
+
+  function ownerDomain(url) {
+    const path = String(url || '').split('#')[0].split('?')[0] || '/';
+    if (window.Navigation && window.Navigation.ownerOf) {
+      const d = window.Navigation.ownerOf(path);
+      if (d) return d;
+    }
+    for (const [prefix, domain] of FALLBACK_OWNER) if (path.startsWith(prefix)) return domain;
+    return 'home';
+  }
+
+  /* `scope` says what a destination is ABOUT, which is not the same as who
+     owns it: a watchlist is personal but lives under Home, and a screener is
+     market-scoped but is reached from Market. Both are needed — search ranks
+     on scope, navigation groups on owner. */
+  function scopeOf(url) {
+    const path = String(url || '').split('#')[0].split('?')[0] || '/';
+    if (path.startsWith('/economy')) return 'macro';
+    if (path.startsWith('/symbols') || path.startsWith('/charts')) return 'symbol';
+    if (path.startsWith('/markets') || path.startsWith('/screeners')) return 'market';
+    if (path.startsWith('/money') || path.startsWith('/learn') || path.startsWith('/trade')) return 'personal';
+    return 'global';
+  }
+
+  /* Every destination, with its owning domain attached. The inventory itself
+     is untouched; this is a view over it. */
+  const withDomains = () => allItems().map(i =>
+    ({ ...i, ownerDomain: ownerDomain(i.url), scope: scopeOf(i.url) }));
+
+  const byDomain = domainId => withDomains().filter(i => i.ownerDomain === domainId);
+
+  /* The invariant: no destination is silently unowned. */
+  const everyDestinationOwned = () =>
+    withDomains().every(i => DOMAINS.some(d => d.id === i.ownerDomain));
+
   return {
     SECTIONS, MY_SPACE, HOME, FOOTER, ALL_DOORS, ORDER,
+    DOMAINS, ownerDomain, scopeOf, withDomains, byDomain, everyDestinationOwned,
     allItems, menuRows, menuSplit, bySection, counts,
     /* kept so older callers do not break */
     NAV_DOORS: SECTIONS, PANEL_DOORS: SECTIONS, DOORS: ALL_DOORS

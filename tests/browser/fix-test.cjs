@@ -92,16 +92,19 @@ const PAGES = ['/', '/charts', '/symbols/BTCUSD', '/learn/academy', '/learn/acad
        страницах. Эталон берётся с первой страницы прогона. */
     if (!NAV) NAV = nav;
     ok(p + ' — та же навигация, что и везде', JSON.stringify(nav) === JSON.stringify(NAV), nav.join(','));
-    ok(p + ' — Copilot в шапке', /Copilot/.test(page.d.querySelector('.portal-nav .right').textContent));
+    /* Кнопка Copilot убрана из шапки намеренно: поле поиска + кнопка +
+       плавающий виджет — три двери к двум поведениям. Осталась одна дверь,
+       и проверяется теперь именно она. */
+    ok(p + ' — Copilot доступен виджетом', Boolean(page.d.querySelector('.cp-fab')));
     ok(p + ' — переключатель режима в шапке', Boolean(page.d.querySelector('.portal-nav .mode-switch')));
     /* `More` теперь честная дверь для того, что режим вытеснил, — без неё
        обещание «каждый раздел достижим» было бы неправдой. Products как не
        было, так и нет. */
     ok(p + ' — нет Products в шапке', !/Products/.test(page.d.querySelector('.portal-nav').innerHTML));
     ok(p + ' — нет пилюли Get started в шапке', !/Get started/i.test(page.d.querySelector('.portal-nav').textContent));
-    ok(p + ' — подсказка поиска из спеки',
-       page.d.querySelector('.portal-nav .search').textContent.includes('Search or ask: “why is BTC up?”'),
-       page.d.querySelector('.portal-nav .search').textContent.trim());
+    /* Поле поиска убрано со всех страниц: оно умело только прыгать к уже
+       известному адресу, а вопрос без адреса вести было некуда. */
+    ok(p + ' — поля поиска в шапке нет', !page.d.querySelector('.portal-nav .search'));
     ok(p + ' — плашка дисклеймера', Boolean(page.d.querySelector('.mock-strip')));
     ok(p + ' — Copilot смонтирован', Boolean(page.d.querySelector('.cp-fab')));
   }

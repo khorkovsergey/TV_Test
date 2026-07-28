@@ -29,7 +29,7 @@ Both stay. Removing the inventory would lose the case; rendering it as navigatio
 ## Top level
 
 ```
-Markets · Research · My Money · Learn · Community · Practice
+Markets · Research · My Budget · Learn · Community · Practice
 ```
 
 **Overview left the top level.** Home already answers "what is happening now", and having both
@@ -37,7 +37,7 @@ produced Logo → Home → Overview → Today → Market brief as five doors to 
 page stays — three Markets entries point at its sections — it is simply no longer a top-level
 peer of Research.
 
-**Capital became My Money.** "Capital" is an abstract, investment-oriented word for a section whose
+**Capital became My Budget.** "Capital" is an abstract, investment-oriented word for a section whose
 job is to help someone see where their salary went. The strategic name — Personal Wealth Hub —
 stays on the page and in the feature registry.
 
@@ -55,12 +55,12 @@ list of things that do not exist.
 |---|---|
 | Markets | Market overview · Why markets moved · Stocks · Crypto |
 | Research | Find an asset · Screener · Chart · Ask Copilot |
-| My Money | This month · Transactions · Goals · Financial safety |
+| My Budget | This month · Transactions · Goals · Financial safety |
 | Learn | Start here · Personal-finance foundations · Guided Academy · Paper Trading |
 | Community | Editors' Picks · Expert Marketplace · Community Rewards |
 | Practice | Paper Trading · First practice scenario |
 
-**My Money does not open with Watchlists.** That was the old `Capital` order, and it is backwards:
+**My Budget does not open with Watchlists.** That was the old `Capital` order, and it is backwards:
 somebody opening a section about their money is looking at their money, not at instruments they
 follow.
 

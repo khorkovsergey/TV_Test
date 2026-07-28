@@ -1,6 +1,6 @@
 # Phase 5 + 6 — implementation result
 
-P0-A (navigation) and P0-B (My Money) delivered as one change set. What was deliberately not done
+P0-A (navigation) and P0-B (My Budget) delivered as one change set. What was deliberately not done
 is in [`phase-5-remaining-backlog.md`](phase-5-remaining-backlog.md).
 
 ## Global navigation changes
@@ -14,11 +14,11 @@ inventory in which unbuilt tools sat beside working ones as equals, each carryin
 lead somewhere real. `ia.js` stays the inventory and keeps powering the command palette, the site
 map, the showcase and the coverage tests — the places where completeness is the point.
 
-Top level: **Markets · Research · My Money · Learn · Community · Practice**.
+Top level: **Markets · Research · My Budget · Learn · Community · Practice**.
 
 - **Overview** left the top level; Home already did that job. The page stays, because three Markets
   entries point at its sections.
-- **Capital** became **My Money**. "Capital" is an abstract, investment-oriented word for a section
+- **Capital** became **My Budget**. "Capital" is an abstract, investment-oriented word for a section
   whose job is to show where a salary went.
 - **Trade** became **Practice**, because paper trading works and broker connection does not exist.
   It goes back when the real flow has depth.
@@ -43,7 +43,7 @@ Watchlists, alerts, saved research, saved screeners and What's new moved behind 
 `My workspace`. They are things you keep, not a topic — and they were the first thing the old
 `Capital` section showed, ahead of anything about money.
 
-## My Money implementation
+## My Budget implementation
 
 The old hub opened with *"What is invested in markets right now? Stocks & ETFs / Crypto / Bonds"*.
 For the person the case describes — a self-employed trainer with a notebook — that first screen is
@@ -89,7 +89,7 @@ the market narrative.
 
 ## Mode changes
 
-My Money is one data store with three compositions: Simple opens with the month, the ledger and one
+My Budget is one data store with three compositions: Simple opens with the month, the ledger and one
 next step; Standard adds the planning cards; Pro adds the structural view. Folded, never removed,
 and the mode never touches the numbers.
 

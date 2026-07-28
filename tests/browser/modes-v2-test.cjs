@@ -103,14 +103,21 @@ const topMenu = d => [...d.querySelectorAll('.portal-nav .menu > a, .portal-nav 
 
   const N = p.w.Navigation;
 
-  ok('10. Simple ведёт деньгами и обучением',
-    N.topNav('simple').lead.slice(0, 2).map(e => e.label).join() === 'My Money,Learn',
-    N.topNav('simple').lead.map(e => e.label).join(' · '));
+  /* §3.1 — переписано намеренно. Раньше здесь утверждалось, что верхний
+     уровень РАЗНЫЙ в разных режимах: Simple ведёт деньгами, Standard
+     повторяет вчерашние шесть разделов. Именно это и было дефектом —
+     два человека в одном продукте не могли описать его друг другу. Теперь
+     верхний ряд один и тот же, а режим меняет содержимое подменю. */
+  const DOMAIN_ROW = 'Home · Market · Symbols · Economy';
+  const domainRow = m => N.topNav(m).lead
+    .filter(e => e.type === 'section').map(e => e.label).join(' · ');
 
-  ok('11. Standard — сегодняшняя базовая линия без изменений',
-    N.topNav('standard').lead.map(e => e.label).join(' · ')
-      === 'Markets · Research · My Money · Learn · Community · Practice',
-    N.topNav('standard').lead.map(e => e.label).join(' · '));
+  ok('10. четыре домена в Simple', domainRow('simple') === DOMAIN_ROW, domainRow('simple'));
+  ok('11. те же четыре домена в Standard и Professional',
+    domainRow('standard') === DOMAIN_ROW && domainRow('pro') === DOMAIN_ROW,
+    domainRow('standard') + ' / ' + domainRow('pro'));
+  ok('11b. это утверждается самим реестром, а не только тестом',
+    N.domainsAreStable());
 
   ok('12. Professional выводит Screeners и Charts на первый уровень',
     N.topNav('pro').lead.some(e => e.url === '/screeners')
@@ -133,18 +140,20 @@ const topMenu = d => [...d.querySelectorAll('.portal-nav .menu > a, .portal-nav 
     N.SECTIONS.filter(s => N.menu(s.id, 'standard').rows.map(r => r.label).join()
       === N.menu(s.id, 'pro').rows.map(r => r.label).join()).map(s => s.label).join());
 
-  ok('14b. Professional получает Pine, Options и Strategies в первых строках Research',
-    ['Options', 'Strategies & testing', 'Pine'].every(l =>
-      N.menu('research', 'pro').rows.some(r => r.label === l)),
-    N.menu('research', 'pro').rows.map(r => r.label).join(' | '));
+  ok('14b. Professional ведёт Symbols инструментами, а не поиском',
+    ['Chart', 'Options', 'Strategies & Testing', 'Pine'].every(l =>
+      N.menu('symbols', 'pro').rows.some(r => r.label === l)),
+    N.menu('symbols', 'pro').rows.map(r => r.label).join(' | '));
 
-  ok('14c. ни одна запись раздела не потеряна ни в одном режиме',
-    N.SECTIONS.every(s => ['simple', 'standard', 'pro'].every(m => {
-      const r = N.menu(s.id, m);
-      const got = new Set(r.rows.concat(r.more).map(x => x.label));
-      const all = new Set(s.primary.concat(s.more).map(x => x.label));
-      return [...all].every(l => got.has(l));
+  ok('14c. ни одна запись домена не потеряна ни в одном режиме',
+    N.DOMAINS.every(d => ['simple', 'standard', 'pro'].every(m => {
+      const r = N.menu(d.id, m);
+      const got = new Set(r.rows.concat(r.more).map(x => x.id));
+      return d.entries.every(e => got.has(e.id));
     })));
+
+  ok('14d. это утверждается самим реестром',
+    ['simple', 'standard', 'pro'].every(m => N.everyEntryReachable(m)));
 
   /* верхняя панель, отрисованная в браузере */
   const nav = {};
@@ -153,23 +162,40 @@ const topMenu = d => [...d.querySelectorAll('.portal-nav .menu > a, .portal-nav 
     nav[m] = { menu: topMenu(r.d), d: r.d, w: r.w, events: r.events };
   }
 
-  ok('15. верхнее меню действительно перестраивается по режиму',
-    nav.simple.menu.join() !== nav.standard.menu.join()
-    && nav.standard.menu.join() !== nav.pro.menu.join(),
+  /* Перевёрнутое обещание: раньше проверялось, что верхнее меню РАЗНОЕ.
+     Теперь проверяется, что четыре домена одинаковы, а Professional лишь
+     добавляет к ним два ярлыка, не заменяя ни один домен. */
+  const domainsIn = list => list.filter(l => ['Home', 'Market', 'Symbols', 'Economy'].includes(l));
+  ok('15. верхний ряд одинаков во всех трёх режимах',
+    domainsIn(nav.simple.menu).join() === domainsIn(nav.standard.menu).join()
+    && domainsIn(nav.standard.menu).join() === domainsIn(nav.pro.menu).join(),
     JSON.stringify(nav.pro.menu));
 
-  ok('15b. Standard в браузере равен базовой линии',
-    nav.standard.menu.join(' · ')
-      === 'Markets · Research · My Money · Learn · Community · Practice · More');
+  ok('15b. Professional добавляет ярлыки, а не заменяет домены',
+    domainsIn(nav.pro.menu).length === 4 && nav.pro.menu.length > nav.standard.menu.length,
+    JSON.stringify(nav.pro.menu));
 
-  ok('16. вытесненные разделы лежат под More',
+  ok('15c. Standard в браузере — четыре домена и More',
+    nav.standard.menu.join(' · ') === 'Home · Market · Symbols · Economy · More',
+    nav.standard.menu.join(' · '));
+
+  /* More больше не хранит вытесненные домены — вытеснять нечего. Он хранит
+     утилиты, которые доменами никогда и не были. */
+  ok('16. More несёт утилиты, а не домены',
     nav.pro.menu.includes('More')
     && [...nav.pro.d.querySelectorAll('.nav-more .nav-panel a')]
-        .map(a => a.textContent).join().includes('My Money'));
+        .map(a => a.textContent).join().includes('Full site map'));
+
+  ok('16c. личные сервисы достижимы из меню Home во всех режимах',
+    ['simple', 'standard', 'pro'].every(m => {
+      const ids = N.menu('home', m);
+      const seen = new Set(ids.rows.concat(ids.more).map(e => e.id));
+      return ['money', 'learn', 'practice', 'community', 'experts', 'academy'].every(x => seen.has(x));
+    }));
 
   ok('16b. прямой маршрут не получает поддельную мега-панель', (() => {
     const charts = [...nav.pro.d.querySelectorAll('.portal-nav .menu > a')]
-      .find(a => a.textContent.trim() === 'Charts');
+      .find(a => a.textContent.trim() === 'Chart');
     /* Прямой маршрут — просто ссылка в баре: он не обёрнут в .nav-door и
        поэтому физически не может нести мега-панель. */
     return charts && charts.dataset.navType === 'route'
@@ -182,7 +208,8 @@ const topMenu = d => [...d.querySelectorAll('.portal-nav .menu > a, .portal-nav 
     w.Portal.setMode('pro', 'test');
     d.dispatchEvent(new w.CustomEvent('ui-mode-changed', { detail: { to: 'pro' } }));
     const after = topMenu(d).join();
-    return before !== after && after.includes('Screeners');
+    /* Домены не меняются — меняется то, что появляется РЯДОМ с ними. */
+    return before !== after && after.includes('Screener') && after.includes('Home');
   })(), topMenu(nav.simple.d).join(' · '));
 
   ok('17b. статическая разметка остаётся Standard-фолбэком без JS', (() => {
@@ -191,9 +218,12 @@ const topMenu = d => [...d.querySelectorAll('.portal-nav .menu > a, .portal-nav 
   })());
 
   const rawMarkets = await (await fetch(B + '/markets')).text();
-  ok('17c. без JS в разметке по-прежнему шесть разделов Standard',
-    ['Markets', 'Research', 'My Money', 'Learn', 'Community', 'Practice']
+  ok('17c. без JS в разметке четыре домена',
+    ['Home', 'Market', 'Symbols', 'Economy']
       .every(l => rawMarkets.includes('>' + l + '</a>')));
+
+  ok('17d. в шапке больше нет ни поля поиска, ни кнопки Copilot',
+    !rawMarkets.includes('class="search"') && !rawMarkets.includes('askCopilot'));
 
   /* ------------------------------------------- защита текущего пользователя */
 
@@ -282,7 +312,7 @@ const topMenu = d => [...d.querySelectorAll('.portal-nav .menu > a, .portal-nav 
   ok('31. стратегические фичи достижимы во всех режимах',
     ['simple', 'standard', 'pro'].every(m =>
       home[m].d.querySelectorAll('[data-fid], .fcard').length > 0
-      || /Copilot|Academy|My Money/.test(home[m].d.body.textContent)));
+      || /Copilot|Academy|My Budget/.test(home[m].d.body.textContent)));
 
   ok('32. вотчлист не заполняется молча', (() => {
     const store = new Map([['ui_mode', 'standard']]);
@@ -406,9 +436,9 @@ const topMenu = d => [...d.querySelectorAll('.portal-nav .menu > a, .portal-nav 
     });
   })());
 
-  /* ---------------------------------------------- P1: Markets и My Money */
+  /* ---------------------------------------------- P1: Markets и My Budget */
 
-  console.log('\n[P1] Markets и My Money читают матрицу');
+  console.log('\n[P1] Markets и My Budget читают матрицу');
 
   const mk2 = {};
   for (const m of ['simple', 'standard', 'pro']) {
@@ -440,7 +470,7 @@ const topMenu = d => [...d.querySelectorAll('.portal-nav .menu > a, .portal-nav 
       mk2[m].d.querySelectorAll('#rows tr').length)).size === 1,
     ['simple', 'standard', 'pro'].map(m => mk2[m].d.querySelectorAll('#rows tr').length).join(','));
 
-  /* My Money — три композиции. */
+  /* My Budget — три композиции. */
   const seed = JSON.stringify({
     schemaVersion: 1, profile: { onboardingPath: 'notebook', primaryCurrency: 'USD' },
     transactions: [{ id: 't1', type: 'income', amount: 1000, date: new Date().toISOString().slice(0, 10), categoryId: 'salary', accountId: 'a1' }],
@@ -475,7 +505,7 @@ const topMenu = d => [...d.querySelectorAll('.portal-nav .menu > a, .portal-nav 
     new Set(['simple', 'standard', 'pro'].map(m =>
       mn[m].d.getElementById('totals').textContent.replace(/\s+/g, ' '))).size === 1);
 
-  ok('68. ни один модуль My Money не пропал ни в одном режиме', (() => {
+  ok('68. ни один модуль My Budget не пропал ни в одном режиме', (() => {
     const ids = r => new Set([...r.d.querySelectorAll('#dash [data-module-id]')].map(e => e.dataset.moduleId));
     const union = new Set(['simple', 'standard', 'pro'].flatMap(m => [...ids(mn[m])]));
     return ['simple', 'standard', 'pro'].every(m => [...union].every(x => ids(mn[m]).has(x)));
@@ -636,7 +666,7 @@ const topMenu = d => [...d.querySelectorAll('.portal-nav .menu > a, .portal-nav 
 
   /* --------------------------------- P1: подвиды денег и остальные хабы */
 
-  console.log('\n[P1] Подвиды My Money и хабы разделов');
+  console.log('\n[P1] Подвиды My Budget и хабы разделов');
 
   /* §19.4 — восемь маршрутов больше не отдают одну и ту же страницу. */
   const seedV = JSON.stringify({
@@ -837,6 +867,129 @@ const topMenu = d => [...d.querySelectorAll('.portal-nav .menu > a, .portal-nav 
   ok('134. ведущие уроки различаются по режимам',
     acS.d.querySelector('#curCards .tv-card .title').textContent
       !== acP.d.querySelector('#curCards .tv-card .title').textContent);
+
+  /* ------------------------------------- Четыре домена (§28.3, один блок) */
+
+  console.log('\n[IA] Четыре домена и их владение');
+
+  ok('200. реестр объявляет ровно четыре домена',
+    N.TOP_LEVEL_DOMAINS.join(',') === 'home,market,symbols,economy',
+    N.TOP_LEVEL_DOMAINS.join(','));
+
+  ok('201. владелец маршрута разрешается по длиннейшему префиксу',
+    N.ownerOf('/economy') === 'economy' && N.ownerOf('/markets?cls=stocks') === 'market'
+    && N.ownerOf('/symbols/NVDA') === 'symbols' && N.ownerOf('/research/ai-private') === 'symbols'
+    && N.ownerOf('/learn/academy') === 'home' && N.ownerOf('/') === 'home',
+    [N.ownerOf('/economy'), N.ownerOf('/markets'), N.ownerOf('/symbols/NVDA'), N.ownerOf('/')].join('|'));
+
+  ok('202. ни одно назначение инвентаря не осталось без владельца',
+    p.w.IA.everyDestinationOwned());
+
+  ok('203. все 98 назначений инвентаря сохранены',
+    p.w.IA.allItems().length === p.w.IA.withDomains().length
+    && p.w.IA.allItems().length >= 90, String(p.w.IA.allItems().length));
+
+  console.log('\n[IA] Ключевые маршруты достижимы');
+
+  for (const route of ['/', '/economy', '/markets', '/screeners', '/symbols/NVDA',
+                       '/charts', '/money', '/learn', '/community', '/trade',
+                       '/capital/experts', '/research', '/sitemap']) {
+    const r = await fetch(B + route);
+    ok(`204${route}. отвечает 200`, r.status === 200, String(r.status));
+  }
+
+  console.log('\n[Economy] Четвёртый домен');
+
+  const econ = await open('/economy', { mode: 'standard', wait: 2600 });
+  ok('205. страница Economy открывается без ошибок',
+    !econ.events.some(e => e.startsWith('ERR')), econ.events.filter(e => e.startsWith('ERR'))[0]);
+  ok('206. девять модулей на месте',
+    econ.d.querySelectorAll('#econModules [data-module]').length === 9,
+    String(econ.d.querySelectorAll('#econModules [data-module]').length));
+  ok('207. каждый модуль называет свою зрелость',
+    [...econ.d.querySelectorAll('#econModules [data-module]')]
+      .filter(m => m.dataset.module !== 'mapped')
+      .every(m => m.querySelector('.tag')), '');
+  ok('208. непостроенное помечено MAPPED, а не заполнено выдуманными числами',
+    econ.d.querySelectorAll('#econMapped .tag-warn').length === 6,
+    String(econ.d.querySelectorAll('#econMapped .tag-warn').length));
+  ok('209. выбор события переключает затронутые символы', (() => {
+    const cards = [...econ.d.querySelectorAll('[data-event]')];
+    return cards.length === 2 && cards.some(c => c.dataset.event === 'cpi');
+  })());
+  ok('210. адаптер состояния Economy зарегистрирован',
+    (readSrc('public/economy.js').match(/registerStateAdapter\('economy'/g) || []).length === 1);
+
+  const econS = await open('/economy', { mode: 'simple', wait: 2400 });
+  const econP = await open('/economy', { mode: 'pro', wait: 2400 });
+  const firstModule = doc => doc.querySelector('#econModules [data-module]')?.dataset.module;
+  ok('211. Simple ведёт событием, Standard — брифом',
+    firstModule(econS.d) === 'events' && firstModule(econ.d) === 'brief',
+    firstModule(econS.d) + '/' + firstModule(econ.d));
+  ok('212. Professional раскрывает mapped-блок сразу',
+    econP.d.querySelector('#mappedFold')?.open === true);
+
+  console.log('\n[Шапка] Один Copilot, ни одного поля поиска');
+
+  for (const route of ['/', '/markets', '/economy', '/charts']) {
+    const page = await open(route, { mode: 'standard', wait: 1500 });
+    ok(`213${route}. в шапке нет поля поиска`, !page.d.querySelector('.portal-nav .search'));
+    ok(`214${route}. Copilot доступен виджетом`, Boolean(page.d.querySelector('.cp-fab')));
+  }
+
+  const heroPage = await open('/', { mode: 'simple', wait: 1800 });
+  ok('215. на главной есть широкое поле вопроса к Copilot',
+    Boolean(heroPage.d.querySelector('#heroAsk input')));
+  ok('216. подсказки под полем следуют режиму',
+    heroPage.d.querySelectorAll('#heroChips [data-ask]').length === 3,
+    String(heroPage.d.querySelectorAll('#heroChips [data-ask]').length));
+  ok('217. вопрос уходит в Copilot, а не в список результатов', (() => {
+    const w = heroPage.w, d = heroPage.d;
+    let sent = null;
+    w.ResearchCopilot = { open() {}, send(q) { sent = q; }, focusInput() {} };
+    const input = d.querySelector('#heroAsk input');
+    input.value = 'why is BTC up?';
+    d.querySelector('#heroAsk').dispatchEvent(new w.Event('submit', { bubbles: true, cancelable: true }));
+    return sent === 'why is BTC up?';
+  })());
+
+  /* Убрав поле поиска, я заодно убил Ctrl+K на всём сайте: обработчик стоял
+     ЗА `if (!box) return`. Поймал тест, не вычитка. Проверяется теперь на
+     странице, где поля поиска нет и никогда не будет. */
+  const kb = await open('/economy', { mode: 'standard', wait: 1600 });
+  kb.d.dispatchEvent(new kb.w.KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true }));
+  ok('217b. Ctrl+K открывает палитру и без поля поиска',
+    Boolean(kb.d.querySelector('.cmd')));
+
+  console.log('\n[Symbols] Пункт меню может назвать вкладку');
+
+  const tabbed = await open('/symbols/NVDA?tab=technicals', { mode: 'standard', wait: 1800 });
+  ok('218. ?tab= открывает названную вкладку, а не Overview',
+    tabbed.d.querySelector('#hubTabs [data-tab="why"]')?.getAttribute('aria-selected') === 'true',
+    tabbed.d.querySelector('#hubTabs [aria-selected="true"]')?.dataset.tab);
+
+  const badTab = await open('/symbols/NVDA?tab=nonsense', { mode: 'standard', wait: 1800 });
+  ok('219. неизвестная вкладка откатывается к Overview, а не показывает пустоту',
+    badTab.d.querySelector('#hubTabs [data-tab="overview"]')?.getAttribute('aria-selected') === 'true');
+
+  console.log('\n[Research] Переходный каталог называет владельца');
+
+  const res = await open('/research', { mode: 'standard', wait: 1800 });
+  ok('220. каждая карточка каталога называет свой домен',
+    res.d.querySelectorAll('#domainDirectory .tv-card').length >= 12
+    && [...res.d.querySelectorAll('#domainDirectory .tv-card')].every(c => /OWNED BY/.test(c.textContent)),
+    String(res.d.querySelectorAll('#domainDirectory .tv-card').length));
+  ok('221. Research честно назван переходным, а не доменом',
+    /TRANSITIONAL/.test(res.d.body.textContent));
+
+  console.log('\n[Переименование] My Money → My Budget');
+
+  const moneyPage = await open('/money', { mode: 'standard', wait: 1800 });
+  ok('222. раздел называется My Budget', /My Budget/.test(moneyPage.d.body.textContent));
+  ok('223. старое имя не осталось на видном месте',
+    !/My Money/.test(moneyPage.d.body.textContent));
+  ok('224. ключи хранилища не переименованы — данные пережили переименование',
+    readSrc('public/money/store.js').includes('money_store_v1'));
 
   console.log(`\n${pass} ok, ${fail} fail`);
   process.exit(fail ? 1 : 0);

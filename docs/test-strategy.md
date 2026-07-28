@@ -19,7 +19,7 @@ tests/
     mode-test.cjs        197  Simple/Standard/Professional: policy, migration, state, differences
     fix-test.cjs         122  fixes from the earlier fix-prompts
     phase3-test.cjs      118  strategic features: registry, surfaces, honesty
-    money-test.cjs        95  My Money: arithmetic, ladder, the fitness-trainer scenario
+    money-test.cjs        95  My Budget: arithmetic, ladder, the fitness-trainer scenario
     chart-test.cjs        90  candles, selection, chart context, sources, chart actions
     modes-v2-test.cjs    114  three compositions: policy, navigation, home, orchestrator, registers
     home-test.cjs        101  task home, A/B control, funnel

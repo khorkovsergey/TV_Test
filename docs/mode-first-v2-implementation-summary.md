@@ -21,7 +21,7 @@ sentence. `public/mode-orchestrator.js` — reflow with state preservation.
 
 ## Simple experience
 
-Leads with My Money and Learn. Home opens with four guided tasks, money first. Everything else is
+Leads with My Budget and Learn. Home opens with four guided tasks, money first. Everything else is
 one press away under "Show more tasks".
 
 ## Standard experience
@@ -62,9 +62,9 @@ Nine routes, three compositions, all nine reachable in every mode:
 The old `SIMPLE_ROUTES` had three entries while the comment four lines above promised four; the
 "Show 4 more tasks" label was hardcoded. Both are gone — the count is computed.
 
-## Chart, My Money, Copilot, strategic features
+## Chart, My Budget, Copilot, strategic features
 
-Untouched in P0 beyond reading the central profiles. The chart's 90 checks, My Money's 95 and the
+Untouched in P0 beyond reading the central profiles. The chart's 90 checks, My Budget's 95 and the
 14-entry registry are all still green. `TUNE-10`'s maturity is `beta` in every mode — the mode
 changes prominence, never truth.
 
@@ -144,7 +144,7 @@ the filters that are actually set, never invented.
 
 ## P1 closing slice
 
-**The form renderer now runs three real forms.** The Expert Marketplace intake, My Money's Quick
+**The form renderer now runs three real forms.** The Expert Marketplace intake, My Budget's Quick
 Add and the Screener's filters all go through it. In each case the existing markup was kept and
 annotated — the renderer *moves* fields between the body and the folds, so a half-typed enquiry
 survives a mode switch. Nothing was re-authored, and the two consents were deliberately left

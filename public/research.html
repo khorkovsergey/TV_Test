@@ -31,18 +31,14 @@
 
 <nav class="portal-nav">
   <div class="logo"><a href="/"><img src="/assets/tv-logo-white.svg" alt="Platform"></a></div>
-  <div class="search"><svg class="g" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="M11 11l4 4"/></svg>Search or ask: &ldquo;why is BTC up?&rdquo;</div>
   <div class="menu">
-    <a href="/markets">Markets</a>
-    <a href="/research" class="active">Research</a>
-    <a href="/money">My Money</a>
-    <a href="/learn">Learn</a>
-    <a href="/community">Community</a>
-    <a href="/trade">Practice</a>
+    <a href="/" class="active">Home</a>
+    <a href="/markets">Market</a>
+    <a href="/symbols/BTCUSD">Symbols</a>
+    <a href="/economy">Economy</a>
   </div>
   <div class="right">
     <a class="new-launch" href="/new" title="Product innovations — what is new in this prototype">NEW</a>
-    <button type="button" class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
     <button type="button" class="signin-btn" id="signIn"
       title="Accounts are not connected on this prototype">Sign in</button>
     <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
@@ -52,12 +48,31 @@
 <main class="tv-page" style="max-width:1180px">
   <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap">
     <div>
-      <div class="tv-eyebrow">Research</div>
+      <div class="tv-eyebrow">Research · transitional directory</div>
       <h1 class="tv-h1" style="margin-top:8px">How to find, study and check an opportunity</h1>
       <p class="tv-lead" style="margin-top:10px">One search over everything, one page per instrument, one screener, one chart with three presets. The order is the point: find, then study, then check.</p>
     </div>
     <span class="tag tag-ai" id="modeBadge">Simple mode</span>
   </div>
+
+  <!-- §20 — Research is no longer a top-level domain. It is not deleted
+       either: the address is bookmarked, the anchors are linked from a dozen
+       places, and half of what lives here has not yet reached parity on its
+       canonical page. So it becomes a directory that says out loud where each
+       thing belongs, and every card carries its owner. -->
+  <div class="tv-card mt-16" style="border-color:#2A3A5E">
+    <div class="row" style="gap:10px;flex-wrap:wrap;align-items:baseline">
+      <span class="tag tag-warn">TRANSITIONAL</span>
+      <span class="mono" style="font-size:10.5px;color:var(--tv-ghost)">this page is a launcher, not a domain</span>
+    </div>
+    <div style="font-size:13.5px;color:var(--tv-muted);margin-top:10px;line-height:1.6">
+      The portal has four domains — Home, Market, Symbols and Economy. Research is where several of
+      their tools were built before the regrouping, so it stays reachable and every entry below
+      names the domain that owns it. Follow the owner and you land on the canonical page.
+    </div>
+  </div>
+
+  <div id="domainDirectory" class="mt-32"></div>
 
   <div id="modules"></div>
 
@@ -74,6 +89,68 @@
     Market data is delayed and comes from a free public source. Nothing on this page is investment advice.
   </div>
 </main>
+
+<script>
+/* §20 — the four groups, each card naming its canonical owner. Built from the
+   navigation registry rather than hand-listed, so a destination that moves
+   domain moves here too instead of quietly disagreeing with the menu. */
+(function () {
+  const NAV = window.Navigation;
+  const box = document.getElementById('domainDirectory');
+  if (!NAV || !box) return;
+
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  /* What actually lives on, or is reached through, this page. Grouped by the
+     domain that owns each one. */
+  const HERE = [
+    ['Screeners',            '/screeners'],
+    ['Market maps',          '/markets#heatmap'],
+    ['Market overview',      '/markets'],
+    ['Search everything',    '/research#search'],
+    ['Asset Hub',            '/symbols/BTCUSD'],
+    ['Charts',               '/charts'],
+    ['Fundamentals',         '/research#fundamentals'],
+    ['Options & derivatives','/research#options'],
+    ['Strategies & testing', '/research#strategies'],
+    ['Pine',                 '/research#pine'],
+    ['AI Private',           '/research/ai-private'],
+    ['Macro & rates',        '/economy#rates'],
+    ['Economic calendar',    '/economy#events'],
+    ['Why markets moved',    '/economy#why'],
+    ['Saved research',       '/money#saved']
+  ];
+
+  const GROUPS = [
+    ['market',  'Market Research',  'asset classes, screens and maps'],
+    ['symbols', 'Symbols Research', 'one instrument at a time'],
+    ['economy', 'Economy Research', 'events, rates and what they touch'],
+    ['home',    'Personal & saved', 'what you keep, and where you left off']
+  ];
+
+  const owner = url => NAV.ownerOf(String(url).split('#')[0].split('?')[0]);
+
+  box.innerHTML = GROUPS.map(([id, title, sub]) => {
+    const items = HERE.filter(([, url]) => owner(url) === id);
+    if (!items.length) return '';
+    const d = NAV.byId(id);
+    return `<div class="mt-32">
+      <div class="row" style="justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap">
+        <h2 style="font-size:20px;font-weight:700;color:var(--tv-white);margin:0">${esc(title)}</h2>
+        <a class="mono" style="font-size:11px" href="${esc(d ? d.url : '/')}">Open ${esc(d ? d.label : id)} →</a>
+      </div>
+      <div class="mono" style="font-size:10.5px;color:var(--tv-ghost);margin-top:6px">${esc(sub)}</div>
+      <div class="stubs mt-16">${items.map(([label, url]) => `
+        <a class="tv-card" href="${esc(url)}" style="text-decoration:none;display:block">
+          <div class="mono" style="font-size:10px;color:#5B8DFF;letter-spacing:.08em">
+            OWNED BY ${esc((NAV.byId(owner(url)) || {}).label || '')}</div>
+          <p class="title mt-16" style="margin-bottom:0">${esc(label)}</p>
+        </a>`).join('')}</div>
+    </div>`;
+  }).join('');
+})();
+</script>
 
 <footer class="portal-footer">
   <div class="cols" style="grid-template-columns:repeat(6,1fr)">
@@ -131,7 +208,6 @@
 </footer>
 
 <script>
-document.getElementById('askCopilot')?.addEventListener('click', () => document.querySelector('.cp-fab')?.click());
 
 const H = window.Hub, P = window.Portal;
 

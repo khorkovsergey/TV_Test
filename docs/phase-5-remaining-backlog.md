@@ -5,12 +5,12 @@ stated plainly rather than implied as present.
 
 ## P0 items completed
 
-Navigation: separate user-navigation registry · Overview out of the top level · Capital → My Money ·
+Navigation: separate user-navigation registry · Overview out of the top level · Capital → My Budget ·
 workspace behind the profile · no `MAPPED`/`PILOT`/`PRO` in normal menus · Home reduced to three
 tasks with money first · one flagship block instead of eight equal cards · `verified broker` copy
 removed · hardcoded FOMC removed from the task copy.
 
-My Money: versioned data model · Quick Add · income, expense, transfer · monthly overview ·
+My Budget: versioned data model · Quick Add · income, expense, transfer · monthly overview ·
 categories · goals with contribution-based projection · emergency fund · debts · net worth ·
 recurring · export/delete · onboarding that never asks about holdings · `/money` and eight
 sub-routes with 301s from `/capital` and `/capital/wealth` · legacy import with preview ·
@@ -20,7 +20,7 @@ sub-routes with 301s from `/capital` and `/capital/wealth` · legacy import with
 
 **Mobile bottom navigation (§7.3).** The header still renders six sections as a scrollable row at
 narrow widths. `portal.css` has the 720px block from the earlier phase, but a purpose-built bottom
-nav with `Home · Markets · My Money · Research · More` plus a contextual `+` in My Money does not
+nav with `Home · Markets · My Budget · Research · More` plus a contextual `+` in My Budget does not
 exist. This is the largest missing P0 item and the one a phone visitor notices first.
 
 **Permanent prototype strip (§13.4).** Still on every page. Replacing it with a compact header
@@ -38,7 +38,7 @@ localStorage; it should be query-parameter or session-scoped.
 
 ## P1
 
-**My Money depth:** budget envelopes, recurring payments as a real schedule rather than a list, tax
+**My Budget depth:** budget envelopes, recurring payments as a real schedule rather than a list, tax
 reserve as an envelope that fills from selected income, debts with a payoff view, net-worth history
 by month, multi-currency.
 
@@ -55,13 +55,13 @@ still a pilot.
 
 **Tool coherence (§11).** Markets narrative-first, Research task-first, Screener "why this matched",
 Asset Hub hierarchy and a symbol-relevant event chip, chart control maturity, contextual Expert
-Marketplace intake from My Money.
+Marketplace intake from My Budget.
 
 **Shared app shell (§14.1).** Header and footer are still duplicated across 25 pages. Every
 navigation change in this phase was 25 edits — which is exactly how variants appear.
 
 **Page controllers (§14.3).** `index.html`, `symbol.html`, `charts.html`, `screener.html`,
-`markets.html`, `experts.html` and `academy.html` still carry large inline scripts. My Money was
+`markets.html`, `experts.html` and `academy.html` still carry large inline scripts. My Budget was
 built the new way — `public/money/{model,store,page}.js` — as the pattern for the rest. This also
 still blocks a real CSP.
 
@@ -73,7 +73,7 @@ fake door, performance, localisation, analytics dashboards.
 ## Owner actions
 
 **`DATABASE_URL` still does not reach the Railway service.** `/api/system/status` reports
-`storage: memory`. My Money is unaffected — it never leaves the browser — but Expert Marketplace
+`storage: memory`. My Budget is unaffected — it never leaves the browser — but Expert Marketplace
 enquiries are lost on every restart.
 
 **The stand is public and carries brand assets it does not own.** Password-gate or de-brand; the

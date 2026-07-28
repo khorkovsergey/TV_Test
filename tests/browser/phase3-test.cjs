@@ -135,7 +135,7 @@ const text = d => d.body.textContent.replace(/\s+/g, ' ');
 
   await check('assetHub', '/symbols/BTCUSD', p => !!p.d.querySelector('#railCards [data-fid="NEW-07"]'), { wait: 2600 });
   /* §3.2 — раздел переехал: /capital и /capital/wealth ведут на /money.
-     Маркетплейс достижим из My Money через меню раздела. */
+     Маркетплейс достижим из My Budget через меню раздела. */
   await check('money', '/money', p => /Expert Marketplace/.test(p.d.querySelector('.portal-nav').textContent), { wait: 2000 });
   await check('academy', '/learn/academy', p => !!p.d.querySelector('#academyPromos [data-fid="NEW-07"]'), { wait: 2200 });
   await check('whatsNew', '/new', p => !!p.d.querySelector('[data-fid="NEW-07"]'), { wait: 1800 });
@@ -250,7 +250,7 @@ const text = d => d.body.textContent.replace(/\s+/g, ' ');
 
   /* ------------------------------------------------------ Wealth Hub работает */
 
-  console.log('\n[My Money] Работающий сценарий, не макет');
+  console.log('\n[My Budget] Работающий сценарий, не макет');
   const w = await open('/money', { wait: 2000 });
   /* Мастер по активам заменён онбордингом по задаче: продукт больше не
      начинается с вопроса «сколько у вас в акциях» (§10.1). */
@@ -274,8 +274,8 @@ const text = d => d.body.textContent.replace(/\s+/g, ' ');
 
   console.log('\n[Регресс] Прежние гарантии не сломаны');
   const reg = await open('/overview', { wait: 2200 });
-  ok('в навигации по-прежнему шесть разделов',
-     [...reg.d.querySelectorAll('.portal-nav .menu > .nav-door > a')].length === 6,
+  ok('в навигации четыре домена и дверь More',
+     [...reg.d.querySelectorAll('.portal-nav .menu > .nav-door > a')].length === 5,
      String(reg.d.querySelectorAll('.portal-nav .menu > .nav-door > a').length));
   ok('переключатель режимов на месте', reg.d.querySelectorAll('.mode-switch [data-mode]').length === 3);
   ok('витрина не влияет на режим', reg.d.body.dataset.uiMode === 'simple' || !!reg.d.body.dataset.uiMode);

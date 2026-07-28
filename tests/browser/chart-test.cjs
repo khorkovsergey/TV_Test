@@ -289,7 +289,6 @@ const hits = d => [...d.querySelectorAll('.ch-hit')];
 
   /* Каждый путь внутрь должен приводить к открытой вкладке Copilot. */
   for (const [name, act] of [
-    ['кнопка в шапке', () => click(c.w, CD.getElementById('askCopilot'))],
     ['плавающая кнопка', () => click(c.w, CD.querySelector('.cp-fab'))],
     ['программный open', () => c.w.ResearchCopilot.open({ reason: 'test' })]
   ]) {

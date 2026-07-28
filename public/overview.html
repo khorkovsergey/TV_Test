@@ -31,18 +31,14 @@
 
 <nav class="portal-nav">
   <div class="logo"><a href="/"><img src="/assets/tv-logo-white.svg" alt="Platform"></a></div>
-  <div class="search"><svg class="g" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="M11 11l4 4"/></svg>Search or ask: &ldquo;why is BTC up?&rdquo;</div>
   <div class="menu">
-    <a href="/markets" class="active">Markets</a>
-    <a href="/research">Research</a>
-    <a href="/money">My Money</a>
-    <a href="/learn">Learn</a>
-    <a href="/community">Community</a>
-    <a href="/trade">Practice</a>
+    <a href="/" class="active">Home</a>
+    <a href="/markets">Market</a>
+    <a href="/symbols/BTCUSD">Symbols</a>
+    <a href="/economy">Economy</a>
   </div>
   <div class="right">
     <a class="new-launch" href="/new" title="Product innovations — what is new in this prototype">NEW</a>
-    <button type="button" class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
     <button type="button" class="signin-btn" id="signIn"
       title="Accounts are not connected on this prototype">Sign in</button>
     <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
@@ -132,7 +128,6 @@
 </footer>
 
 <script>
-document.getElementById('askCopilot')?.addEventListener('click', () => document.querySelector('.cp-fab')?.click());
 
 const H = window.Hub, Q = window.Quotes, P = window.Portal;
 
@@ -173,6 +168,11 @@ Hub.mount('overview', mode => `
   </div>
 
   <h2 class="mt-32" id="events" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">Events</h2>
+  <!-- §3.2/§21 — Home aggregates the next event; the calendar itself belongs
+       to Economy. Two entries here, the whole domain one link away. -->
+  <div class="row mt-16" style="gap:10px;flex-wrap:wrap">
+    <a class="btn btn-secondary" href="/economy#events" style="padding:8px 14px;font-size:12.5px">Open the Economy calendar →</a>
+  </div>
   <div class="row mt-16" style="gap:10px;flex-wrap:wrap">
     <span class="tag tag-warn">PILOT · STATIC CALENDAR</span>
     <span class="mono src">economic, earnings, dividend and IPO calendars are mapped; the two below are fixed examples</span>
@@ -199,10 +199,10 @@ Hub.mount('overview', mode => `
   </div>
 
   <div class="mt-16">${H.modules(mode, [
-    { id: 'other-calendars', complexity: 2, html: H.pilotCard({ title: 'Other calendars', what: 'Earnings, dividends, IPOs, central-bank decisions, corporate and token events, all filterable by your assets.', actions: [{ label: 'Where they live', url: '/sitemap#overview' }] }) },
+    { id: 'other-calendars', complexity: 2, html: H.pilotCard({ title: 'Other calendars', what: 'Earnings, dividends, IPOs, central-bank decisions, corporate and token events, all filterable by your assets.', actions: [{ label: 'Open the calendars in Economy', url: '/economy#earnings' }] }) },
     { id: 'market-breadth', complexity: 3, html: H.pilotCard({ title: 'Market breadth', what: 'How many instruments are advancing against declining, by class and by sector — the number that says whether one green index is the whole market or one stock.', actions: [{ label: 'See the market map', url: '/markets#heatmap' }], note: 'a professional default: open in Pro, folded elsewhere' }) },
     { id: 'volatility-and-rates-panel', complexity: 3, html: H.pilotCard({ title: 'Volatility and rates panel', what: 'VIX, the yield curve and the dollar in one compact strip, because most single-asset questions are really questions about these three.', actions: [{ label: 'Open rates', url: '/markets?cls=rates' }] }) },
-    { id: 'multi-country-macro-compare', complexity: 3, html: H.pilotCard({ title: 'Multi-country macro compare', what: 'Two or more economies side by side on the same measure, with the release schedule aligned.', actions: [{ label: 'Macro & rates', url: '/research#macro' }] }) }
+    { id: 'multi-country-macro-compare', complexity: 3, html: H.pilotCard({ title: 'Multi-country macro compare', what: 'Two or more economies side by side on the same measure, with the release schedule aligned.', actions: [{ label: 'Compare countries in Economy', url: '/economy#compare' }] }) }
   ], 'overview')}</div>
 `);
 

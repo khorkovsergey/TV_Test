@@ -61,7 +61,7 @@ because Professional, where the two happen to agree, is the mode a developer wor
 cells are now built from the same list, and Simple gains a `Why` column — one link per row into
 the page that explains the drivers.
 
-**My Money has three compositions (GAP-09), and a net-worth module that exists.** `deep.netWorth`
+**My Budget has three compositions (GAP-09), and a net-worth module that exists.** `deep.netWorth`
 was declared and never used, and the model had been computing net worth all along with nothing
 showing it. There is now a module: what you own, what you owe, the difference, and a line saying
 it describes what you entered rather than valuing anything. Simple opens with the month,
@@ -95,7 +95,7 @@ puts labels inline. Applying a profile MOVES fields between containers rather th
 them, so a value being typed survives a mode switch — the state invariant in §27 is the reason the
 renderer exists at all.
 
-**Three pages use it now** — closed. The Expert Marketplace intake, My Money's Quick Add and the
+**Three pages use it now** — closed. The Expert Marketplace intake, My Budget's Quick Add and the
 Screener's filters. In each case the existing markup was annotated rather than re-authored, and
 the two consents stay outside the form: never folded, never stepped past, never preselected.
 
@@ -116,14 +116,14 @@ lesson · persistent chart markers · analytics dashboards.
 ## Tests from §32 not yet written
 
 §32 lists 112 checks; the suite now runs 151, of which the §32 set covers Markets columns,
-Screener composition, Asset Hub tabs, My Money's three compositions and the form profiles. Still
+Screener composition, Asset Hub tabs, My Budget's three compositions and the form profiles. Still
 missing: the chart's mode compositions (62–67), Learn (78–82), Community/Practice (83–91), the
 Copilot's register rendered in a real answer (95–99), and the responsive/accessibility set
 (107–112).
 
 The original count, for the record: 68 existed when this file first said so. The missing ones are the ones that need P1 surfaces to test
 against: Markets columns (34–38), Research and Screener composition (39–46), Asset Hub tabs
-(47–53), the chart's mode compositions (62–67), My Money's three compositions (71–77), Learn
+(47–53), the chart's mode compositions (62–67), My Budget's three compositions (71–77), Learn
 (78–82), Community/Practice/Experts (83–91), the Copilot's register in a real answer (95–99), and
 the responsive/accessibility set (107–112).
 

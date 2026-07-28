@@ -35,18 +35,14 @@
 
 <nav class="portal-nav">
   <div class="logo"><a href="/"><img src="/assets/tv-logo-white.svg" alt="Platform"></a></div>
-  <div class="search"><svg class="g" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="M11 11l4 4"/></svg>Search or ask: &ldquo;why is BTC up?&rdquo;</div>
   <div class="menu">
-    <a href="/markets" class="active">Markets</a>
-    <a href="/research">Research</a>
-    <a href="/money">My Money</a>
-    <a href="/learn">Learn</a>
-    <a href="/community">Community</a>
-    <a href="/trade">Practice</a>
+    <a href="/" class="active">Home</a>
+    <a href="/markets">Market</a>
+    <a href="/symbols/BTCUSD">Symbols</a>
+    <a href="/economy">Economy</a>
   </div>
   <div class="right">
     <a class="new-launch" href="/new" title="Product innovations — what is new in this prototype">NEW</a>
-    <button type="button" class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
     <button type="button" class="signin-btn" id="signIn"
       title="Accounts are not connected on this prototype">Sign in</button>
     <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
@@ -217,7 +213,20 @@ const TABS = [
 
 /* The active tab is page state, not mode state: a switch must not throw the
    visitor back to Overview (§5.3). It is remembered here and restored. */
-let activeTab = 'overview';
+/* §9 — a menu entry may name a tab: /symbols/NVDA?tab=technicals. Without
+   this every Symbols menu row landed on the same view and the person had to
+   find the tab themselves, which is the difference between a menu and a list
+   of links to one page. An unknown tab falls back to Overview rather than
+   showing nothing. */
+const TAB_ALIAS = { technicals: 'why', fundamentals: 'metrics', financials: 'metrics' };
+function requestedTab() {
+  const raw = new URLSearchParams(location.search).get('tab');
+  if (!raw) return null;
+  const id = TAB_ALIAS[raw] || raw;
+  return TABS.some(t => t.id === id) ? id : null;
+}
+
+let activeTab = requestedTab() || 'overview';
 
 /* §17 — the row is composed by the surface matrix, not by this page. The
    matrix decides which tabs lead and in what order; the `min` levels above

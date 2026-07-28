@@ -32,18 +32,14 @@
 <!-- Five sections, no pricing-first CTA, ONE explicit door to the chart workspace. -->
 <nav class="portal-nav">
   <div class="logo"><a href="/"><img src="/assets/tv-logo-white.svg" alt="Platform"></a></div>
-  <div class="search"><svg class="g" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="M11 11l4 4"/></svg>Search or ask: &ldquo;why is BTC up?&rdquo;</div>
   <div class="menu">
-    <a href="/markets">Markets</a>
-    <a href="/research">Research</a>
-    <a href="/money">My Money</a>
-    <a href="/learn">Learn</a>
-    <a href="/community">Community</a>
-    <a href="/trade">Practice</a>
+    <a href="/" class="active">Home</a>
+    <a href="/markets">Market</a>
+    <a href="/symbols/BTCUSD">Symbols</a>
+    <a href="/economy">Economy</a>
   </div>
   <div class="right">
     <a class="new-launch" href="/new" title="Product innovations — what is new in this prototype">NEW</a>
-    <button type="button" class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
     <button type="button" class="signin-btn" id="signIn"
       title="Accounts are not connected on this prototype">Sign in</button>
     <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
@@ -59,6 +55,23 @@
     <a class="tag tag-ai" id="modeChip" href="/learn#modes" style="white-space:nowrap" title="What this mode changes">SIMPLE MODE · ON</a>
     <h1 class="tv-h1" style="font-size:44px;max-width:560px;line-height:1.1;margin-top:14px">What do you want to do today?</h1>
     <p class="tv-lead" style="margin-top:14px;max-width:520px;color:#C9CEDA">Pick a task — we set up the data, the chart and the next step. No account needed to start.</p>
+
+    <!-- The one search on the site. The header used to carry a search field
+         AND a Copilot button AND a floating widget: three doors to two
+         behaviours, and the field could only ever jump to a destination. This
+         box asks the Copilot instead, so a question that has no destination —
+         "why is BTC up?" — has somewhere to go. -->
+    <form class="hero-ask" id="heroAsk" role="search" autocomplete="off">
+      <span class="ha-mark" aria-hidden="true">✦</span>
+      <input type="text" id="heroAskInput" name="q"
+        placeholder="Ask anything: why is BTC up? · what is a P/E? · find dividend payers"
+        aria-label="Ask the Copilot">
+      <button type="submit" class="btn btn-primary" id="heroAskGo">Ask</button>
+    </form>
+    <div class="hero-chips" id="heroChips" aria-label="Example questions"></div>
+    <div class="mono" style="font-size:10.5px;color:#8C93A3;margin-top:10px">
+      answers cite what they used · not investment advice
+    </div>
   </div>
 </section>
 
@@ -82,7 +95,7 @@
     <!-- §9.1 — three primary tasks, and money first. The old first screen
          offered seven equal routes plus a Pro escape hatch; a person who has
          never invested could not tell which one was for them. -->
-    <a class="route" href="/money" data-route="manage_money"><div class="ic">01</div><h3>Manage my money</h3><p>What came in, what went out, what is left — before any market question.</p><div class="go">Open My Money →</div></a>
+    <a class="route" href="/money" data-route="manage_money"><div class="ic">01</div><h3>Manage my money</h3><p>What came in, what went out, what is left — before any market question.</p><div class="go">Open My Budget →</div></a>
     <a class="route" href="#brief" data-route="understand_market"><div class="ic">02</div><h3>Understand the market</h3><p>3 movers, 1 macro event, and why they moved.</p><div class="go">Open the brief ↓</div></a>
     <a class="route" href="/symbols/BTCUSD" data-route="research_asset"><div class="ic">03</div><h3>Research an asset</h3><p>Price → drivers → peers → next event, in one flow.</p><div class="go">Start with BTC →</div></a>
     <a class="route" href="#ideas" data-route="find_idea"><div class="ic">04</div><h3>Find an idea</h3><p>Curated by editors, with the author's track record.</p><div class="go">Editors' picks ↓</div></a>
@@ -780,8 +793,68 @@ document.addEventListener('click', e => {
   }
 });
 
+/* ---------------------------------------------------------- the hero ask
+
+   One door, and it opens the Copilot rather than a result list. A question
+   typed here is sent as a question: the widget answers it, cites what it
+   used, and the answer lands in the same thread the rest of the site writes
+   into — so asking from the front page and asking from a chart are the same
+   conversation, not two.
+
+   The suggestions follow the mode, because what a beginner does not know to
+   ask is exactly what a mode is for. They are examples, never a filter: the
+   field accepts anything. */
+const ASK_EXAMPLES = {
+  simple: ['Why is Bitcoin up today?', 'What is a P/E ratio?', 'Where do I start?'],
+  standard: ['Why is Bitcoin up today?', 'What moved the market this week?', 'Find dividend payers'],
+  pro: ['Breadth vs the index this week', 'Rate-sensitive names into the FOMC', 'What did US10Y do around the last CPI?']
+};
+
+function renderChipsAsk() {
+  const box = document.getElementById('heroChips');
+  if (!box) return;
+  const mode = P.mode();
+  box.innerHTML = (ASK_EXAMPLES[mode] || ASK_EXAMPLES.simple)
+    .map(q => `<button type="button" data-ask="${q.replace(/"/g, '&quot;')}">${q}</button>`).join('');
+}
+
+function ask(question) {
+  const q = String(question || '').trim();
+  if (!q) {
+    /* An empty submit still opens the Copilot — the person pressed the one
+       button on the screen, and answering with nothing would be a dead end. */
+    window.ResearchCopilot?.open({ reason: 'hero_ask_empty' });
+    window.ResearchCopilot?.focusInput?.();
+    return;
+  }
+  P.track('hero_ask_submitted', { mode: P.mode(), length: q.length });
+  P.meaningful?.('copilot_question', { surface: 'home_hero' });
+
+  const send = () => {
+    window.ResearchCopilot.open({ reason: 'hero_ask' });
+    window.ResearchCopilot.send(q);
+    const input = document.getElementById('heroAskInput');
+    if (input) input.value = '';
+  };
+  /* The widget is deferred; asking before it exists must not lose the
+     question. */
+  if (window.ResearchCopilot) send();
+  else document.addEventListener('copilot-ready', send, { once: true });
+}
+
+document.getElementById('heroAsk')?.addEventListener('submit', e => {
+  e.preventDefault();
+  ask(document.getElementById('heroAskInput')?.value);
+});
+document.getElementById('heroChips')?.addEventListener('click', e => {
+  const b = e.target.closest('[data-ask]');
+  if (b) ask(b.dataset.ask);
+});
+document.addEventListener('ui-mode-changed', renderChipsAsk);
+
 renderFeatures();
 renderChips();
+renderChipsAsk();
 renderFeed('editors');
 renderTrail();
 loadBrief();

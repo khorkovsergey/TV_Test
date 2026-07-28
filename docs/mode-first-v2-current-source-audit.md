@@ -76,7 +76,7 @@ Measured, by executing `Navigation.menu()` for each section:
 |---|---|---|---|
 | Markets | 4 | 6 | 6 — **identical to Standard** |
 | Research | 4 | 6 | 6 — **identical to Standard** |
-| My Money | 4 | 6 | 6 — **identical to Standard** |
+| My Budget | 4 | 6 | 6 — **identical to Standard** |
 | Learn | 4 | 6 | 6 — **identical to Standard** |
 | Community | 3 | 5 | 6 |
 | Practice | 2 | 4 | 4 — **identical to Standard** |
@@ -145,7 +145,7 @@ with titles/URLs/relation, factor classification, event markers, comparison, ale
 shared store, saved research, `/api/market/history/:symbol`, server-side context validation.
 90 checks. **Not to be rewritten.**
 
-## Current My Money baseline — preserve
+## Current My Budget baseline — preserve
 
 `/money` + `public/money/{model,store,page}.js`, one versioned key `money_store_v1`, everyday-money
 onboarding, income/expense/transfer, categories, monthly totals, goals, safety, recurring,
@@ -238,6 +238,6 @@ money suites in full.
   The static markup must remain a correct no-JS Standard fallback.
 - **Documentation drift is already real**, and confirmed: README still names the old six sections
   (`Overview · Research · Capital · Trade · Learn · Community`) while the product ships
-  `Markets · Research · My Money · Learn · Community · Practice`; `Modes.KEEPS` promises "the six
+  `Markets · Research · My Budget · Learn · Community · Practice`; `Modes.KEEPS` promises "the six
   sections" while mode-specific top navigation will deliberately differ; `CORE-01` says "Seven
   tasks" and Home has nine.

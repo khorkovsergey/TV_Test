@@ -1,6 +1,6 @@
-# My Money — the product model
+# My Budget — the product model
 
-**Strategic name:** Personal Wealth Hub. **User-facing name:** My Money. Both appear on the page;
+**Strategic name:** Personal Wealth Hub. **User-facing name:** My Budget. Both appear on the page;
 the first is what the case argues for, the second is what a visitor understands.
 
 ## The problem with what was there

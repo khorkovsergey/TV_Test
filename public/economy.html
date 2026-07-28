@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Page not found</title>
+<title>Economy — macro data and events</title>
 <link rel="stylesheet" href="/tv-theme.css">
 <link rel="stylesheet" href="/portal.css">
 <link rel="stylesheet" href="/forms/form.css">
@@ -20,20 +20,21 @@
 <script src="/home.js"></script>
 <script src="/quotes.js"></script>
 <script src="/nav.js"></script>
+<script src="/copilot.js" defer></script>
 </head>
 <body>
 
 <div class="mock-strip">
-  UNAFFILIATED CASE-STUDY MOCKUP &middot; NOT A REAL PLATFORM &middot; NOT INVESTMENT ADVICE
+  UNAFFILIATED CASE-STUDY MOCKUP · NOT A REAL PLATFORM · NOT INVESTMENT ADVICE
 </div>
 
 <nav class="portal-nav">
   <div class="logo"><a href="/"><img src="/assets/tv-logo-white.svg" alt="Platform"></a></div>
   <div class="menu">
-    <a href="/" class="active">Home</a>
+    <a href="/">Home</a>
     <a href="/markets">Market</a>
     <a href="/symbols/BTCUSD">Symbols</a>
-    <a href="/economy">Economy</a>
+    <a href="/economy" class="active">Economy</a>
   </div>
   <div class="right">
     <a class="new-launch" href="/new" title="Product innovations — what is new in this prototype">NEW</a>
@@ -43,26 +44,52 @@
   </div>
 </nav>
 
-<main class="tv-page" style="max-width:820px">
-  <div class="tv-eyebrow">404</div>
-  <h1 class="tv-h1" style="margin-top:8px">That page is not here</h1>
-  <p class="tv-lead" style="margin-top:10px">The address you opened does not match anything on this
-    stand. Usually that is a typo, a link from an older version of the portal, or an instrument this
-    prototype does not carry &mdash; it has 49.</p>
+<main class="tv-page" style="max-width:1180px">
 
-  <div class="mono src mt-16" id="whatYouAsked"></div>
-
-  <div class="row mt-24" style="gap:10px;flex-wrap:wrap">
-    <button type="button" class="btn btn-primary" id="search404" style="padding:9px 16px">Search everything</button>
-    <a class="btn btn-quiet" href="/" style="padding:9px 16px">Home</a>
-    <a class="btn btn-quiet" href="/markets" style="padding:9px 16px">Markets</a>
-    <a class="btn btn-quiet" href="/new" style="padding:9px 16px">Product innovations</a>
-    <a class="btn btn-quiet" href="/sitemap" style="padding:9px 16px">Full site map</a>
-    <button type="button" class="btn btn-quiet" id="back404" style="padding:9px 16px">Previous page</button>
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap">
+    <div>
+      <div class="tv-eyebrow">Economy</div>
+      <h1 class="tv-h1" style="margin-top:8px">What is moving the market from outside it</h1>
+      <p class="tv-lead" style="margin-top:10px" id="econLead"></p>
+    </div>
+    <div class="row" style="gap:10px;flex-wrap:wrap">
+      <a class="btn btn-secondary" href="/markets" style="padding:9px 16px">Open Market →</a>
+      <a class="btn btn-quiet" href="/charts" style="padding:9px 16px">Open a chart</a>
+    </div>
   </div>
 
-  <h2 class="mt-32" style="font-size:20px;font-weight:700;color:var(--tv-white);margin:0">Closest matches</h2>
-  <div class="mt-16" id="guesses" style="display:flex;flex-direction:column;gap:8px"></div>
+  <!-- §19 — one honest line about what this domain can and cannot do,
+       before any module. A reviewer should not have to infer it. -->
+  <div class="row mt-16" style="gap:10px;flex-wrap:wrap">
+    <span class="tag tag-warn">PILOT DOMAIN</span>
+    <span class="mono" style="font-size:10.5px;color:var(--tv-ghost);line-height:1.7">
+      instruments and history are live · the calendar is two fixed examples · no macro data feed is connected
+    </span>
+  </div>
+
+  <!-- Modules are re-ordered by mode, never re-created: each carries its own
+       data-module id and the orchestrator moves the node. -->
+  <div id="econModules">
+    <section data-module="brief"    id="econBrief"     class="mt-32"></section>
+    <section data-module="events"   id="econEvents"    class="mt-32"></section>
+    <section data-module="rates"    id="econRates"     class="mt-32"></section>
+    <section data-module="why"      id="econWhy"       class="mt-32"></section>
+    <section data-module="markets"  id="econMarkets"   class="mt-32"></section>
+    <section data-module="symbols"  id="econSymbols"   class="mt-32"></section>
+    <section data-module="reaction" id="econReaction"  class="mt-32"></section>
+    <section data-module="earnings" id="econEarnings"  class="mt-32"></section>
+    <section data-module="mapped"   id="econMapped"    class="mt-32"></section>
+  </div>
+
+  <div class="mt-32" style="border-top:1px solid var(--tv-line);padding-top:20px">
+    <div class="mono" style="font-size:10.5px;color:var(--tv-ghost);letter-spacing:.08em">CANONICAL OWNERSHIP</div>
+    <div style="font-size:13px;color:var(--tv-muted);margin-top:10px;line-height:1.7">
+      Economy owns the calendars and the macro series. Home shows the next event; Symbols shows the
+      events for one ticker. All three read this domain rather than keeping their own copy — which
+      is why following an event from anywhere lands here.
+    </div>
+  </div>
+
 </main>
 
 <footer class="portal-footer">
@@ -120,33 +147,6 @@
   </div>
 </footer>
 
-<script>
-const asked = location.pathname + location.search;
-document.getElementById('whatYouAsked').textContent = 'you asked for: ' + asked;
-window.Portal?.track?.('not_found', { path: asked, referrer: document.referrer || null });
-
-document.getElementById('search404').addEventListener('click', () => window.PortalNav?.openPalette?.());
-document.getElementById('back404').addEventListener('click',
-  () => history.length > 1 ? history.back() : location.assign('/'));
-
-/* A 404 that only apologises wastes the visit. The whole information
-   architecture is loaded on this page anyway, so it guesses from the same
-   index the command palette searches. */
-const want = asked.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
-const score = i => {
-  const hay = (i.label + ' ' + (i.desc || '') + ' ' + (i.keywords || '') + ' ' + i.url).toLowerCase();
-  return want.split(' ').filter(Boolean).reduce((n, w) => n + (hay.includes(w) ? w.length : 0), 0);
-};
-const guesses = (window.IA?.allItems() || [])
-  .map(i => ({ i, s: score(i) })).filter(x => x.s > 1)
-  .sort((a, b) => b.s - a.s).slice(0, 5).map(x => x.i);
-
-document.getElementById('guesses').innerHTML = guesses.length
-  ? guesses.map(i => '<a class="next-step" href="' + i.url + '"><span>' + i.label +
-      '<span style="display:block;font-size:11.5px;color:var(--tv-faint);margin-top:3px">' +
-      (i.desc || i.url) + '</span></span><b>&rarr;</b></a>').join('')
-  : '<div style="font-size:13px;color:var(--tv-muted)">Nothing here looks close. ' +
-    'The site map lists every destination.</div>';
-</script>
+<script src="/economy.js"></script>
 </body>
 </html>

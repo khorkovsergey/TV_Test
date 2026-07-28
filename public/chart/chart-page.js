@@ -599,13 +599,6 @@
     if (window.ResearchCopilot) mount();
     else document.addEventListener('copilot-ready', mount, { once: true });
 
-    /* The header button exists on every page and was wired on every page but
-       this one — the rewrite dropped it. */
-    $('askCopilot')?.addEventListener('click', () => {
-      panel.show('copilot', 'header');
-      window.ResearchCopilot?.open({ contextPatch: copilotPatch(), reason: 'header' });
-    });
-
     $('advDrawer')?.addEventListener('click', e => {
       if (!e.target.closest('button')) return;
       drawerOpen = !drawerOpen;

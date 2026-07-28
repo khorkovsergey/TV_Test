@@ -139,36 +139,40 @@ async function switchTo(p, mode) {
   const simpleNav = await open('/overview', { store: modeStore('simple'), wait: 2200 });
   // седьмая дверь — «My space» за аватаром, она не раздел
   const panels = [...simpleNav.d.querySelectorAll('.menu .nav-door > .nav-panel')];
-  /* Начиная с mode-first v2 верхний уровень зависит от режима: Simple ведёт
-     пятью разделами, шестая дверь — More, куда уходит вытесненное. */
-  ok('пять секционных панелей и дверь More в Simple',
-     panels.length === 6 && simpleNav.d.querySelector('.nav-more'), String(panels.length));
+  /* Четыре домена плюс дверь More — одинаково во всех режимах. Раньше
+     ожидалось пять разделов плюс More, потому что верхний уровень зависел
+     от режима. */
+  ok('четыре доменные панели и дверь More в Simple',
+     panels.length === 5 && simpleNav.d.querySelector('.nav-more'), String(panels.length));
   ok('в Simple есть дисклоужер More tools', panels.some(p => p.querySelector('.more-tools')));
   const simpleLinks = new Set([...simpleNav.d.querySelectorAll('.nav-panel a[data-ia]')].map(a => a.dataset.ia));
   const proNav = await open('/overview', { store: modeStore('pro'), wait: 2200 });
   const proLinks = new Set([...proNav.d.querySelectorAll('.nav-panel a[data-ia]')].map(a => a.dataset.ia));
   /* Прежняя проверка требовала одинакового набора ссылок в меню всех режимов.
      Это и есть то, что релиз меняет: Professional ведёт Screeners и Charts, а
-     My Money уходит под More вместе со своей панелью. Инвариант перенесён туда,
+     My Budget уходит под More вместе со своей панелью. Инвариант перенесён туда,
      где он остаётся правдой, — в реестр: ни одна запись раздела не теряется ни
      в одном режиме, и каждый раздел достижим. */
   const N = simpleNav.w.Navigation;
-  ok('ни одна запись раздела не потеряна ни в одном режиме',
-     N.SECTIONS.every(sec => M.LIST.every(m => {
-       const r = N.menu(sec.id, m);
-       const got = new Set(r.rows.concat(r.more).map(x => x.label));
-       return sec.primary.concat(sec.more).every(x => got.has(x.label));
+  ok('ни одна запись домена не потеряна ни в одном режиме',
+     N.DOMAINS.every(d => M.LIST.every(m => {
+       const r = N.menu(d.id, m);
+       const got = new Set(r.rows.concat(r.more).map(x => x.id));
+       return d.entries.every(e => got.has(e.id));
      })));
   ok('каждый раздел достижим в каждом режиме',
      M.LIST.every(m => N.everySectionReachable(m)));
-  ok('вытесненное лежит под More, а не пропадает',
+  ok('More несёт утилиты, а не вытесненные домены',
      [...proNav.d.querySelectorAll('.nav-more .nav-panel a')].map(a => a.textContent).join()
-       .includes('My Money'));
+       .includes('Full site map'));
 
   console.log('\n[Стратегические фичи] Видны во всех режимах (§2.3)');
-  /* §3.2 — раздел называется My Money, а пункт меню — «This month»:
-     навигация теперь говорит на языке задач, а не названий фич. */
-  const MUST = ['This month', 'Expert Marketplace', 'Community Rewards', 'Guided Academy', 'Screener'];
+  /* Личные сервисы живут под Home, а не на верхнем уровне: сама фича никуда
+     не делась — изменился её владелец. */
+  /* По идентификаторам, а не по подписям: в Simple «My Budget» называется
+     «Manage my money», и проверка по тексту ловила бы формулировку, а не
+     наличие самой возможности. */
+  const MUST = ['money', 'experts', 'rewards', 'academy', 'screeners'];
   for (const mode of M.LIST) {
     const p = mode === 'simple' ? simpleNav : mode === 'pro' ? proNav : await open('/overview', { store: modeStore('standard'), wait: 2200 });
     /* Раздел, вытесненный режимом под More, не рендерит свою панель — поэтому
@@ -176,12 +180,11 @@ async function switchTo(p, mode) {
        навигации. Утверждение то же самое — «режим не прячет стратегическое», —
        но проверяется не через то, какая панель сейчас открыта. */
     const NAVREG = p.w.Navigation;
-    const labels = NAVREG.SECTIONS.flatMap(sec => {
-      const r = NAVREG.menu(sec.id, mode);
-      return r.rows.concat(r.more).map(x => x.label);
-    }).concat(NAVREG.topNav(mode).lead.concat(NAVREG.topNav(mode).more).map(e => e.label));
-    const hay = labels.join(' | ');
-    const gone = MUST.filter(x => !new RegExp(x, 'i').test(hay));
+    const ids = new Set(NAVREG.DOMAINS.flatMap(d => {
+      const r = NAVREG.menu(d.id, mode);
+      return r.rows.concat(r.more).map(x => x.id);
+    }).concat(NAVREG.topNav(mode).lead.concat(NAVREG.topNav(mode).more).map(e => e.id)));
+    const gone = MUST.filter(x => !ids.has(x));
     ok(`${mode}: ${MUST.length} стратегических пунктов на месте`, gone.length === 0, gone.join(','));
   }
   for (const mode of M.LIST) {
@@ -189,7 +192,7 @@ async function switchTo(p, mode) {
     const ids = [...p.d.querySelectorAll('[data-fid]')].map(a => a.dataset.fid);
     ok(`${mode}: блок инноваций на главной`, ids.length >= 4, ids.join(','));
     ok(`${mode}: Expert Marketplace на главной`, ids.includes('NEW-07'));
-    ok(`${mode}: My Money на главной как флагман`, ids.includes('NEW-05'));
+    ok(`${mode}: My Budget на главной как флагман`, ids.includes('NEW-05'));
   }
   const newPage = {};
   for (const mode of M.LIST) {
@@ -442,9 +445,10 @@ async function switchTo(p, mode) {
        p.d.querySelectorAll('.portal-nav .menu > a, .portal-nav .menu > .nav-door > a').length >= 5
        && Boolean(p.d.querySelector('.nav-more')));
     if (mode === 'standard') {
-      ok('standard: прежние шесть разделов на первом уровне',
-         p.w.Navigation.topNav('standard').lead.map(e => e.label).join(' · ')
-           === 'Markets · Research · My Money · Learn · Community · Practice');
+      ok('standard: четыре домена на первом уровне',
+         p.w.Navigation.topNav('standard').lead
+           .filter(e => e.type === 'section').map(e => e.label).join(' · ')
+           === 'Home · Market · Symbols · Economy');
     }
     ok(`${mode}: без ошибок исполнения`, p.events.length === 0, p.events.join(' | '));
   }

@@ -685,10 +685,22 @@
       }
       list.innerHTML = (q ? '' : '<div class="grp">ACTIONS AND WORKING PAGES</div>') +
         results.map((i, n) => `<div class="row ${n === 0 ? 'on' : ''}" data-n="${n}">
-          <span class="where">${esc(i.door)}</span>
+          <span class="where">${esc(domainOf(i) || i.door)}</span>
           <span class="lbl">${esc(i.label)} ${badge(i)}</span>
           <span class="d">${esc(i.desc || i.group || '')}</span>
         </div>`).join('');
+    }
+
+    /* §22 — every result says which of the four domains owns it, so a person
+       reading the list learns the architecture while using it. The old `door`
+       was the inventory section the entry came from, which is internal
+       vocabulary the visitor never sees anywhere else. */
+    function domainOf(item) {
+      const NAV = window.Navigation;
+      if (!NAV || !NAV.ownerLabel) return null;
+      const url = item && item.url;
+      if (!url) return null;
+      return NAV.ownerLabel(String(url).split('#')[0].split('?')[0]);
     }
 
     function move(delta) {
@@ -742,6 +754,20 @@
   }
 
   function wireSearch() {
+    /* The keyboard shortcut is registered FIRST and unconditionally. It used
+       to live behind `if (!box) return` — so when the header's search field
+       was removed, Ctrl/Cmd+K silently stopped working on every page. The
+       palette is not the field: the field was one way in, and now it is not
+       the only one that has to survive.
+
+       Caught by a test, not by reading the diff. */
+    document.addEventListener('keydown', e => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); openPalette(); }
+      if (e.key === '/' && !/^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName)) { e.preventDefault(); openPalette(); }
+    });
+
+    /* The field itself is gone from the header in this release. The wiring is
+       kept for any surface that still renders one. */
     const box = document.querySelector('.portal-nav .search');
     if (!box) return;
     box.setAttribute('role', 'button');
@@ -754,10 +780,6 @@
     box.addEventListener('click', () => openPalette());
     box.addEventListener('keydown', e => {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPalette(); }
-    });
-    document.addEventListener('keydown', e => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); openPalette(); }
-      if (e.key === '/' && !/^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName)) { e.preventDefault(); openPalette(); }
     });
   }
 

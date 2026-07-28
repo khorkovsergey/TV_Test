@@ -1,5 +1,5 @@
 /* =========================================================================
-   My Money — the page controller.
+   My Budget — the page controller.
 
    Extracted rather than inlined (§14.3): the old wealth.html carried 613
    lines and 81 inline styles in the document, which could not be tested and

@@ -40,11 +40,11 @@ the part that is still true and still matters:
 ## Who each mode is for
 
 **Somebody new.** Needs to understand what the platform is for, see a handful of comprehensible
-actions, have terms explained, and learn on real objects. Simple leads with My Money and Learn
+actions, have terms explained, and learn on real objects. Simple leads with My Budget and Learn
 because both can be acted on today without a market opinion.
 
 **Somebody with capital but no market experience.** Starts from their own financial situation,
-then liquidity and goals, then instrument classes. My Money → Academy → Practice → research.
+then liquidity and goals, then instrument classes. My Budget → Academy → Practice → research.
 Simple or Standard.
 
 **A current TradingView user.** Must not lose anything. Standard is byte-for-byte the menu and

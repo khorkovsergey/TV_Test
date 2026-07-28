@@ -54,7 +54,9 @@ const navOf = d => [...d.querySelectorAll('.portal-nav .menu a:not(.nav-panel a)
 
 
 
-const SECTIONS = ['Markets', 'Research', 'My Money', 'Learn', 'Community', 'Practice'];
+/* Четыре домена вместо шести смешанных разделов. Верхний уровень перестал
+   зависеть от режима — именно это и было целью релиза. */
+const SECTIONS = ['Home', 'Market', 'Symbols', 'Economy'];
 
 const PAGES = ['/', '/overview', '/research', '/money', '/trade', '/learn', '/community',
 
@@ -91,8 +93,9 @@ const PAGES = ['/', '/overview', '/research', '/money', '/trade', '/learn', '/co
   /* Верхнее меню больше не одинаково во всех режимах — это и есть суть
      mode-first v2. Проверяем то, что осталось обещанием: Standard равен
      вчерашней базовой линии, а из любого режима достижим каждый раздел. */
-  ok('Standard — прежние шесть разделов',
-     JSON.stringify(hub.w.Navigation.topNav('standard').lead.map(e => e.label)) === JSON.stringify(SECTIONS),
+  ok('те же четыре домена в Standard',
+     JSON.stringify(hub.w.Navigation.topNav('standard').lead
+       .filter(e => e.type === 'section').map(e => e.label)) === JSON.stringify(SECTIONS),
      hub.w.Navigation.topNav('standard').lead.map(e => e.label).join(','));
 
   ok('из любого режима достижим каждый раздел',
@@ -222,9 +225,9 @@ const PAGES = ['/', '/overview', '/research', '/money', '/trade', '/learn', '/co
 
   console.log('\n[Меню] Карта, а не указатель');
 
-  ok('панели у всех шести дверей',
+  ok('панели у всех четырёх доменов плюс дверь More',
 
-     home.d.querySelectorAll('.portal-nav .menu .nav-panel').length === 6,
+     home.d.querySelectorAll('.portal-nav .menu .nav-panel').length === 5,
 
      String(home.d.querySelectorAll('.portal-nav .menu .nav-panel').length));
 
@@ -258,11 +261,11 @@ const PAGES = ['/', '/overview', '/research', '/money', '/trade', '/learn', '/co
 
   /* Меню открывается нажатием на название раздела, а не на микро-стрелку. */
 
-  /* Именно Markets: в Simple первой дверью идёт My Money, и проверять
+  /* Именно Markets: в Simple первой дверью идёт My Budget, и проверять
      «название осталось чистым» на случайной первой двери — значит проверять
      порядок, а не название. */
   const doorLink = [...home.d.querySelectorAll('.nav-door > a')]
-    .find(a => a.textContent.trim() === 'Markets')
+    .find(a => a.textContent.trim() === 'Home')
     || home.d.querySelector('.nav-door > a');
 
   ok('название раздела — цель для клика', doorLink.getAttribute('aria-haspopup') === 'true');
@@ -283,7 +286,7 @@ const PAGES = ['/', '/overview', '/research', '/money', '/trade', '/learn', '/co
 
   ok('отдельной кнопки-каретки больше нет', home.d.querySelectorAll('.nav-caret').length === 0);
 
-  ok('название пункта осталось чистым', doorLink.textContent.trim() === 'Markets', doorLink.textContent);
+  ok('название пункта осталось чистым', doorLink.textContent.trim() === 'Home', doorLink.textContent);
 
   /* Клик с модификатором обязан вести в раздел, а не открывать меню. */
 
@@ -409,7 +412,7 @@ const PAGES = ['/', '/overview', '/research', '/money', '/trade', '/learn', '/co
 
 
 
-  console.log('\n[My Money] Живое, а не обещанное');
+  console.log('\n[My Budget] Живое, а не обещанное');
 
   const capStore = new Map([['watchlist', JSON.stringify(['BTCUSD', 'AAPL'])]]);
 
@@ -435,7 +438,10 @@ const PAGES = ['/', '/overview', '/research', '/money', '/trade', '/learn', '/co
 
   console.log('\n[Палитра] Поиск и действия');
 
-  click(home.w, home.d.querySelector('.portal-nav .search'));
+  /* Поле поиска убрано из шапки: вопрос теперь задают виджету Copilot, а
+     палитра осталась клавиатурным ярлыком. Открываем её так, как её теперь
+     открывает человек. */
+  home.d.dispatchEvent(new home.w.KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true }));
 
   const cmd = home.d.querySelector('.cmd');
 

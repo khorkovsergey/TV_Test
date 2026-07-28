@@ -79,7 +79,7 @@ window.Features = (function () {
       depth: 2, searchTerms: 'seo geo aeo answer engine llm citation faq schema structured data'
     },
     {
-      id: 'NEW-05', name: 'Personal Wealth Hub', shortName: 'My Money', userFacingName: 'My Money',
+      id: 'NEW-05', name: 'Personal Wealth Hub', shortName: 'My Budget', userFacingName: 'My Budget',
       /* §25 — the mode changes prominence, never maturity and never access. */
       modeRole: { simple: 'flagship', standard: 'flagship', pro: 'advanced' },
       prominence: 'flagship', maturity: 'beta', releaseMarker: 'new', commercialTier: 'included', priority: 'strategic', icon: '◈',

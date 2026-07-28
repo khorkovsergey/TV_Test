@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>My Money — where it goes and what you are building</title>
+<title>My Budget — where it goes and what you are building</title>
 <link rel="stylesheet" href="/tv-theme.css">
 <link rel="stylesheet" href="/portal.css">
 <link rel="stylesheet" href="/forms/form.css">
@@ -27,18 +27,14 @@
 
 <nav class="portal-nav">
   <div class="logo"><a href="/"><img src="/assets/tv-logo-white.svg" alt="Platform"></a></div>
-  <div class="search"><svg class="g" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="M11 11l4 4"/></svg>Search or ask: &ldquo;why is BTC up?&rdquo;</div>
   <div class="menu">
-    <a href="/markets">Markets</a>
-    <a href="/research">Research</a>
-    <a href="/money" class="active">My Money</a>
-    <a href="/learn">Learn</a>
-    <a href="/community">Community</a>
-    <a href="/trade">Practice</a>
+    <a href="/" class="active">Home</a>
+    <a href="/markets">Market</a>
+    <a href="/symbols/BTCUSD">Symbols</a>
+    <a href="/economy">Economy</a>
   </div>
   <div class="right">
     <a class="new-launch" href="/new" title="Product innovations — what is new in this prototype">NEW</a>
-    <button type="button" class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
     <button type="button" class="signin-btn" id="signIn"
       title="Accounts are not connected on this prototype">Sign in</button>
     <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
@@ -49,7 +45,7 @@
 
   <!-- ============================================ onboarding: no assets asked -->
   <section id="onboard" hidden>
-    <div class="tv-eyebrow">My Money · Personal Wealth Hub</div>
+    <div class="tv-eyebrow">My Budget · Personal Wealth Hub</div>
     <h1 class="tv-h1" style="margin-top:8px">What would be most useful right now?</h1>
     <p class="tv-lead" style="margin-top:10px">Start wherever you actually are.</p>
     <p data-explain-level="context" style="font-size:13.5px;color:var(--tv-faint);margin-top:8px">
@@ -95,7 +91,7 @@
   <section id="dash" hidden>
     <div class="row" style="justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap">
       <div>
-        <div class="tv-eyebrow">My Money · Personal Wealth Hub</div>
+        <div class="tv-eyebrow">My Budget · Personal Wealth Hub</div>
         <h1 class="tv-h1" style="margin-top:8px" id="monthTitle">This month</h1>
         <!-- §19.4 — the eight /money/* routes served one identical shell, which
              made each of them a promise the page did not keep. They are now

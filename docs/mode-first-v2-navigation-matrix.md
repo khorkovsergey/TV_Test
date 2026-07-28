@@ -6,9 +6,9 @@ Routes are never duplicated: a direct entry points at a path `src/routes.js` alr
 
 | | Simple | Standard | Professional |
 |---|---|---|---|
-| 1 | My Money | Markets | Markets |
+| 1 | My Budget | Markets | Markets |
 | 2 | Learn | Research | **Screeners** *(direct)* |
-| 3 | Markets | My Money | **Charts** *(direct)* |
+| 3 | Markets | My Budget | **Charts** *(direct)* |
 | 4 | Research | Learn | Research |
 | 5 | Practice | Community | Practice |
 | 6 | More | Practice | More |
@@ -43,7 +43,7 @@ measured consequence:
 |---|---|---|---|
 | Markets | 4 | 6 | 6 — identical to Standard |
 | Research | 4 | 6 | 6 — identical to Standard |
-| My Money | 4 | 6 | 6 — identical to Standard |
+| My Budget | 4 | 6 | 6 — identical to Standard |
 | Learn | 4 | 6 | 6 — identical to Standard |
 | Community | 3 | 5 | 6 |
 | Practice | 2 | 4 | 4 — identical to Standard |

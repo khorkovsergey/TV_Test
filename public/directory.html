@@ -29,18 +29,14 @@
 
 <nav class="portal-nav">
   <div class="logo"><a href="/"><img src="/assets/tv-logo-white.svg" alt="Platform"></a></div>
-  <div class="search"><svg class="g" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="M11 11l4 4"/></svg>Search or ask: &ldquo;why is BTC up?&rdquo;</div>
   <div class="menu">
-    <a href="/markets">Markets</a>
-    <a href="/research">Research</a>
-    <a href="/money">My Money</a>
-    <a href="/learn">Learn</a>
-    <a href="/community">Community</a>
-    <a href="/trade">Practice</a>
+    <a href="/" class="active">Home</a>
+    <a href="/markets">Market</a>
+    <a href="/symbols/BTCUSD">Symbols</a>
+    <a href="/economy">Economy</a>
   </div>
   <div class="right">
     <a class="new-launch" href="/new" title="Product innovations — what is new in this prototype">NEW</a>
-    <button type="button" class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
     <button type="button" class="signin-btn" id="signIn"
       title="Accounts are not connected on this prototype">Sign in</button>
     <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
@@ -89,7 +85,16 @@
     </div>
   </div>
 
-  <div id="map"></div>
+  <section class="mt-32">
+  <h2 style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">The four domains</h2>
+  <div style="font-size:13px;color:var(--tv-faint);margin-top:6px">
+    Home, Market, Symbols and Economy — the same four in every mode. Everything below belongs to
+    one of them; the legacy section headings are kept as the detailed listing, not as the taxonomy.
+  </div>
+  <div class="stubs mt-16" id="domainMap" style="grid-template-columns:repeat(2,1fr)"></div>
+</section>
+
+<div id="map"></div>
 
   <div class="tv-card mt-32">
     <p class="title">What changed, item by item</p>
@@ -226,6 +231,32 @@ const sections = IA.ALL_DOORS
     label: g.name, tagline: 'kept out of the navigation on purpose',
     where: 'the footer', groups: [g]
   })));
+
+/* §18 — the site map leads with the four domains, then keeps the inventory's
+   own six legacy sections below as the detailed listing. The domain block is
+   built from the navigation registry and the inventory's ownership view, so
+   it cannot disagree with the header: if a destination moves domain, it moves
+   here on the next load rather than after somebody remembers to edit a list. */
+(function paintDomains() {
+  const NAV = window.Navigation;
+  const host = document.getElementById('domainMap');
+  if (!NAV || !host || !IA.withDomains) return;
+  const owned = IA.withDomains();
+
+  host.innerHTML = NAV.DOMAINS.map(d => {
+    const items = owned.filter(i => i.ownerDomain === d.id);
+    const live = items.filter(i => i.status === 'live').length;
+    return `<div class="tv-card">
+      <div class="row" style="justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap">
+        <a href="${esc(d.url)}" style="font-size:19px;font-weight:700;color:var(--tv-white)">${esc(d.label)}</a>
+        <span class="mono" style="font-size:10px;color:var(--tv-ghost)">${items.length} destinations · ${live} live</span>
+      </div>
+      <div style="font-size:12.5px;color:var(--tv-muted);margin-top:8px;line-height:1.55">${esc(d.question)}</div>
+      <div class="mono" style="font-size:10.5px;color:var(--tv-faint);margin-top:10px;line-height:1.7">
+        ${NAV.menu(d.id, 'standard').rows.slice(0, 6).map(e => esc(e.label)).join(' · ')}</div>
+    </div>`;
+  }).join('');
+})();
 
 document.getElementById('map').innerHTML = sections.map(s => `
   <section id="${esc(s.id)}" class="mt-32">

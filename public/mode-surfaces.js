@@ -199,6 +199,34 @@ window.ModeSurfaces = (function () {
           overflowTabs: [] })
     },
 
+    /* ---------------------------------------------------------- economy */
+
+    /* The fourth domain. Simple leads with the event and what it means;
+       Professional leads with the calendar and the record. Same nine modules
+       in all three, because a macro reader who learns where something is
+       should not have to re-learn it after changing a setting. */
+    economy: {
+      surface: 'economy',
+      simple: c('What is scheduled, and what it usually touches.',
+        ['events', 'why', 'brief', 'markets', 'symbols', 'rates', 'reaction', 'earnings', 'mapped'],
+        { events: 'lead', why: 'primary', brief: 'primary', markets: 'secondary',
+          symbols: 'secondary', rates: 'secondary', reaction: 'collapsed',
+          earnings: 'collapsed', mapped: 'overflow' },
+        ['follow_event', 'open_markets']),
+      standard: c('The macro picture, and the instruments each event reaches.',
+        ['brief', 'events', 'rates', 'why', 'markets', 'symbols', 'reaction', 'earnings', 'mapped'],
+        { brief: 'lead', events: 'primary', rates: 'primary', why: 'primary',
+          markets: 'secondary', symbols: 'secondary', reaction: 'secondary',
+          earnings: 'collapsed', mapped: 'overflow' },
+        ['follow_event', 'open_markets', 'open_symbol', 'open_chart']),
+      pro: c('Calendar and record first.',
+        ['events', 'reaction', 'rates', 'brief', 'markets', 'symbols', 'why', 'earnings', 'mapped'],
+        { events: 'lead', reaction: 'primary', rates: 'primary', brief: 'primary',
+          markets: 'primary', symbols: 'primary', why: 'secondary',
+          earnings: 'secondary', mapped: 'secondary' },
+        ['open_chart', 'compare_regions', 'open_screener', 'create_alert'])
+    },
+
     /* ------------------------------------------------------------ chart */
 
     chart: {

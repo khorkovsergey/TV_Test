@@ -1,4 +1,4 @@
-/* Приёмка My Money / Personal Wealth Hub. §26 промпта Phase 5.
+/* Приёмка My Budget / Personal Wealth Hub. §26 промпта Phase 5.
    Главный вопрос сюиты: работает ли продукт для человека без инвестиций. */
 const { JSDOM, VirtualConsole } = require('jsdom');
 const B = process.env.TEST_BASE || 'http://127.0.0.1:3217';

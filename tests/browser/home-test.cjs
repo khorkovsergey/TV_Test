@@ -85,12 +85,13 @@ const navText = d => [...d.querySelectorAll('.portal-nav .menu a:not(.nav-panel 
   ok('нет ошибок исполнения', !events.some(e => e.startsWith('ERR')), events.filter(e => e.startsWith('ERR'))[0]);
   ok('заголовок — вопрос, а не слоган', /What do you want to do today/.test(d.querySelector('h1').textContent));
   ok('старого промо-героя нет', !/Look first/.test(d.body.textContent));
-  /* Верхнее меню зависит от режима начиная с mode-first v2. Обещание, которое
-     осталось: Standard — вчерашняя базовая линия, и каждый раздел достижим
-     из любого режима. */
-  ok('Standard — прежние шесть разделов',
-     JSON.stringify(w.Navigation.topNav('standard').lead.map(e => e.label))
-       === JSON.stringify(['Markets', 'Research', 'My Money', 'Learn', 'Community', 'Practice']),
+  /* Верхний уровень перестал зависеть от режима: четыре домена одинаковы
+     везде. Раньше здесь проверялось обратное — что Standard повторяет
+     вчерашние шесть разделов. */
+  ok('четыре домена в Standard',
+     JSON.stringify(w.Navigation.topNav('standard').lead
+       .filter(e => e.type === 'section').map(e => e.label))
+       === JSON.stringify(['Home', 'Market', 'Symbols', 'Economy']),
      w.Navigation.topNav('standard').lead.map(e => e.label).join(','));
   ok('каждый раздел достижим в любом режиме',
      ['simple', 'standard', 'pro'].every(m => w.Navigation.everySectionReachable(m)));
