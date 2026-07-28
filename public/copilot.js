@@ -702,8 +702,14 @@
       panel.classList.add('cp-docked', 'open');
       panel.setAttribute('aria-hidden', 'false');
       hostEl.appendChild(panel);
-      fab.hidden = true;
-      fab.style.display = 'none';
+      /* The floating button STAYS. Hiding it here was a mistake: docked, the
+         Copilot lives behind one of three tabs and is not the active one, so
+         removing the button removed the Copilot from the screen entirely. It
+         is the affordance people know from every other page; on this one it
+         reveals the docked panel instead of sliding a new one over the chart. */
+      fab.hidden = false;
+      fab.style.display = '';
+      fab.setAttribute('aria-label', 'Show Research Copilot');
     }
 
     fab.addEventListener('click', () => open({ reason: 'fab' }));

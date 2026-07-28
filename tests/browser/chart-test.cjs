@@ -278,11 +278,12 @@ const hits = d => [...d.querySelectorAll('.ch-hit')];
      свой display:flex, атрибут hidden его не перебивает), а нажатие на неё в
      пристыкованном режиме не делало ничего: open() переключал класс, который
      здесь ничего не значит. Со стороны это выглядело как «Copilot отвалился». */
-  ok('24c. плавающая кнопка убрана, когда панель пристыкована',
-    CD.querySelector('.cp-fab').hidden === true
-    && CD.querySelector('.cp-fab').style.display === 'none',
-    'hidden=' + CD.querySelector('.cp-fab').hidden
-    + ' display=' + JSON.stringify(CD.querySelector('.cp-fab').style.display));
+  /* Кнопку я сначала спрятал — и Copilot исчез с экрана совсем: пристыкованная
+     панель живёт за одной из трёх вкладок, и она не активна по умолчанию.
+     Кнопка остаётся на графике так же, как на всех остальных страницах. */
+  ok('24c. плавающая кнопка Copilot доступна и на графике',
+    CD.querySelector('.cp-fab') && CD.querySelector('.cp-fab').hidden === false,
+    'hidden=' + (CD.querySelector('.cp-fab') || {}).hidden);
 
   /* Каждый путь внутрь должен приводить к открытой вкладке Copilot. */
   for (const [name, act] of [
