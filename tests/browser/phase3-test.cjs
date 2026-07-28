@@ -76,13 +76,16 @@ const text = d => d.body.textContent.replace(/\s+/g, ' ');
 
   console.log('\n[Главная] Блок инноваций вернулся на первый экран');
   const cards = [...home.d.querySelectorAll('#featureCards .fcard')];
-  ok('на главной есть карточки фич', cards.length >= 4, String(cards.length));
-  ok('каждая карточка ведёт на маршрут фичи', cards.every(c => c.getAttribute('href').startsWith('/')));
-  ok('каждая карточка помечена статусом', cards.every(c => c.querySelector('.fbadge')));
+  /* §9.2 — стена из восьми равных карточек заменена одним флагманом
+     и тремя компактными ссылками: заметность через иерархию. */
+  ok('на главной есть флагманский блок', !!home.d.querySelector('.flagship'));
+  ok('рядом компактные ссылки на остальные',
+     home.d.querySelectorAll('#featureCards .preset[data-fid]').length === 3,
+     String(home.d.querySelectorAll('#featureCards .preset[data-fid]').length));
   ok('Expert Marketplace виден на главной', !!home.d.querySelector('[data-fid="NEW-07"]'));
   ok('Wealth Hub виден на главной', !!home.d.querySelector('[data-fid="NEW-05"]'));
   ok('есть вход на общий лендинг инноваций', /\/new/.test(home.d.querySelector('#featureCards, .stubs')?.parentElement.innerHTML || home.html));
-  ok('заголовок блока говорит о новом', /New ways to use the platform/i.test(text(home.d)));
+  ok('заголовок блока говорит о новом', /New here/i.test(text(home.d)));
   ok('на главной нет ошибок исполнения', home.events.length === 0, home.events.join(' | '));
 
   /* ------------------------------------------------------------- лендинг /new */
@@ -131,8 +134,9 @@ const text = d => d.body.textContent.replace(/\s+/g, ' ');
   ok('поверхность home (/)', seen.has('home'));
 
   await check('assetHub', '/symbols/BTCUSD', p => !!p.d.querySelector('#railCards [data-fid="NEW-07"]'), { wait: 2600 });
-  await check('portfolio', '/capital', p => !!p.d.querySelector('#capitalPromos [data-fid="NEW-07"]'), { wait: 2400 });
-  await check('wealthHub', '/capital/wealth', p => !!p.d.querySelector('[data-fid="NEW-07"]'), { wait: 2000 });
+  /* §3.2 — раздел переехал: /capital и /capital/wealth ведут на /money.
+     Маркетплейс достижим из My Money через меню раздела. */
+  await check('money', '/money', p => /Expert Marketplace/.test(p.d.querySelector('.portal-nav').textContent), { wait: 2000 });
   await check('academy', '/learn/academy', p => !!p.d.querySelector('#academyPromos [data-fid="NEW-07"]'), { wait: 2200 });
   await check('whatsNew', '/new', p => !!p.d.querySelector('[data-fid="NEW-07"]'), { wait: 1800 });
   await check('showcase', '/showcase', p => !!p.d.querySelector('[data-fid="NEW-07"]'), { wait: 1800 });
@@ -217,7 +221,7 @@ const text = d => d.body.textContent.replace(/\s+/g, ' ');
     ['/new/geo-aeo', 'NEW-04'],
     ['/research/ai-private', 'NEW-06'],
     ['/community/rewards', 'NEW-08'],
-    ['/capital/wealth', 'NEW-05']
+    ['/money', 'NEW-05']
   ];
   for (const [path, id] of CONCEPT_PAGES) {
     const p = await open(path, { wait: 1800 });
@@ -246,11 +250,17 @@ const text = d => d.body.textContent.replace(/\s+/g, ' ');
 
   /* ------------------------------------------------------ Wealth Hub работает */
 
-  console.log('\n[Wealth Hub] Работающий сценарий, не макет');
-  const w = await open('/capital/wealth', { wait: 2000 });
-  ok('есть конструктор профиля', w.d.querySelectorAll('.wstep').length === 4, String(w.d.querySelectorAll('.wstep').length));
-  ok('громко раскрыт статус прототипа', /NOTHING IS CONNECTED|PROTOTYPE/i.test(text(w.d)));
-  ok('есть переход к эксперту', !!w.d.querySelector('[href*="/capital/experts"]'));
+  console.log('\n[My Money] Работающий сценарий, не макет');
+  const w = await open('/money', { wait: 2000 });
+  /* Мастер по активам заменён онбордингом по задаче: продукт больше не
+     начинается с вопроса «сколько у вас в акциях» (§10.1). */
+  ok('есть вход по задаче', w.d.querySelectorAll('[data-choice]').length === 6,
+     String(w.d.querySelectorAll('[data-choice]').length));
+  ok('не спрашивает про активы первым делом',
+     !/Stocks & ETFs|What is invested in markets/i.test(text(w.d)));
+  ok('громко раскрыт статус прототипа', /prototype/i.test(text(w.d)));
+  ok('есть переход к эксперту из раздела',
+     /Expert Marketplace/.test(w.d.querySelector('.portal-nav').textContent));
   ok('нет ошибок исполнения', w.events.length === 0, w.events.join(' | '));
 
   /* ------------------------------------------------------------ аналитика */
