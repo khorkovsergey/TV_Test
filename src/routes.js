@@ -16,7 +16,6 @@ export const ROUTES = {
 
   overview:    '/overview',
   research:    '/research',
-  capital:     '/capital',
   trade:       '/trade',
   learn:       '/learn',
   community:   '/community',
@@ -30,6 +29,15 @@ export const ROUTES = {
   lesson:      '/learn/academy/lesson',
   experts:     '/capital/experts',
   rewards:     '/community/rewards',
+  money:        '/money',
+  moneyTx:      '/money/transactions',
+  moneyBudget:  '/money/budget',
+  moneyAccounts:'/money/accounts',
+  moneyGoals:   '/money/goals',
+  moneySafety:  '/money/safety',
+  moneyNetWorth:'/money/net-worth',
+  moneyInvesting:'/money/investing',
+  moneyScenarios:'/money/scenarios',
   wealth:      '/capital/wealth',
   aiPrivate:   '/research/ai-private',
   everywhere:  '/new/everywhere',
@@ -46,7 +54,6 @@ export const ROUTES = {
 export const PAGE_OF = {
   [ROUTES.overview]:   'overview.html',
   [ROUTES.research]:   'research.html',
-  [ROUTES.capital]:    'capital.html',
   [ROUTES.trade]:      'trade.html',
   [ROUTES.learn]:      'learn.html',
   [ROUTES.community]:  'community.html',
@@ -57,7 +64,15 @@ export const PAGE_OF = {
   [ROUTES.lesson]:     'lesson.html',
   [ROUTES.experts]:    'experts.html',
   [ROUTES.rewards]:    'rewards.html',
-  [ROUTES.wealth]:     'wealth.html',
+  [ROUTES.money]:         'money.html',
+  [ROUTES.moneyTx]:       'money.html',
+  [ROUTES.moneyBudget]:   'money.html',
+  [ROUTES.moneyAccounts]: 'money.html',
+  [ROUTES.moneyGoals]:    'money.html',
+  [ROUTES.moneySafety]:   'money.html',
+  [ROUTES.moneyNetWorth]: 'money.html',
+  [ROUTES.moneyInvesting]:'money.html',
+  [ROUTES.moneyScenarios]:'money.html',
   [ROUTES.aiPrivate]:  'ai-private.html',
   [ROUTES.everywhere]: 'everywhere.html',
   [ROUTES.geoAeo]:     'geo-aeo.html',
@@ -85,7 +100,7 @@ export const LEGACY = {
   '/classic.html':    ROUTES.classic,
   '/overview.html':   ROUTES.overview,
   '/research.html':   ROUTES.research,
-  '/capital.html':    ROUTES.capital,
+  '/capital.html':    ROUTES.money,
   '/trade.html':      ROUTES.trade,
   '/learn.html':      ROUTES.learn,
   '/community.html':  ROUTES.community,
@@ -99,6 +114,13 @@ export const LEGACY = {
   /* The marketplace moved from Community to Capital: it belongs with somebody's
      money, not with the forum. The old address keeps working. */
   '/community/experts': ROUTES.experts,
+  /* §3.2 — Capital was abstract and investment-first. The section is My Money
+     now, and it starts with everyday money rather than a portfolio. */
+  '/capital':        ROUTES.money,
+  '/capital/wealth': ROUTES.money,
+  /* `/overview` keeps serving the market narrative — three Markets menu
+     entries point at its sections. What §3.1 removes is the duplicate
+     TOP-LEVEL entry, not the page. */
   '/directory.html':  ROUTES.sitemap,
   '/staff.html':      ROUTES.staff,
   '/metrics.html':    ROUTES.metrics,

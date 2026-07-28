@@ -24,7 +24,7 @@ window.Features = (function () {
   const F = [
     {
       id: 'NEW-01', name: 'Simple Mode + Guided Academy', shortName: 'Guided Academy',
-      maturity: 'beta', releaseMarker: 'new', commercialTier: 'included', priority: 'strategic', icon: '◔',
+      prominence: 'flagship', maturity: 'beta', releaseMarker: 'new', commercialTier: 'included', priority: 'strategic', icon: '◔',
       problem: 'A first-time visitor is handed a professional terminal and no idea what to do with it.',
       solution: 'A simplified mode plus six guided steps that happen inside the product, on live data, each ending in a real action.',
       audience: 'Someone who has never invested',
@@ -36,7 +36,7 @@ window.Features = (function () {
     },
     {
       id: 'NEW-02', name: 'Personal Research Copilot', shortName: 'Research Copilot',
-      maturity: 'beta', releaseMarker: 'new', commercialTier: 'included', priority: 'strategic', icon: '✦',
+      prominence: 'flagship', maturity: 'beta', releaseMarker: 'new', commercialTier: 'included', priority: 'strategic', icon: '✦',
       problem: 'Research means opening eight tabs and holding the thread in your head.',
       solution: 'One AI research surface on every page: it knows your level, the page, the symbol, the period and where you have been, answers in words, cites sources and proposes actions you confirm.',
       audience: 'Everyone, at every level',
@@ -48,7 +48,7 @@ window.Features = (function () {
     },
     {
       id: 'NEW-03', name: 'TradingView Everywhere', shortName: 'Everywhere',
-      maturity: 'concept', releaseMarker: 'new', commercialTier: null, priority: 'strategic', icon: '⇥',
+      prominence: 'concept', maturity: 'concept', releaseMarker: 'new', commercialTier: null, priority: 'strategic', icon: '⇥',
       problem: 'Research starts in a Telegram card, an article or an embedded chart, and every entry throws the context away at the door.',
       solution: 'A deep link carries the symbol, the timeframe, the event and the original question, so the portal opens where the reading left off.',
       audience: 'Anyone arriving from outside',
@@ -60,7 +60,7 @@ window.Features = (function () {
     },
     {
       id: 'NEW-04', name: 'GEO / AEO — answerable pages', shortName: 'GEO / AEO',
-      maturity: 'prototype', releaseMarker: 'improved', commercialTier: null, priority: 'strategic', icon: '⌖',
+      prominence: 'concept', maturity: 'prototype', releaseMarker: 'improved', commercialTier: null, priority: 'strategic', icon: '⌖',
       problem: 'Generative search answers financial questions from pages that were written for crawlers, not for people.',
       solution: 'Public pages answer one question directly: short answer, explanation, source, update time, and a link into a real research action.',
       audience: 'Anyone who asks an AI before asking a platform',
@@ -71,12 +71,12 @@ window.Features = (function () {
       depth: 2, searchTerms: 'seo geo aeo answer engine llm citation faq schema structured data'
     },
     {
-      id: 'NEW-05', name: 'Personal Wealth Hub', shortName: 'Wealth Hub',
-      maturity: 'beta', releaseMarker: 'new', commercialTier: 'included', priority: 'strategic', icon: '◈',
-      problem: 'The platform sees the instruments you look at and nothing about the money you actually have.',
-      solution: 'Investments, cash, deposits and currency in one view, with goals, idle capital, concentration, the macro events that touch them and reallocation scenarios you can save and compare.',
-      audience: 'Someone with savings and no positions',
-      route: '/capital/wealth',
+      id: 'NEW-05', name: 'Personal Wealth Hub', shortName: 'My Money', userFacingName: 'My Money',
+      prominence: 'flagship', maturity: 'beta', releaseMarker: 'new', commercialTier: 'included', priority: 'strategic', icon: '◈',
+      problem: 'Most people need to understand everyday money long before they need a portfolio terminal — and the platform only ever asked about instruments.',
+      solution: 'A personal-finance workspace: income, expenses, cash flow, categories, goals, a reserve and net worth — which opens education, then practice, then market research, only as each becomes relevant.',
+      audience: 'Anyone who wants to understand their own money — including people who do not invest and may never want to',
+      route: '/money',
       surfaces: ['home', 'megaMenu', 'commandPalette', 'search', 'portfolio', 'today', 'copilot', 'whatsNew', 'showcase'],
       related: ['NEW-06', 'NEW-07'],
       metric: 'Wealth profile created · scenario saved',
@@ -84,7 +84,7 @@ window.Features = (function () {
     },
     {
       id: 'NEW-06', name: 'AI Private', shortName: 'AI Private',
-      maturity: 'concept', releaseMarker: 'new', commercialTier: 'premium', priority: 'strategic', icon: '◆',
+      prominence: 'concept', maturity: 'concept', releaseMarker: 'new', commercialTier: 'premium', priority: 'strategic', icon: '◆',
       problem: 'Deep research — statements, scenarios, portfolio risk — takes an analyst, and most private investors do not have one.',
       solution: 'A premium research tier: multi-step company analysis, scenario work, portfolio risk review and hypotheses that update themselves when the facts change.',
       audience: 'Affluent private investors',
@@ -96,7 +96,7 @@ window.Features = (function () {
     },
     {
       id: 'NEW-07', name: 'Expert Marketplace', shortName: 'Expert Marketplace',
-      maturity: 'prototype', releaseMarker: 'new', commercialTier: null, priority: 'strategic', icon: '◉',
+      prominence: 'flagship', maturity: 'prototype', releaseMarker: 'new', commercialTier: null, priority: 'strategic', icon: '◉',
       problem: 'At some point a person needs a human — and the internet offers them an unlicensed one with a course to sell.',
       solution: 'Advisers matched to country, capital and question, with explicit control over what context is shared and a standardised written result. Licence and jurisdiction are shown on every profile — and in this prototype they are demo records, checked against no registry.',
       audience: 'Anyone who has hit the limit of doing it alone',
@@ -108,7 +108,7 @@ window.Features = (function () {
     },
     {
       id: 'NEW-08', name: 'Community Rewards', shortName: 'Community Rewards',
-      maturity: 'concept', releaseMarker: 'new', commercialTier: null, priority: 'strategic', icon: '◇',
+      prominence: 'concept', maturity: 'concept', releaseMarker: 'new', commercialTier: null, priority: 'strategic', icon: '◇',
       problem: 'Store, gifts, referrals and the education programme are four disconnected links that add up to no loop at all.',
       solution: 'One reward system with clear earning rules, history and progress — for ideas, teaching, referrals and Pine work.',
       audience: 'Creators and the people who bring others in',
@@ -168,6 +168,11 @@ window.Features = (function () {
   const byId = id => F.find(f => f.id === id) || null;
   const onSurface = surface => F.filter(f => f.surfaces.includes(surface));
   const strategic = () => F.filter(f => f.priority === 'strategic');
+  /* §15.2 — prominence is a fourth dimension: four journeys carry the case
+     and get a large card, the other four are compact concepts. Eight equally
+     weighted cards made every one of them forgettable. */
+  const flagship = () => F.filter(f => f.prominence === 'flagship');
+  const concepts2 = () => F.filter(f => f.priority === 'strategic' && f.prominence !== 'flagship');
   const core = () => F.filter(f => f.priority === 'core');
   const working = () => F.filter(f => f.maturity === 'live' || f.maturity === 'beta');
   const concepts = () => F.filter(f => f.maturity === 'concept' || f.maturity === 'prototype');
@@ -234,5 +239,5 @@ window.Features = (function () {
       <span class="go">→</span></a>`;
   }
 
-  return { ALL: F, BADGE, MARKER, TIER, byId, onSurface, promo, strategic, core, working, concepts, badge, track, isShowcase, setShowcase };
+  return { ALL: F, BADGE, MARKER, TIER, flagship, secondary: concepts2, byId, onSurface, promo, strategic, core, working, concepts, badge, track, isShowcase, setShowcase };
 })();

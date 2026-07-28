@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="/portal.css">
 <link rel="stylesheet" href="/backgrounds.css">
 <script src="/ia.js"></script>
+<script src="/navigation.js"></script>
 <script src="/features.js"></script>
 <script src="/modes.js"></script>
 <script src="/alerts.js"></script>
@@ -28,12 +29,12 @@
   <div class="logo"><a href="/"><img src="/assets/tv-logo-white.svg" alt="Platform"></a></div>
   <div class="search"><svg class="g" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="M11 11l4 4"/></svg>Search or ask: &ldquo;why is BTC up?&rdquo;</div>
   <div class="menu">
-    <a href="/overview">Overview</a>
+    <a href="/markets">Markets</a>
     <a href="/research">Research</a>
-    <a href="/capital">Capital</a>
-    <a href="/trade">Trade</a>
+    <a href="/money">My Money</a>
     <a href="/learn">Learn</a>
     <a href="/community">Community</a>
+    <a href="/trade">Practice</a>
   </div>
   <div class="right">
     <a class="new-launch" href="/new" title="Product innovations — what is new in this prototype">NEW</a>
@@ -59,13 +60,17 @@
 <main class="tv-page" style="max-width:1180px">
 
   <div class="routes" style="margin-top:8px">
-    <a class="route" href="#brief" data-route="understand_market"><div class="ic">01</div><h3>Understand today's market</h3><p>3 movers, 1 macro event, and why they moved.</p><div class="go">Open the brief ↓</div></a>
-    <a class="route" href="/symbols/BTCUSD" data-route="research_asset"><div class="ic">02</div><h3>Research one asset</h3><p>Price → drivers → peers → next event, in one flow.</p><div class="go">Start with BTC →</div></a>
-    <a class="route" href="#ideas" data-route="find_idea"><div class="ic">03</div><h3>Find an idea</h3><p>Curated by editors, with the author's track record.</p><div class="go">Editors' picks ↓</div></a>
-    <a class="route" href="#watchlist" data-route="track_instruments"><div class="ic">04</div><h3>Track my instruments</h3><p>Watchlist, alerts and events that touch your assets.</p><div class="go">Build a watchlist ↓</div></a>
-    <a class="route" href="/learn/academy" data-route="learn"><div class="ic">05</div><h3>Learn without risk</h3><p>Guided lessons on live data + Paper Trading.</p><div class="go">Open Academy →</div></a>
-    <a class="route" href="#events" data-route="prepare_event"><div class="ic">06</div><h3>Prepare for an event</h3><p>FOMC in 18h — what it historically touches.</p><div class="go">See events ↓</div></a>
-    <a class="route" href="#brokers" data-route="start_trading"><div class="ic">07</div><h3>Start trading</h3><p>Connect a verified broker and trade from the chart.</p><div class="go">Choose a broker ↓</div></a>
+    <!-- §9.1 — three primary tasks, and money first. The old first screen
+         offered seven equal routes plus a Pro escape hatch; a person who has
+         never invested could not tell which one was for them. -->
+    <a class="route" href="/money" data-route="manage_money"><div class="ic">01</div><h3>Manage my money</h3><p>What came in, what went out, what is left — before any market question.</p><div class="go">Open My Money →</div></a>
+    <a class="route" href="#brief" data-route="understand_market"><div class="ic">02</div><h3>Understand the market</h3><p>3 movers, 1 macro event, and why they moved.</p><div class="go">Open the brief ↓</div></a>
+    <a class="route" href="/symbols/BTCUSD" data-route="research_asset"><div class="ic">03</div><h3>Research an asset</h3><p>Price → drivers → peers → next event, in one flow.</p><div class="go">Start with BTC →</div></a>
+    <a class="route" href="#ideas" data-route="find_idea"><div class="ic">04</div><h3>Find an idea</h3><p>Curated by editors, with the author's track record.</p><div class="go">Editors' picks ↓</div></a>
+    <a class="route" href="#watchlist" data-route="track_instruments"><div class="ic">05</div><h3>Track my instruments</h3><p>Watchlist, alerts and events that touch your assets.</p><div class="go">Build a watchlist ↓</div></a>
+    <a class="route" href="/learn/academy" data-route="learn"><div class="ic">06</div><h3>Learn without risk</h3><p>Guided lessons on live data + Paper Trading.</p><div class="go">Open Academy →</div></a>
+    <a class="route" href="#events" data-route="prepare_event"><div class="ic">07</div><h3>Prepare for an event</h3><p>What is scheduled, and which of your instruments it has touched before.</p><div class="go">See events ↓</div></a>
+    <a class="route" href="#brokers" data-route="start_trading"><div class="ic">08</div><h3>Practise trading</h3><p>Paper trading first — a virtual balance and real prices. No broker is connected to this stand.</p><div class="go">See practice ↓</div></a>
     <!-- The only tile in the grid that carries imagery — the one that promises
          the professional workspace. -->
     <a class="route bg-card bg-dashboard" href="/charts" data-route="skip_portal"><div class="ic" style="color:#9db4ff">PRO?</div><h3>Skip the portal</h3><p>The full professional workspace is one click away — and clearly separated from browsing.</p><div class="go" style="color:#9db4ff">Open Supercharts ↗</div></a>
@@ -103,11 +108,7 @@
        page. Clean architecture hid them; a labelled block brings them back
        without returning to a menu with everything on the first level. -->
   <h2 class="mt-32" id="whats-new" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">
-    New ways to use the platform</h2>
-  <div class="row mt-16" style="gap:10px;flex-wrap:wrap;align-items:center">
-    <span style="font-size:13px;color:var(--tv-faint)">Four that work here, three shown as concepts.</span>
-    <a href="/new" style="font-size:13px;font-weight:700">All product innovations →</a>
-  </div>
+    New here</h2>
   <div class="stubs mt-16" id="featureCards"></div>
 
   <!-- ONE market brief instead of a quote section per asset class. -->
@@ -541,7 +542,7 @@ async function loadBrief() {
 /* §7.1 — Simple shows four routes and one main call to action; the rest fold
    into "Advanced". §7.2 and §7.3 open them up. Nothing is blocked: the folded
    block is one click away, and every route is in Ctrl K and the site map. */
-const SIMPLE_ROUTES = ['understand_market', 'research_asset', 'learn', 'track_instruments'];
+const SIMPLE_ROUTES = ['manage_money', 'understand_market', 'research_asset'];
 
 function applyMode() {
   const mode = P.mode();
@@ -592,9 +593,13 @@ document.addEventListener('ui-mode-changed', applyMode);
 
 const Fx = window.Features;
 
+/* §9.2 — one flagship story, then three compact links. Eight equally weighted
+   cards made every one of them forgettable; hierarchy is what makes a
+   strategic feature memorable, not repetition. */
 function renderFeatures() {
-  const primary = ['NEW-01', 'NEW-02', 'NEW-05', 'NEW-07'].map(Fx.byId);
-  const secondary = ['NEW-06', 'NEW-03', 'NEW-08'].map(Fx.byId);
+  const lead = Fx.byId('NEW-05');
+  const beside = ['NEW-01', 'NEW-02', 'NEW-07'].map(Fx.byId);
+  const secondary = Fx.secondary().filter(f => f.id !== 'NEW-05');
   const card = f => `<a class="fcard" href="${f.route}" data-fid="${f.id}">
       <div class="top"><span class="ic">${f.icon}</span>${Fx.badge(f)}</div>
       <h3>${f.shortName}</h3>
@@ -602,13 +607,22 @@ function renderFeatures() {
       <div class="case-note">Case hypothesis ${f.id} · ${f.metric}</div>
       <div class="cta">Open →</div></a>`;
 
-  $('featureCards').innerHTML = primary.map(card).join('') +
-    `<div class="tv-card" style="grid-column:1/-1;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-       <span class="mono" style="font-size:10.5px;color:var(--tv-ghost);letter-spacing:.08em">ALSO IN THE CASE</span>
-       ${secondary.map(f => `<a class="preset" href="${f.route}" data-fid="${f.id}">${f.icon} ${f.shortName} ${Fx.badge(f)}</a>`).join('')}
-     </div>`;
+  $('featureCards').innerHTML = `
+    <a class="flagship" href="${lead.route}" data-fid="${lead.id}" style="grid-column:1/-1">
+      <div class="top"><span class="ic">${lead.icon}</span>${Fx.badge(lead)}</div>
+      <h3>${lead.userFacingName || lead.shortName}</h3>
+      <p>From a notebook to a personal-finance system — and only then, when it becomes
+         useful, to investing and markets.</p>
+      <div class="cta">Start with my first transaction →</div>
+      <div class="case-note">Case hypothesis ${lead.id} · ${lead.metric}</div>
+    </a>
+    <div class="tv-card" style="grid-column:1/-1;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      ${beside.map(f => `<a class="preset" href="${f.route}" data-fid="${f.id}">${f.icon} ${f.shortName}</a>`).join('')}
+      <span style="flex:1"></span>
+      <a href="/new" style="font-size:12.5px;font-weight:700">All product innovations →</a>
+    </div>`;
 
-  for (const f of primary.concat(secondary)) Fx.track('strategic_feature_impression', f, { surface: 'home' });
+  for (const f of [lead].concat(beside, secondary)) Fx.track('strategic_feature_impression', f, { surface: 'home' });
 }
 
 document.addEventListener('click', e => {

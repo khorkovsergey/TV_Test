@@ -147,18 +147,27 @@
   function paintPanel(entry) {
     const { section, panel } = entry;
     const mode = P()?.mode?.() || 'simple';
-    const { rows, more } = IA.menuSplit(section, mode, 6);
-    const row = i => `<a href="${esc(i.url)}" data-ia="${esc(i.id)}">
-          <span>${esc(i.label)} ${badge(i)}</span>
-          <span class="d">${esc(i.desc || i.group)}</span></a>`;
+    const NAV = window.Navigation;
+
+    /* §6.1 — no PILOT, no MAPPED, no PRO in a normal menu. Those are
+       implementation states; a visitor reading a menu is choosing a task, and
+       internal maturity competes with that. The full status map lives in
+       Showcase and on the site map. */
+    const { rows, more } = NAV
+      ? NAV.menu(section.id, mode)
+      : IA.menuSplit(section, mode, 6);
+
+    const row = i => `<a href="${esc(i.url)}" data-ia="${esc(i.id || i.label)}">
+          <span>${esc(i.label)}</span>
+          <span class="d">${esc(i.desc || i.group || '')}</span></a>`;
 
     panel.innerHTML = `<div class="tl">${esc(section.question)}</div>
       ${rows.map(row).join('')}
       ${more.length ? `<details class="more-tools">
-        <summary>More tools in ${esc(section.label)} <span class="n">${more.length}</span></summary>
+        <summary>More in ${esc(section.label)} <span class="n">${more.length}</span></summary>
         ${more.map(row).join('')}
       </details>` : ''}
-      <div class="all"><a href="${esc(section.url)}">See everything in ${esc(section.label)} →</a></div>`;
+      <div class="all"><a href="${esc(section.url)}">Open ${esc(section.label)} →</a></div>`;
 
     panel.querySelector('.more-tools')?.addEventListener('toggle', e => {
       if (e.target.open) track('temporary_advanced_opened',
@@ -173,7 +182,11 @@
     const menu = document.querySelector('.portal-nav .menu');
     if (!menu) return;
 
-    for (const section of IA.SECTIONS) {
+    /* §P0-A — the menus read the USER navigation registry now. `ia.js` stays
+       the product inventory and keeps powering the palette, the site map and
+       the showcase; it stopped being what an ordinary visitor reads. */
+    const NAV = window.Navigation;
+    for (const section of (NAV ? NAV.SECTIONS : IA.SECTIONS)) {
       const link = [...menu.querySelectorAll('a')].find(a => a.textContent.trim() === section.label);
       if (!link) continue;
 
@@ -579,11 +592,17 @@
     avatar.setAttribute('aria-expanded', 'false');
     avatar.setAttribute('aria-label', 'My space');
 
-    const items = door.groups[0].items;
-    const panel = h(`<div class="nav-panel" role="group" aria-label="My space" style="left:auto;right:-6px;min-width:300px">
-      <div class="tl">${esc(door.question)}</div>
-      ${items.map(i => `<a href="${esc(i.url)}" data-ia="${esc(i.id)}">
-        <span>${esc(i.label)} ${badge(i)}</span><span class="d">${esc(i.desc || '')}</span></a>`).join('')}
+    /* §3.3 — watchlists, alerts and saved research are things you KEEP, not a
+       topic to browse. They belong to the workspace behind the profile, not
+       at the top of a section about money. No status badges here either: the
+       profile menu is not an implementation report. */
+    const NAV = window.Navigation;
+    const items = NAV ? NAV.WORKSPACE.items : door.groups[0].items;
+    const title = NAV ? 'Everything you have kept here' : door.question;
+    const panel = h(`<div class="nav-panel" role="group" aria-label="My workspace" style="left:auto;right:-6px;min-width:300px">
+      <div class="tl">${esc(title)}</div>
+      ${items.map(i => `<a href="${esc(i.url)}" data-ia="${esc(i.id || i.label)}">
+        <span>${esc(i.label)}</span><span class="d">${esc(i.desc || '')}</span></a>`).join('')}
     </div>`);
     wrap.appendChild(panel);
 
