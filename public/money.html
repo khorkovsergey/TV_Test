@@ -54,6 +54,24 @@
 
     <div class="stubs mt-24" id="onboardChoices"></div>
 
+    <!-- §12 — Pro opens with import rather than a six-step wizard: somebody
+         who already keeps records elsewhere wants their data in, not a
+         questionnaire. Available in every mode from the Data menu; only the
+         default placement changes. -->
+    <div class="tv-card mt-24" id="proImport" hidden>
+      <div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <p class="title" style="margin:0">Already keep records elsewhere?</p>
+        <span class="mono" style="font-size:10px;color:#B48CFF;letter-spacing:.08em">PRO DEFAULT</span>
+      </div>
+      <div style="font-size:13px;color:var(--tv-muted);margin-top:8px;line-height:1.55">
+        Bring in a previous Wealth profile, or start from a sample month and replace it as you go.
+        Everything stays in this browser either way.</div>
+      <div class="row mt-16" style="gap:8px;flex-wrap:wrap">
+        <button type="button" class="btn btn-quiet" id="proSample" style="padding:8px 14px;font-size:12.5px">Start from a sample month</button>
+        <button type="button" class="btn btn-quiet" id="proSkip" style="padding:8px 14px;font-size:12.5px">I will enter it myself</button>
+      </div>
+    </div>
+
     <div class="tv-card mt-24" id="legacyCard" hidden>
       <p class="title" style="margin:0">You have an earlier Wealth profile</p>
       <div id="legacyPreview" style="font-size:13px;color:var(--tv-muted);margin-top:8px;line-height:1.6"></div>

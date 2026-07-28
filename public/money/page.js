@@ -73,6 +73,11 @@
         <div style="font-size:12.5px;color:var(--tv-muted);margin-top:6px;line-height:1.5">${esc(c.desc)}</div>
       </button>`).join('');
 
+    /* Pro leads with import; the same actions live in the Data menu for
+       everyone, so nothing is exclusive to a preset. */
+    const proBox = $('proImport');
+    if (proBox) proBox.hidden = (P?.mode?.() !== 'pro');
+
     const preview = S.legacyPreview();
     if (preview) {
       $('legacyCard').hidden = false;
@@ -96,6 +101,8 @@
     if (choice.path === 'goal') openGoal(choice.id === 'buffer' ? 'emergency' : 'purchase');
   });
 
+  $('proSample')?.addEventListener('click', () => { S.loadSample(); render(); });
+  $('proSkip')?.addEventListener('click', () => { $('proImport').hidden = true; });
   $('importLegacy')?.addEventListener('click', () => { S.importLegacy(); render(); });
   $('skipLegacy')?.addEventListener('click', () => { $('legacyCard').hidden = true; });
 
