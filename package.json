@@ -1,20 +1,27 @@
 {
-  "name": "expert-marketplace",
+  "name": "tradingview-portal-prototype",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Concierge-MVP биржи проверенных консультантов: заявка → AI-бриф → подбор → бронирование → стандартизированный итог",
+  "description": "Case-study prototype of a TradingView-style portal: six sections, three experience presets, a live market layer, and Expert Marketplace as one of its strategic features",
   "engines": {
     "node": ">=20"
   },
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
-    "check": "node --check src/server.js && node --check src/db.js && node --check src/claude.js && node --check src/prompts.js"
+    "check:syntax": "node tests/check-syntax.cjs",
+    "check:copy": "node tests/check-copy.cjs",
+    "test": "node tests/run.cjs",
+    "check": "npm run check:syntax && npm run check:copy",
+    "check:all": "npm run check && npm test"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.70.0",
     "express": "^4.21.2",
     "pg": "^8.13.1"
+  },
+  "devDependencies": {
+    "jsdom": "^25.0.1"
   }
 }

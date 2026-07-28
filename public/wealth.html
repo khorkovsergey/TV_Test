@@ -10,6 +10,7 @@
 <script src="/ia.js"></script>
 <script src="/features.js"></script>
 <script src="/modes.js"></script>
+<script src="/alerts.js"></script>
 <script src="/home.js"></script>
 <script src="/quotes.js"></script>
 <script src="/nav.js"></script>
@@ -34,8 +35,9 @@
   </div>
   <div class="right">
     <a class="new-launch" href="/new" title="Product innovations — what is new in this prototype">NEW <span class="n" id="newCount">8</span></a>
-    <button class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
-    <span style="font-size:14px;color:var(--tv-muted)">Sign in</span>
+    <button type="button" class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
+    <button type="button" class="signin-btn" id="signIn"
+      title="Accounts are not connected on this prototype">Sign in</button>
     <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
   </div>
 </nav>
@@ -51,7 +53,7 @@
         away from a goal. This is the other half of the picture.</p>
       <div class="case-note">Case hypothesis NEW-05 · metric: wealth profile created · scenario saved</div>
     </div>
-    <button class="btn btn-quiet" id="resetProfile" style="padding:9px 16px" hidden>Start over</button>
+    <button type="button" class="btn btn-quiet" id="resetProfile" style="padding:9px 16px" hidden>Start over</button>
   </div>
 
   <!-- The whole thing is a prototype over numbers you type in: no bank, no
@@ -70,8 +72,20 @@
     </div>
     <div style="display:flex;gap:5px;margin-top:12px" id="stepBar"></div>
 
+    <!-- §7.10 — a guided four-step wizard is right for Simple and wrong for
+         someone who already knows their numbers. Pro opens with every field at
+         once; the wizard stays for everyone who wants it. -->
+    <div id="allAtOnce" class="mt-16" hidden>
+      <div class="mono" style="font-size:10.5px;color:#B48CFF;letter-spacing:.08em">PRO ENTRY · ALL FIELDS AT ONCE</div>
+      <div style="font-size:12.5px;color:var(--tv-faint);margin-top:6px">The same four steps, on one screen. The step-by-step version is one click away.</div>
+      <button type="button" class="btn btn-quiet mt-16" id="useWizard" style="padding:7px 14px;font-size:12.5px">Use the step-by-step builder instead</button>
+    </div>
+
     <div id="step1" class="wstep">
       <div style="font-size:13.5px;color:var(--tv-muted);margin-top:16px">What is invested in markets right now?</div>
+      <div data-explain-level="deep" style="font-size:12.5px;color:var(--tv-faint);margin-top:6px;line-height:1.55;max-width:64ch">
+        Round numbers are fine. Nothing here is checked against a broker, and nothing leaves this
+        browser — the point is the shape of your capital, not its exact size.</div>
       <div class="filters mt-16">
         <div class="f"><label for="wStocks">Stocks &amp; ETFs</label><input type="number" id="wStocks" placeholder="0" min="0"></div>
         <div class="f"><label for="wCrypto">Crypto</label><input type="number" id="wCrypto" placeholder="0" min="0"></div>
@@ -89,7 +103,7 @@
         <div class="f"><label for="wCurrency">Main currency</label>
           <select id="wCurrency"><option>USD</option><option>EUR</option><option>GBP</option><option>Other</option></select></div>
       </div>
-      <div class="term-note">Cash and deposits are capital too. Leaving them out is how a portfolio
+      <div class="term-note" data-explain-level="deep">Cash and deposits are capital too. Leaving them out is how a portfolio
         looks diversified while most of the money sits in one place earning nothing.</div>
     </div>
 
@@ -110,8 +124,8 @@
     </div>
 
     <div class="row mt-24" style="gap:10px;flex-wrap:wrap">
-      <button class="btn btn-quiet" id="back" hidden style="padding:9px 16px">Back</button>
-      <button class="btn btn-primary" id="next" style="padding:9px 16px">Continue</button>
+      <button type="button" class="btn btn-quiet" id="back" hidden style="padding:9px 16px">Back</button>
+      <button type="button" class="btn btn-primary" id="next" style="padding:9px 16px">Continue</button>
       <span class="mono src" id="hint">nothing leaves this browser</span>
     </div>
   </div>
@@ -146,8 +160,12 @@
     </div>
 
     <h2 class="mt-32" id="scenarios" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">Scenarios</h2>
-    <div style="font-size:13px;color:var(--tv-faint);margin-top:6px">
+    <div data-explain-level="context" style="font-size:13px;color:var(--tv-faint);margin-top:6px">
       What changes if you move money — before and after, side by side.</div>
+    <div data-explain-level="deep" style="font-size:13px;color:var(--tv-muted);margin-top:8px;line-height:1.55;max-width:66ch">
+      A scenario is arithmetic, not a forecast: it applies your own numbers to a change you describe
+      and shows both states next to each other. It says nothing about whether the change is a good
+      idea — that is the question the screener and, if you want one, a licensed adviser answer.</div>
 
     <div class="tv-card mt-16">
       <div class="filters">
@@ -155,11 +173,32 @@
           <select id="sMove"><option value="10">10%</option><option value="25">25%</option><option value="50">50%</option></select></div>
         <div class="f"><label for="sInto">Into</label>
           <select id="sInto"><option value="etf">A diversified ETF</option><option value="bonds">Bonds</option><option value="crypto">Crypto</option></select></div>
-        <div class="f"><label>&nbsp;</label><button class="btn btn-primary" id="runScenario" style="padding:9px 16px">Run scenario</button></div>
-        <div class="f"><label>&nbsp;</label><button class="btn btn-quiet" id="saveScenario" style="padding:9px 16px" disabled>Save scenario</button></div>
+        <div class="f"><label>&nbsp;</label><button type="button" class="btn btn-primary" id="runScenario" style="padding:9px 16px">Run scenario</button></div>
+        <div class="f"><label>&nbsp;</label><button type="button" class="btn btn-quiet" id="saveScenario" style="padding:9px 16px" disabled>Save scenario</button></div>
       </div>
       <div id="scenarioOut" class="mt-16"></div>
     </div>
+
+    <!-- §7.10 — Pro opens with the decomposition; Standard folds it; Simple
+         puts it behind the same disclosure. Never removed at any level. -->
+    <details class="advanced mt-16" id="wealthDeep">
+      <summary>Advanced risk view — concentration, currency and macro sensitivity</summary>
+      <div class="body">
+        <div class="grid-2" style="grid-template-columns:1fr 1fr;align-items:start;gap:14px">
+          <div class="tv-card">
+            <p class="title" style="margin:0">Concentration decomposition</p>
+            <div id="wConc" style="margin-top:10px;font-size:13px;color:var(--tv-muted)"></div>
+          </div>
+          <div class="tv-card">
+            <p class="title" style="margin:0">Macro sensitivity</p>
+            <div id="wMacro" style="margin-top:10px;font-size:13px;color:var(--tv-muted)"></div>
+          </div>
+        </div>
+        <div class="mono" style="font-size:10.5px;color:var(--tv-ghost);margin-top:12px">
+          computed from the figures you typed · a description of your input, not a market forecast
+        </div>
+      </div>
+    </details>
 
     <div id="savedBox" class="mt-16" hidden>
       <div class="mono" style="font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--tv-faint)">Saved scenarios</div>
@@ -286,7 +325,8 @@ function findings(p, a) {
 
   if (a.concentration >= 50) out.push(['CONCENTRATION', 'var(--tv-orange)',
     `One position accounts for <b style="color:var(--tv-white)">${pct(a.concentration)}</b> of everything you hold.
-     Diversification is the only thing in investing that is close to free.`]);
+     That is an observation about your allocation, not an assessment of whether it suits you —
+     this prototype does not judge suitability and does not recommend a transaction.`]);
   else out.push(['CONCENTRATION', 'var(--tv-green)',
     `Largest single holding is ${pct(a.concentration)} of the total — no single point of failure at that level.`]);
 
@@ -307,12 +347,87 @@ function findings(p, a) {
   return out;
 }
 
+/* The advanced view: real arithmetic over the same numbers, opened by default
+   only where the preset says a professional expects it (§7.10). Simple and
+   Standard keep it one click away — the analysis is never taken away. */
+function paintDeep(p, a) {
+  const M = window.Modes, P = window.Portal;
+  const box = document.getElementById('wealthDeep');
+  if (!box) return;
+  const mode = P?.mode?.() || 'simple';
+  if (!box.dataset.touched) box.open = M ? M.policy(mode).showAdvancedByDefault : mode === 'pro';
+  box.addEventListener('toggle', () => {
+    box.dataset.touched = '1';
+    P?.track?.(box.open ? 'temporary_advanced_opened' : 'temporary_advanced_closed', { surface: 'wealth', mode });
+  });
+
+  const parts = [
+    ['Stocks', p.stocks], ['Crypto', p.crypto], ['Bonds', p.bonds],
+    ['Other market assets', p.other], ['Cash', p.cash], ['Deposits', p.deposit]
+  ].filter(([, v]) => v > 0).sort((x, y) => y[1] - x[1]);
+
+  document.getElementById('wConc').innerHTML = parts.length
+    ? parts.map(([k, v]) => `<div style="display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px solid var(--tv-line)">
+        <span>${k}</span><span class="mono" style="color:var(--tv-white)">${pct(a.total ? v / a.total * 100 : 0)}</span></div>`).join('')
+      + `<div class="mono" style="font-size:10.5px;color:var(--tv-ghost);margin-top:10px">top two together: ${pct(a.total ? parts.slice(0, 2).reduce((n, x) => n + x[1], 0) / a.total * 100 : 0)}</div>`
+    : 'Nothing entered yet.';
+
+  /* Not a model — a stated rule of thumb, so nobody mistakes it for one. */
+  const sens = [
+    ['Rates up 1pp', p.bonds > 0 || p.deposit > 0 ? 'bonds fall, deposits look better — you hold both, so the effects partly cancel' : 'little direct effect on what you hold'],
+    ['Dollar strengthens', p.currency !== 'USD' ? 'your ' + p.currency + ' holdings lose purchasing power against USD assets' : 'your base currency is the one strengthening'],
+    ['Risk-off week', a.cryptoShare > 10 ? `crypto is ${pct(a.cryptoShare)} of the total and usually falls hardest` : 'no large position in the class that usually falls hardest']
+  ];
+  P?.applyExplain?.(M?.policy(mode).explanationDepth);
+  document.getElementById('wMacro').innerHTML = sens.map(([k, v]) =>
+    `<div style="padding:6px 0;border-bottom:1px solid var(--tv-line)">
+       <span class="mono" style="font-size:10.5px;color:#5B8DFF">${k.toUpperCase()}</span>
+       <div style="margin-top:3px;line-height:1.5">${v}</div></div>`).join('')
+    + `<div class="mono" style="font-size:10.5px;color:var(--tv-ghost);margin-top:10px">rules of thumb, stated as such — not a model and not a forecast</div>`;
+}
+
+document.addEventListener('ui-mode-changed', () => { if (current) paintDeep(current, analyse(current)); });
+
 /* ------------------------------------------------------------- builder */
+
+/* Pro opens the whole form; Simple and Standard walk through it. Same fields,
+   same arithmetic, same result — only the way in differs. */
+let allAtOnce = false;
+
+function applyBuilderMode() {
+  const M = window.Modes, P = window.Portal;
+  const mode = P?.mode?.() || 'simple';
+  const wants = M ? M.policy(mode).showAdvancedByDefault : mode === 'pro';
+  const box = document.getElementById('allAtOnce');
+  if (!box) return;
+  allAtOnce = wants && !box.dataset.optedOut;
+  box.hidden = !allAtOnce;
+  paintSteps();
+}
+
+document.getElementById('useWizard')?.addEventListener('click', () => {
+  document.getElementById('allAtOnce').dataset.optedOut = '1';
+  allAtOnce = false;
+  document.getElementById('allAtOnce').hidden = true;
+  window.Portal?.track?.('temporary_advanced_closed', { surface: 'wealth_builder' });
+  paintSteps();
+});
+
+document.addEventListener('ui-mode-changed', applyBuilderMode);
 
 let step = 1;
 const STEPS = 4;
 
 function paintSteps() {
+  if (allAtOnce) {
+    /* Every step visible, progress bar and step counter meaningless. */
+    $('stepBar').innerHTML = '';
+    $('stepLabel').textContent = 'all fields';
+    for (let i = 1; i <= STEPS; i++) $('step' + i).hidden = false;
+    $('back').hidden = true;
+    $('next').textContent = 'Build my profile';
+    return;
+  }
   $('stepBar').innerHTML = Array.from({ length: STEPS }, (_, i) =>
     `<i style="flex:1;height:4px;border-radius:2px;background:${i < step ? 'var(--tv-blue)' : 'var(--tv-ink-2)'}"></i>`).join('');
   $('stepLabel').textContent = `step ${step} of ${STEPS}`;
@@ -342,7 +457,7 @@ function paintPreview() {
 }
 
 $('next').addEventListener('click', () => {
-  if (step < STEPS) { step++; paintSteps(); if (step === STEPS) paintPreview(); return; }
+  if (!allAtOnce && step < STEPS) { step++; paintSteps(); if (step === STEPS) paintPreview(); return; }
   const p = collect();
   if (analyse(p).total <= 0) { $('hint').textContent = 'enter at least one figure above'; return; }
   save(p);
@@ -374,6 +489,8 @@ function render(p) {
     ['Idle', pct(a.idleShare)],
     ['Largest holding', pct(a.concentration)]
   ].map(([k, v]) => `<div class="st"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
+
+  paintDeep(p, a);
 
   $('findings').innerHTML = findings(p, a).map(([tag, colour, text]) =>
     `<div><span class="mono" style="font-size:10.5px;color:${colour}">${tag}</span>
@@ -412,11 +529,17 @@ $('runScenario').addEventListener('click', () => {
   if (!current) return;
   const share = Number($('sMove').value), into = $('sInto').value;
   const s = scenario(current, share, into);
-  const row = (k, before, after, better) => {
+  /* §WEALTH-003 — the "after" column used to be green when the prototype
+     judged the change an improvement. Nothing here knows the visitor's
+     objective, so nothing here can call a reallocation better. The column now
+     states the DIRECTION of the change and leaves the verdict alone. */
+  const row = (k, before, after, direction) => {
     const changed = before !== after;
-    const colour = !changed ? 'var(--tv-muted)' : better ? 'var(--tv-green)' : 'var(--tv-orange)';
-    return `<tr><td>${k}</td><td class="num">${before}</td><td class="num" style="color:${colour}">${after}</td></tr>`;
+    const arrow = !changed ? '' : direction === 'up' ? ' ↑' : direction === 'down' ? ' ↓' : '';
+    return `<tr><td>${k}</td><td class="num">${before}</td>
+      <td class="num" style="color:${changed ? 'var(--tv-white)' : 'var(--tv-muted)'}">${after}${arrow}</td></tr>`;
   };
+  const dir = (b, a) => a === b ? 'same' : a > b ? 'up' : 'down';
   const label = { etf: 'a diversified ETF', bonds: 'bonds', crypto: 'crypto' }[into];
 
   $('scenarioOut').innerHTML = `
@@ -424,15 +547,19 @@ $('runScenario').addEventListener('click', () => {
       (${share}% of cash) into ${label}:</div>
     <div class="q-wrap mt-16"><table class="q-table">
       <thead><tr><th>Measure</th><th class="num">Before</th><th class="num">After</th></tr></thead><tbody>
-      ${row('Idle capital', pct(s.before.idleShare), pct(s.after.idleShare), s.after.idleShare < s.before.idleShare)}
-      ${row('Largest holding', pct(s.before.concentration), pct(s.after.concentration), s.after.concentration <= s.before.concentration)}
-      ${row('Crypto share', pct(s.before.cryptoShare), pct(s.after.cryptoShare), into !== 'crypto')}
-      ${row('Liquidity (cash)', money(current.cash), money(current.cash - s.moved), false)}
-      ${current.goalAmount ? row('Goal coverage', pct(s.before.goalCover), pct(s.after.goalCover), false) : ''}
+      ${row('Idle capital', pct(s.before.idleShare), pct(s.after.idleShare), dir(s.before.idleShare, s.after.idleShare))}
+      ${row('Largest holding', pct(s.before.concentration), pct(s.after.concentration), dir(s.before.concentration, s.after.concentration))}
+      ${row('Crypto share', pct(s.before.cryptoShare), pct(s.after.cryptoShare), dir(s.before.cryptoShare, s.after.cryptoShare))}
+      ${row('Liquidity (cash)', money(current.cash), money(current.cash - s.moved), 'down')}
+      ${current.goalAmount ? row('Goal coverage', pct(s.before.goalCover), pct(s.after.goalCover), dir(s.before.goalCover, s.after.goalCover)) : ''}
       </tbody></table></div>
-    <div class="mono" style="font-size:10.5px;color:var(--tv-ghost);margin-top:12px">
-      Arithmetic on the figures you entered. It says what the proportions become — not what will
-      happen, and not what you should do. Liquidity falls in every case: that is the trade.</div>`;
+    <div class="mono" style="font-size:10.5px;color:var(--tv-ghost);margin-top:12px;line-height:1.7">
+      <b style="color:var(--tv-muted)">Model assumptions, stated:</b> the moved amount is treated as
+      a single position in the chosen class; "a diversified ETF" is modelled as one broad equity
+      holding, which is a simplification — a real fund has its own composition, currency exposure
+      and costs. No return, fee, tax or spread is modelled. Nothing rebalances.<br>
+      The table shows direction of change, not improvement: it cannot know your objective, so it
+      does not call any outcome better. Liquidity falls in every case — that is the trade.</div>`;
 
   $('saveScenario').disabled = false;
   $('saveScenario').dataset.payload = JSON.stringify({ share, into, at: new Date().toISOString(),
@@ -474,7 +601,7 @@ function renderSaved() {
 
 const existing = load();
 if (existing) render(existing);
-else paintSteps();
+else applyBuilderMode();
 
 $('toExperts').addEventListener('click', () =>
   Fx.track('strategic_feature_opened', Fx.byId('NEW-07'), { surface: 'wealthHub' }));

@@ -8,7 +8,7 @@
    ========================================================================= */
 
 import pg from 'pg';
-import { randomUUID } from 'node:crypto';
+import { randomUUID, createHash, timingSafeEqual } from 'node:crypto';
 
 const URL = process.env.DATABASE_URL || '';
 export const MODE = URL ? 'postgres' : 'memory';
@@ -41,9 +41,32 @@ CREATE TABLE IF NOT EXISTS requests (
   capital_band  TEXT NOT NULL,
   goal_text     TEXT NOT NULL,
   consent       BOOLEAN NOT NULL DEFAULT FALSE,
+  -- §SEC-004: sharing a brief with a consultant and having a model read it are
+  -- two different purposes, so they are two different answers. Neither is
+  -- preselected in the form.
+  consent_ai        BOOLEAN NOT NULL DEFAULT FALSE,
+  consent_version   TEXT,
+  consent_at        TIMESTAMPTZ,
+  -- §SEC-003: the id identifies the record; this hash is what proves the
+  -- caller is the person who created it. The token itself is shown once and
+  -- never stored.
+  access_hash   TEXT,
   brief         JSONB,
   brief_error   TEXT
 );
+
+-- Columns added after the first release; CREATE TABLE IF NOT EXISTS above will
+-- not add them to an existing database.
+ALTER TABLE requests ADD COLUMN IF NOT EXISTS consent_ai BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE requests ADD COLUMN IF NOT EXISTS consent_version TEXT;
+ALTER TABLE requests ADD COLUMN IF NOT EXISTS consent_at TIMESTAMPTZ;
+ALTER TABLE requests ADD COLUMN IF NOT EXISTS access_hash TEXT;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'held';
+
+CREATE INDEX IF NOT EXISTS requests_created_at_idx ON requests (created_at DESC);
+CREATE INDEX IF NOT EXISTS matches_request_idx ON matches (request_id);
+CREATE INDEX IF NOT EXISTS bookings_request_idx ON bookings (request_id);
+CREATE INDEX IF NOT EXISTS bookings_consultant_idx ON bookings (consultant_id);
 
 CREATE TABLE IF NOT EXISTS matches (
   request_id    TEXT NOT NULL,
@@ -60,9 +83,19 @@ CREATE TABLE IF NOT EXISTS bookings (
   request_id    TEXT NOT NULL,
   consultant_id TEXT NOT NULL,
   slot          TEXT NOT NULL,
-  status        TEXT NOT NULL DEFAULT 'booked',
+  -- §EXP-003: nothing external confirms anything here, so the vocabulary
+  -- stops at "held". A 'confirmed' state may only exist once a real
+  -- consultant acceptance event does.
+  status        TEXT NOT NULL DEFAULT 'held',
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- §EXP-002: one consultant cannot hold two people in the same slot. Without
+-- this, two visitors racing on the same button both got a booking id and both
+-- were told the time was theirs.
+CREATE UNIQUE INDEX IF NOT EXISTS bookings_consultant_slot_unique
+  ON bookings (consultant_id, slot)
+  WHERE status IN ('held', 'confirmed');
 
 CREATE TABLE IF NOT EXISTS consultations (
   booking_id    TEXT PRIMARY KEY,
@@ -164,18 +197,50 @@ export async function getConsultant(id) {
 
 /* ---------------------------------------------------------------- requests */
 
+/* §SEC-003 — the identifier and the credential are separated.
+
+   Before this, `GET /api/requests/:id` returned somebody's name, email,
+   country, capital band and their free-text story to anyone who knew an id —
+   and the id was a truncated UUID, eight hex characters. The same id also
+   triggered a paid model call.
+
+   Now the id stays an identifier and a separate high-entropy token is the
+   credential. Only its SHA-256 lives in the database, so a database read does
+   not hand over access, and the token is returned to the creator exactly once. */
+const hashToken = t => createHash('sha256').update(String(t)).digest('hex');
+
 export async function createRequest(r) {
-  const id = 'req_' + randomUUID().slice(0, 8);
+  const id = 'req_' + randomUUID();
+  const token = randomUUID().replace(/-/g, '') + randomUUID().replace(/-/g, '');
+  const access_hash = hashToken(token);
+  const consentAt = new Date().toISOString();
+
   if (MODE === 'postgres') {
     await q(
-      `INSERT INTO requests (id,contact_name,contact_email,country,language,capital_band,goal_text,consent)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
-      [id, r.contact_name, r.contact_email, r.country, r.language, r.capital_band, r.goal_text, r.consent]
+      `INSERT INTO requests (id,contact_name,contact_email,country,language,capital_band,goal_text,
+                             consent,consent_ai,consent_version,consent_at,access_hash)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
+      [id, r.contact_name, r.contact_email, r.country, r.language, r.capital_band, r.goal_text,
+       r.consent, r.consent_ai === true, r.consent_version || null, consentAt, access_hash]
     );
   } else {
-    mem.requests.set(id, { id, created_at: new Date().toISOString(), brief: null, brief_error: null, ...r });
+    mem.requests.set(id, {
+      id, created_at: new Date().toISOString(), brief: null, brief_error: null,
+      consent_at: consentAt, access_hash, ...r
+    });
   }
-  return id;
+  return { id, token };
+}
+
+/* Constant-time comparison: a timing side channel on a token check is cheap to
+   avoid and embarrassing to leave in. */
+export async function requestAccessOk(id, token) {
+  if (!token) return false;
+  const row = await getRequest(id);
+  if (!row || !row.access_hash) return false;
+  const a = Buffer.from(hashToken(token), 'utf8');
+  const b = Buffer.from(String(row.access_hash), 'utf8');
+  return a.length === b.length && timingSafeEqual(a, b);
 }
 
 export async function setBrief(id, brief, error) {
@@ -243,15 +308,42 @@ export async function countRequestsWithMatches() {
 
 /* ---------------------------------------------------------------- bookings */
 
+/* Thrown when the slot is already held. The caller turns it into a 409 rather
+   than a 500, because a taken slot is a normal outcome, not a fault. */
+export class SlotTakenError extends Error {
+  constructor(consultantId, slot) {
+    super('That slot is no longer available');
+    this.name = 'SlotTakenError';
+    this.code = 'SLOT_TAKEN';
+    this.consultantId = consultantId;
+    this.slot = slot;
+  }
+}
+
 export async function createBooking(requestId, consultantId, slot) {
-  const id = 'bk_' + randomUUID().slice(0, 8);
+  /* §DB-004 — full identifier. A truncated UUID is 32 bits of entropy for a
+     value that appears in URLs and is used to look records up. */
+  const id = 'bk_' + randomUUID();
   if (MODE === 'postgres') {
-    await q('INSERT INTO bookings (id,request_id,consultant_id,slot) VALUES ($1,$2,$3,$4)',
-      [id, requestId, consultantId, slot]);
+    try {
+      await q('INSERT INTO bookings (id,request_id,consultant_id,slot,status) VALUES ($1,$2,$3,$4,$5)',
+        [id, requestId, consultantId, slot, 'held']);
+    } catch (e) {
+      if (e && e.code === '23505') throw new SlotTakenError(consultantId, slot);
+      throw e;
+    }
   } else {
+    /* The in-memory store has to keep the same promise, or the behaviour
+       differs between a local run and production — which is exactly the class
+       of bug that only shows up in front of a reviewer. */
+    for (const b of mem.bookings.values()) {
+      if (b.consultant_id === consultantId && b.slot === slot && ['held', 'confirmed'].includes(b.status)) {
+        throw new SlotTakenError(consultantId, slot);
+      }
+    }
     mem.bookings.set(id, {
       id, request_id: requestId, consultant_id: consultantId, slot,
-      status: 'booked', created_at: new Date().toISOString()
+      status: 'held', created_at: new Date().toISOString()
     });
   }
   return id;
@@ -313,7 +405,7 @@ export async function listConsultations() {
 /* ---------------------------------------------------------------- ai audit */
 
 export async function logAiCall(rec) {
-  const row = { id: 'ai_' + randomUUID().slice(0, 8), created_at: new Date().toISOString(), ...rec };
+  const row = { id: 'ai_' + randomUUID(), created_at: new Date().toISOString(), ...rec };
   if (MODE === 'postgres') {
     await q(
       `INSERT INTO ai_calls (id,kind,model,request_id,stop_reason,input_tokens,output_tokens,cache_read,cache_write,ms)
@@ -333,4 +425,10 @@ export async function listAiCalls(limit = 200) {
     return rows;
   }
   return mem.aiCalls.slice(-limit).reverse();
+}
+
+/* §OPS-002 — the pool has to be closed on shutdown, or Postgres keeps the
+   connections until it times them out itself. */
+export async function close() {
+  if (MODE === 'postgres' && pool) await pool.end();
 }

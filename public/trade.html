@@ -10,6 +10,7 @@
 <script src="/ia.js"></script>
 <script src="/features.js"></script>
 <script src="/modes.js"></script>
+<script src="/alerts.js"></script>
 <script src="/home.js"></script>
 <script src="/quotes.js"></script>
 <script src="/hub.js"></script>
@@ -35,8 +36,9 @@
   </div>
   <div class="right">
     <a class="new-launch" href="/new" title="Product innovations — what is new in this prototype">NEW <span class="n" id="newCount">8</span></a>
-    <button class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
-    <span style="font-size:14px;color:var(--tv-muted)">Sign in</span>
+    <button type="button" class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
+    <button type="button" class="signin-btn" id="signIn"
+      title="Accounts are not connected on this prototype">Sign in</button>
     <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
   </div>
 </nav>
@@ -147,23 +149,27 @@ Hub.mount('trade', mode => `
   </div>
 
   <h2 class="mt-32" id="practice" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">Practice</h2>
-  <div class="stubs mt-16">
-    ${H.pilotCard({ title: 'Paper trading', what: 'A virtual balance with commissions and leverage simulated, so a decision costs attention rather than money.', actions: [{ label: 'Learn it in the Academy', url: '/learn/academy', primary: true }] })}
-    ${H.pilotCard({ title: 'Bar replay & scenarios', what: 'Replay a past period bar by bar and act as if it were live — the cheapest way to find out whether a rule survives contact with the market.', actions: [{ label: 'Open the workspace', url: '/charts' }] })}
-    ${H.pilotCard({ title: 'Decision journal', what: 'Why you entered, what you expected, what happened. The part most platforms leave out and most people need most.', actions: [{ label: 'Saved research', url: '/capital#saved' }] })}
-  </div>
+  <div class="mt-16">${H.modules(mode, [
+    { complexity: 1, html: H.pilotCard({ title: 'Paper trading', what: 'A virtual balance with commissions and leverage simulated, so a decision costs attention rather than money.', actions: [{ label: 'Learn it in the Academy', url: '/learn/academy', primary: true }] }) },
+    { complexity: 2, html: H.pilotCard({ title: 'Bar replay & scenarios', what: 'Replay a past period bar by bar and act as if it were live — the cheapest way to find out whether a rule survives contact with the market.', actions: [{ label: 'Open the workspace', url: '/charts' }] }) },
+    { complexity: 2, html: H.pilotCard({ title: 'Decision journal', what: 'Why you entered, what you expected, what happened. The part most platforms leave out and most people need most.', actions: [{ label: 'Saved research', url: '/capital#saved' }] }) }
+  ])}</div>
 
   <h2 class="mt-32" id="brokers" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">Brokers</h2>
-  <div class="stubs mt-16">
-    ${H.pilotCard({ title: 'Catalogue', what: 'Filter by country, availability, asset classes, commissions, ratings, reviews, integrations and data delay — with the limitations stated, not buried.', note: 'ratings on the real platform are partly commercial; a prototype should not imitate that' })}
-    ${H.pilotCard({ title: 'Comparison', what: 'Commissions, spread, available markets, order types, leverage, supported countries, integration and support quality, side by side.', actions: [{ label: 'How matching works elsewhere', url: '/community/experts' }] })}
-    ${H.pilotCard({ title: 'Connected accounts', what: 'Status, permissions, available markets, balances, errors and reconnection — the boring screen that decides whether people trust the connection.' })}
-  </div>
+  <div class="mt-16">${H.modules(mode, [
+    { complexity: 2, html: H.pilotCard({ title: 'Catalogue', what: 'Filter by country, availability, asset classes, commissions, ratings, reviews, integrations and data delay — with the limitations stated, not buried.', note: 'ratings on the real platform are partly commercial; a prototype should not imitate that' }) },
+    { complexity: 2, html: H.pilotCard({ title: 'Comparison', what: 'Commissions, spread, available markets, order types, leverage, supported countries, integration and support quality, side by side.', actions: [{ label: 'How matching works elsewhere', url: '/community/experts' }] }) },
+    { complexity: 3, html: H.pilotCard({ title: 'Connected accounts', what: 'Status, permissions, available markets, balances, errors and reconnection — the boring screen that decides whether people trust the connection.' }) }
+  ])}</div>
 
   <h2 class="mt-32" id="terminal" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">Terminal</h2>
-  <div class="stubs mt-16">
-    ${H.pilotCard({ title: 'Order ticket and positions', what: 'Order ticket, positions, active orders, history, trading from the chart, risk controls and connection status.', actions: [{ label: 'The chart it lives in', url: '/charts', primary: true }] })}
-  </div>
+  <div class="mt-16">${H.modules(mode, [
+    { complexity: 1, html: H.pilotCard({ title: 'Order ticket and positions', what: 'Order ticket, positions, active orders, history, trading from the chart, risk controls and connection status.', actions: [{ label: 'The chart it lives in', url: '/charts', primary: true }] }) }
+,
+    { complexity: 3, html: H.pilotCard({ title: "Advanced order types", what: "Bracket, trailing, OCO and conditional orders, with the risk each one removes and the risk each one adds.", actions: [{ label: "Practise first", url: "/trade#practice" }], note: 'a professional default: open in Pro, folded at other levels — never removed' }) },
+    { complexity: 3, html: H.pilotCard({ title: "Multi-account view", what: "Several accounts in one terminal: positions, exposure and margin aggregated, and the reconciliation screen that decides whether people trust it.", actions: [{ label: "Brokers", url: "/trade#brokers" }], note: 'a professional default: open in Pro, folded at other levels — never removed' }) },
+    { complexity: 3, html: H.pilotCard({ title: "Risk controls", what: "Position size by rule, daily loss limits and exposure caps set before the trade, because after it they are opinions.", actions: [{ label: "Learn risk first", url: "/learn/academy" }], note: 'a professional default: open in Pro, folded at other levels — never removed' }) }
+  ])}</div>
 `);
 
 Hub.nextStep(document.getElementById('next'), {

@@ -65,6 +65,47 @@ Applied in three places so far:
 - **Chart tools** — the *Advanced tools* drawer reveals everything above the preset for this page
   only, with `Back to the <mode> preset` as the way out.
 
+## Explanation depth, applied rather than declared
+
+The policy has always carried `explanationDepth`, and for one release nothing read it: every page
+carried exactly the same number of explaining words in all three modes. Depth is now applied to the
+copy itself.
+
+```html
+<div data-explain-level="context">the one-line "what this is"</div>
+<div data-explain-level="deep">the paragraph that teaches</div>
+```
+
+| Depth | Budget | Result |
+|---|---|---|
+| `guided` (Simple) | 2 | both levels shown |
+| `contextual` (Standard) | 1 | the short line stays, the teaching paragraph goes |
+| `minimal` (Pro) | 0 | neither — the professional reads the number, not the lesson |
+
+`Portal.applyExplain(depth)` sets `hidden` on the elements, so the rule survives a missing
+stylesheet and can be asserted by test. A CSS mirror stays as a no-JavaScript fallback.
+
+**Never carries `data-explain-level`:** trust labels, sources, timestamps, delays and disclaimers.
+Those are in every mode, including Pro (§8.2).
+
+## Module complexity in section hubs
+
+Hubs used to render identical modules in all three modes — `fillModules(mode)` received the mode and
+every page ignored it, which is precisely why Standard and Pro were the same page with different
+padding. Modules now declare a complexity once:
+
+```js
+H.modules(mode, [
+  { complexity: 1, html: … },   // everyone opens with it
+  { complexity: 2, html: … },   // Simple folds it
+  { complexity: 3, html: … }    // Simple → "More in this section", Standard folds, Pro opens
+])
+```
+
+Professional modules that did not exist before — market breadth, correlation and factor view, risk
+decomposition, advanced order types, multi-account, Pine creators — were added at complexity 3, so
+Pro is a different page rather than a differently-spaced one.
+
 ## Temporary disclosure vs the global default
 
 ```

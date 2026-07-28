@@ -12,6 +12,7 @@
 <script src="/ia.js"></script>
 <script src="/features.js"></script>
 <script src="/modes.js"></script>
+<script src="/alerts.js"></script>
 <script src="/home.js"></script>
 <script src="/nav.js"></script>
 <script src="/copilot.js" defer></script>
@@ -35,8 +36,9 @@
   </div>
   <div class="right">
     <a class="new-launch" href="/new" title="Product innovations — what is new in this prototype">NEW <span class="n" id="newCount">8</span></a>
-    <button class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
-    <span style="font-size:14px;color:var(--tv-muted)">Sign in</span>
+    <button type="button" class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
+    <button type="button" class="signin-btn" id="signIn"
+      title="Accounts are not connected on this prototype">Sign in</button>
     <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
   </div>
 </nav>
@@ -76,6 +78,13 @@
   <!-- Lessons -->
   <div class="track" id="track"></div>
 
+  <!-- §7.12 — the Academy exists in every mode; what changes is the curriculum
+       the page opens with, not whether learning is available. -->
+  <div class="section" style="padding:36px 0 0;max-width:none;" id="curriculum">
+    <div class="head"><h2 id="curTitle">What this track covers</h2><span class="tag tag-ai" id="curTag">SIMPLE CURRICULUM</span></div>
+    <div class="stubs mt-16" id="curCards"></div>
+  </div>
+
   <!-- Expert tracks -->
   <div class="section" style="padding:36px 0 0;max-width:none;">
     <div class="head"><h2>Expert tracks</h2><span class="tag tag-warn">OPINION · REVIEWED</span></div>
@@ -99,7 +108,8 @@
         account so your progress is not lost — <b style="color:#fff;">after</b> the value,
         not before it.
       </div>
-      <button class="btn btn-primary" id="saveBtn" style="white-space:nowrap;">Save my progress</button>
+      <button type="button" class="btn btn-primary" id="saveBtn" style="white-space:nowrap;">Save my progress</button>
+      <div class="tv-card" id="saveNote" hidden style="flex-basis:100%;margin-top:14px"></div>
     </div>
   </section>
 
@@ -116,7 +126,7 @@
   </section>
 
   <div class="row mt-24" style="gap:10px;flex-wrap:wrap;">
-    <button class="btn btn-quiet" id="resetBtn">Reset my progress</button>
+    <button type="button" class="btn btn-quiet" id="resetBtn">Reset my progress</button>
     <span class="mono" style="font-size:11px;color:var(--tv-ghost);">progress is stored in this browser only</span>
   </div>
 
@@ -239,10 +249,10 @@ function render() {
       <div class="d">${l.mins} min · ${esc(l.desc)}</div>
       <div class="bar"><i style="width:${width}%"></i></div>
       ${st !== 'locked' && st !== 'done' && action
-        ? `<button class="btn btn-primary" style="margin-top:14px" data-act="${l.id}">${esc(action.label)}</button>`
+        ? `<button type="button" class="btn btn-primary" style="margin-top:14px" data-act="${l.id}">${esc(action.label)}</button>`
         : ''}
       ${st !== 'locked' && st !== 'done' && !action && !l.interactive
-        ? `<button class="btn btn-secondary" style="margin-top:14px" data-read="${l.id}">Mark as read</button>`
+        ? `<button type="button" class="btn btn-secondary" style="margin-top:14px" data-read="${l.id}">Mark as read</button>`
         : ''}
       ${st !== 'locked' && st !== 'done' && l.interactive
         ? `<a class="btn btn-primary" style="margin-top:14px" href="/learn/academy/lesson">Open the lesson →</a>`
@@ -298,8 +308,23 @@ $('modePill').addEventListener('click', e => {
 });
 
 $('saveBtn').addEventListener('click', () => {
+  /* §ACADEMY-003 — a browser alert() is not a product surface: it cannot be
+     styled, cannot be read properly by assistive technology, and blocks the
+     page. It also said "pilot stub", which tells the visitor nothing about
+     what actually happened to their progress. */
   window.Academy.track('save_progress_clicked', { completed: window.Academy.completed().length });
-  alert('Pilot stub: this is where account creation would happen — after the value, not before it.');
+  const done = window.Academy.completed().length;
+  const box = document.getElementById('saveNote');
+  box.hidden = false;
+  box.innerHTML = `<b>Your progress is already saved — on this device.</b>
+    <span>${done} of 6 lessons complete, stored in this browser. Accounts are not connected on this
+      prototype, so there is nothing to sign up for and nothing is sent anywhere. Clearing your
+      browser data is the one thing that would lose it.</span>
+    <div class="row mt-16" style="gap:8px;flex-wrap:wrap">
+      <a class="btn btn-quiet" href="/learn/academy/lesson" style="padding:7px 14px;font-size:12.5px">Continue the track</a>
+      <button type="button" class="btn btn-quiet" id="closeSaveNote" style="padding:7px 14px;font-size:12.5px">Close</button>
+    </div>`;
+  document.getElementById('closeSaveNote').addEventListener('click', () => { box.hidden = true; });
 });
 
 $('resetBtn').addEventListener('click', () => {
@@ -321,6 +346,54 @@ render();
     const a = e.target.closest('[data-fid]');
     if (a) Fx.track('strategic_feature_opened', Fx.byId(a.dataset.fid), { surface: 'academy' });
   });
+})();
+</script>
+<script>
+/* The curriculum by preset. Six lessons stay six lessons in every mode — the
+   emphasis moves, the product does not (§7.12). */
+(function () {
+  const CUR = {
+    simple: { tag: 'SIMPLE CURRICULUM', title: 'What this track covers',
+      cards: [
+        ['Read a chart without guessing', 'What a candle is, what a range means, and why "expensive" needs a reference before it means anything.'],
+        ['Build your first watchlist', 'Five instruments you actually want to follow, saved on this device, and the reason each one is on the list.'],
+        ['Ask one good question', 'The Copilot answers in words and cites what it used. Learning to ask precisely is half the skill.']
+      ] },
+    standard: { tag: 'STANDARD CURRICULUM', title: 'Skills tracks',
+      cards: [
+        ['Fundamentals and multiples', 'What the reported numbers mean, what to compare them with, and when the comparison is dishonest.'],
+        ['Risk before return', 'Position size, concentration and drawdown — the three that decide whether a good idea survives a bad month.'],
+        ['Events and what they touch', 'From a calendar entry to the instruments it historically moved, and to an alert you set yourself.'],
+        ['Screeners as questions', 'Turning "which stable dividend payers report next month" into a filter set you can save.']
+      ] },
+    pro: { tag: 'PRO CURRICULUM', title: 'Professional workflows',
+      cards: [
+        ['Strategy testing end to end', 'Replay, tester, journal — building evidence for a rule instead of an opinion about it.'],
+        ['Pine Script', 'Syntax, debugging, publication and the errors that eat an afternoon the first time.'],
+        ['Multi-chart workspaces', 'Layouts, saved workspaces and keyboard-first navigation that make density readable.'],
+        ['Automation and alerts at scale', 'Conditional alerts, webhooks and what breaks when the rule fires at 3am.'],
+        ['Expert-led tracks', 'Courses written by the licensed advisers in the marketplace, with their record attached.']
+      ] }
+  };
+
+  function paintCurriculum() {
+    const mode = (window.Portal?.mode?.() || 'simple');
+    const c = CUR[mode] || CUR.simple;
+    const tag = document.getElementById('curTag');
+    const title = document.getElementById('curTitle');
+    const box = document.getElementById('curCards');
+    if (!box) return;
+    tag.textContent = c.tag;
+    title.textContent = c.title;
+    box.innerHTML = c.cards.map(([t, w]) => `<div class="tv-card">
+      <p class="title" style="margin:0">${t}</p>
+      <div data-explain-level="context" style="font-size:13px;color:var(--tv-muted);margin-top:6px;line-height:1.5">${w}</div>
+    </div>`).join('');
+    window.Portal?.applyExplain?.(window.Modes?.policy(mode).explanationDepth);
+  }
+
+  paintCurriculum();
+  document.addEventListener('ui-mode-changed', paintCurriculum);
 })();
 </script>
 </body>

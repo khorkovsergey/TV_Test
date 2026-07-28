@@ -11,6 +11,7 @@
 <script src="/ia.js"></script>
 <script src="/features.js"></script>
 <script src="/modes.js"></script>
+<script src="/alerts.js"></script>
 <script src="/home.js"></script>
 <script src="/quotes.js"></script>
 <script src="/nav.js"></script>
@@ -36,8 +37,9 @@
   </div>
   <div class="right">
     <a class="new-launch" href="/new" title="Product innovations — what is new in this prototype">NEW <span class="n" id="newCount">8</span></a>
-    <button class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
-    <span style="font-size:14px;color:var(--tv-muted)">Sign in</span>
+    <button type="button" class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
+    <button type="button" class="signin-btn" id="signIn"
+      title="Accounts are not connected on this prototype">Sign in</button>
     <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
   </div>
 </nav>
@@ -71,9 +73,31 @@
 
   <!-- Folded, not removed: Simple starts with four tasks and this opens the
        rest. Switching to Standard or Pro opens them permanently. -->
-  <button class="btn btn-quiet mt-16" id="moreRoutes" hidden style="padding:9px 16px">
+  <button type="button" class="btn btn-quiet mt-16" id="moreRoutes" hidden style="padding:9px 16px">
     Show <span id="moreRoutesCount">4</span> more tasks
   </button>
+
+  <!-- §7.2 — Pro opens with a compact dashboard strip. Before this the home
+       page was byte-identical in Standard and Pro, which is the anti-pattern
+       §13 names: a mode with no distinct purpose. -->
+  <div class="tv-card mt-24" id="proStrip" hidden>
+    <div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <p class="title" style="margin:0">Your desk</p>
+      <span class="mono" style="font-size:10px;color:#B48CFF;letter-spacing:.08em">PRO DEFAULT</span>
+    </div>
+    <div class="stats mt-16" id="proStats"></div>
+    <div class="row mt-16" style="gap:8px;flex-wrap:wrap">
+      <a class="preset" href="/capital#watchlists">Watchlists</a>
+      <a class="preset" href="/capital#alerts">Alerts</a>
+      <a class="preset" href="/screeners">Saved screens</a>
+      <a class="preset" href="/markets#heatmap">Market map</a>
+      <a class="preset" href="/charts">Workspace</a>
+      <a class="preset" href="/overview#events">Calendar</a>
+    </div>
+    <div class="mono" style="font-size:10.5px;color:var(--tv-ghost);margin-top:12px">
+      shown by default in Pro · the same destinations exist in every mode, in ⌘K and on the site map
+    </div>
+  </div>
 
   <!-- §VIS-005 — the strategic features get a place of their own on the home
        page. Clean architecture hid them; a labelled block brings them back
@@ -118,8 +142,8 @@
             Save them and get the next event by email — free.
           </div>
           <div class="row mt-16" style="flex-wrap:wrap;gap:10px">
-            <button class="btn btn-primary" id="saveCta">Save my watchlist</button>
-            <button class="btn btn-secondary" id="guestCta" style="border-color:rgba(255,255,255,.4);color:#fff">Continue as guest</button>
+            <button type="button" class="btn btn-primary" id="saveCta">Save my watchlist</button>
+            <button type="button" class="btn btn-secondary" id="guestCta" style="border-color:rgba(255,255,255,.4);color:#fff">Continue as guest</button>
           </div>
           <div class="mono" style="font-size:10.5px;color:#98a0b0;margin-top:11px">pricing appears when you hit a limit — not before</div>
         </div>
@@ -130,7 +154,7 @@
       <div class="tv-card" id="journeyCard" hidden>
         <div style="font-size:14px;font-weight:700;color:var(--tv-white)">Your research journey</div>
         <div class="trail" style="margin-top:11px" id="trail"></div>
-        <button class="next-step" id="continueJourney" style="margin-top:12px"><span id="continueText">Continue</span> <b>→</b></button>
+        <button type="button" class="next-step" id="continueJourney" style="margin-top:12px"><span id="continueText">Continue</span> <b>→</b></button>
         <div style="font-size:12px;color:var(--tv-faint);margin-top:10px">Saved on this device — continue from here or from the Copilot.</div>
       </div>
     </div>
@@ -143,7 +167,7 @@
       <div class="mono" style="font-size:10.5px;color:#ffb74d;letter-spacing:.1em">IN 18H 22M · HIGH IMPACT</div>
       <div style="font-size:30px;font-weight:700;color:#fff;margin-top:10px">FOMC rate decision</div>
       <div style="font-size:13.5px;color:#C9CEDA;margin-top:8px">Historically touches BTC, US10Y and gold — a probability, not a rule.</div>
-      <button class="btn btn-primary" id="followEvent" style="margin-top:18px">Follow · 1 click</button>
+      <button type="button" class="btn btn-primary" id="followEvent" style="margin-top:18px">Follow · 1 click</button>
     </div>
   </section>
 
@@ -156,7 +180,7 @@
       <div class="stub-steps"><span>price</span><span>drivers</span><span>peers</span><span>next event</span></div>
       <div class="row mt-16" style="flex-wrap:wrap;gap:8px">
         <a class="btn btn-primary" href="/symbols/BTCUSD" id="assetPage" style="padding:9px 16px">Open BTCUSD</a>
-        <button class="btn btn-quiet" id="assetAsk" style="padding:9px 16px">Ask the Copilot</button>
+        <button type="button" class="btn btn-quiet" id="assetAsk" style="padding:9px 16px">Ask the Copilot</button>
       </div>
       <div class="mono" style="font-size:10.5px;color:var(--tv-ghost);margin-top:10px">each step suggests the next one — the journey, not a feed</div>
     </div>
@@ -169,7 +193,7 @@
         nothing, and it is what makes the next visit start where this one ended.</div>
       <div class="chips" id="chips"></div>
       <div class="row mt-16" style="flex-wrap:wrap;gap:8px">
-        <button class="btn btn-primary" id="saveWatchlist" style="padding:9px 16px">Save watchlist</button>
+        <button type="button" class="btn btn-primary" id="saveWatchlist" style="padding:9px 16px">Save watchlist</button>
         <span class="mono" style="font-size:11px;color:var(--tv-faint)" id="watchState"></span>
       </div>
     </div>
@@ -189,9 +213,9 @@
       <h2 style="font-size:26px;font-weight:700;color:var(--tv-white);letter-spacing:-.015em;margin:0">Ideas</h2>
       <div class="row" style="gap:10px;flex-wrap:wrap">
         <div class="feed-tabs" id="feedTabs">
-          <button class="on" data-feed="editors">Editors' Picks</button>
-          <button data-feed="popular">Popular</button>
-          <button data-feed="newest">Newest</button>
+          <button type="button" class="on" data-feed="editors">Editors' Picks</button>
+          <button type="button" data-feed="popular">Popular</button>
+          <button type="button" data-feed="newest">Newest</button>
         </div>
         <span class="tag tag-warn" id="feedTag">OPINION · REVIEWED</span>
       </div>
@@ -304,7 +328,7 @@ function renderChips() {
        is easier when the choice is not a bare ticker. */
     const move = q && Number.isFinite(q.changePct)
       ? ` <span class="${Q.cls(q.changePct)}">${Q.pct(q.changePct)}</span>` : '';
-    return `<button class="chip ${list.includes(s) ? 'on' : ''}" data-sym="${s}">${s}${move}${list.includes(s) ? ' <span class="x">✓</span>' : ''}</button>`;
+    return `<button type="button" class="chip ${list.includes(s) ? 'on' : ''}" data-sym="${s}">${s}${move}${list.includes(s) ? ' <span class="x">✓</span>' : ''}</button>`;
   }).join('');
   $('watchState').textContent = list.length
     ? `${list.length} saved on this device`
@@ -329,9 +353,23 @@ $('saveWatchlist').addEventListener('click', () => {
    makes sense once there is something to save. */
 $('saveCta').addEventListener('click', () => {
   const list = P.watchlist();
+  /* §UI-003 — this used to silently add BTC and TSLA to an empty list and then
+     report that the list had been saved. Choosing financial instruments on
+     somebody's behalf and calling it their choice is the one thing a stand
+     about trust cannot do. It asks instead. */
   if (!list.length) {
-    OFFERED.slice(0, 2).forEach(s => P.toggleSymbol(s));
-    renderChips();
+    $('valueLine').innerHTML =
+      'Nothing is selected yet. Pick the instruments you actually want to follow above — ' +
+      'or <button type="button" class="preset" id="useSample">use a sample list</button> ' +
+      'of ' + OFFERED.slice(0, 2).join(' and ') + '.';
+    document.getElementById('useSample')?.addEventListener('click', () => {
+      OFFERED.slice(0, 2).forEach(s => P.toggleSymbol(s));
+      renderChips();
+      P.track('sample_watchlist_accepted', { symbols: OFFERED.slice(0, 2) });
+      $('valueLine').textContent = 'Sample list selected. Press save when it looks right.';
+    });
+    P.track('value_cta_empty_watchlist');
+    return;
   }
   P.saveWatchlist('value_cta');
   P.registerClick('value_cta');
@@ -344,12 +382,27 @@ $('guestCta').addEventListener('click', () => {
   $('valueLine').textContent = 'No problem — everything above works without an account.';
 });
 
+/* §UI-005 — following an event used to be a button that changed its own label
+   and forgot on reload. It is state now, shared with the asset hub. */
+function followedEvents() {
+  try { return JSON.parse(localStorage.getItem('followed_events') || '[]'); } catch { return []; }
+}
+function paintFollow() {
+  const on = followedEvents().some(e => e.id === 'FOMC');
+  $('followEvent').textContent = on ? '✓ Following' : 'Follow this event';
+  $('followEvent').disabled = on;
+}
 $('followEvent').addEventListener('click', () => {
+  const list = followedEvents();
+  if (!list.some(e => e.id === 'FOMC')) {
+    list.push({ id: 'FOMC', followedAt: new Date().toISOString(), alertEnabled: false });
+    try { localStorage.setItem('followed_events', JSON.stringify(list)); } catch {}
+  }
   P.track('event_followed', { event: 'FOMC' });
   P.meaningful('event_followed');
-  $('followEvent').textContent = '✓ Following';
-  $('followEvent').disabled = true;
+  paintFollow();
 });
+paintFollow();
 
 $('assetAsk').addEventListener('click', () => {
   P.track('asset_stub_copilot', { symbol: 'BTCUSD' });
@@ -507,6 +560,24 @@ function applyMode() {
      in Pro the brief gets the extra columns instead of the explanations. */
   $('guestCta').style.display = mode === 'simple' ? 'none' : '';
   $('modeChip').textContent = mode.toUpperCase() + ' MODE · ON';
+
+  /* The professional desk: a Pro default, and the reason Pro is no longer a
+     renamed Standard on this page. */
+  const strip = $('proStrip');
+  if (strip) {
+    const pro = (window.Modes ? window.Modes.policy(mode).showAdvancedByDefault : mode === 'pro');
+    strip.hidden = !pro;
+    if (pro && !strip.dataset.painted) {
+      strip.dataset.painted = '1';
+      const watch = (P.watchlist() || []).length;
+      let alerts = 0, screens = 0;
+      try { alerts = JSON.parse(localStorage.getItem('alerts') || '[]').length; } catch {}
+      try { screens = JSON.parse(localStorage.getItem('saved_screens') || '[]').length; } catch {}
+      $('proStats').innerHTML = [
+        ['Followed', watch], ['Alerts', alerts], ['Saved screens', screens], ['Instruments live', 49]
+      ].map(([k, v]) => `<div class="st"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
+    }
+  }
 }
 
 $('moreRoutes')?.addEventListener('click', () => {
@@ -525,7 +596,7 @@ function renderFeatures() {
   const primary = ['NEW-01', 'NEW-02', 'NEW-05', 'NEW-07'].map(Fx.byId);
   const secondary = ['NEW-06', 'NEW-03', 'NEW-08'].map(Fx.byId);
   const card = f => `<a class="fcard" href="${f.route}" data-fid="${f.id}">
-      <div class="top"><span class="ic">${f.icon}</span>${Fx.badge(f.status)}</div>
+      <div class="top"><span class="ic">${f.icon}</span>${Fx.badge(f)}</div>
       <h3>${f.shortName}</h3>
       <div class="prob">${f.problem}</div>
       <div class="case-note">Case hypothesis ${f.id} · ${f.metric}</div>
@@ -534,7 +605,7 @@ function renderFeatures() {
   $('featureCards').innerHTML = primary.map(card).join('') +
     `<div class="tv-card" style="grid-column:1/-1;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
        <span class="mono" style="font-size:10.5px;color:var(--tv-ghost);letter-spacing:.08em">ALSO IN THE CASE</span>
-       ${secondary.map(f => `<a class="preset" href="${f.route}" data-fid="${f.id}">${f.icon} ${f.shortName} ${Fx.badge(f.status)}</a>`).join('')}
+       ${secondary.map(f => `<a class="preset" href="${f.route}" data-fid="${f.id}">${f.icon} ${f.shortName} ${Fx.badge(f)}</a>`).join('')}
      </div>`;
 
   for (const f of primary.concat(secondary)) Fx.track('strategic_feature_impression', f, { surface: 'home' });

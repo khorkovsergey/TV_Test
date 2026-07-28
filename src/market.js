@@ -212,9 +212,55 @@ async function fetchAll(items) {
 let cache = null;          // { at, items }
 let inflight = null;
 
+/* §MKT-001 — the confirmed bug.
+
+   `fetchAll` turns every individual failure into `{ ok: false }` and never
+   throws, so `refresh()` never threw either. The comment on `snapshot()`
+   promised that a total outage would keep serving the previous snapshot; in
+   fact the previous snapshot was overwritten with 49 failures, and the whole
+   portal went to "no data" until the provider recovered.
+
+   Quality is now decided before the cache is replaced, and a symbol that
+   failed this round keeps its last known value, labelled stale. */
+export class MarketDataUnavailableError extends Error {
+  constructor(msg) { super(msg); this.name = 'MarketDataUnavailableError'; this.code = 'MARKET_UNAVAILABLE'; }
+}
+
+const MIN_REFRESH_SUCCESS_RATIO = 0.5;
+
+function mergeWithPrevious(previous, items) {
+  if (!previous) return items;
+  const before = new Map(previous.map(i => [i.symbol, i]));
+  return items.map(i => {
+    if (i.ok) return i;
+    const old = before.get(i.symbol);
+    if (!old || !old.ok) return i;
+    /* Old but labelled beats empty — and "retained" has to be visible, or the
+       page would present a stale number as a current one. */
+    return { ...old, retained: true, retained_error: i.error, retained_at: previous_at };
+  });
+}
+
+let previous_at = null;
+
 async function refresh() {
   const items = await fetchAll(UNIVERSE);
-  cache = { at: Date.now(), items };
+  const okCount = items.filter(i => i.ok).length;
+  const ratio = items.length ? okCount / items.length : 0;
+
+  if (okCount === 0) {
+    /* Nothing came back. Without a cache this is a real outage the caller has
+       to hear about; with one, the caller keeps what it had. */
+    throw new MarketDataUnavailableError('No quotes were refreshed');
+  }
+  if (cache && ratio < MIN_REFRESH_SUCCESS_RATIO) {
+    throw new MarketDataUnavailableError(
+      `Refresh quality too low to replace the snapshot: ${okCount} of ${items.length}`);
+  }
+
+  previous_at = cache?.at ?? null;
+  const merged = mergeWithPrevious(cache?.items, items);
+  cache = { at: Date.now(), items: merged, quality: { ok: okCount, total: items.length, ratio } };
   return cache;
 }
 
@@ -234,6 +280,7 @@ export async function snapshot() {
 
   const ageMs = Date.now() - cache.at;
   const failed = cache.items.filter(i => !i.ok);
+  const retained = cache.items.filter(i => i.retained);
 
   return {
     asOf: new Date(cache.at).toISOString(),
@@ -243,6 +290,11 @@ export async function snapshot() {
     note: 'Delayed quotes from a free public endpoint. Daily change, weekly and monthly performance are computed here from daily closes.',
     universe: UNIVERSE.length,
     ok_count: cache.items.length - failed.length,
+    /* Provider health, so a page can say "some of this is a minute older"
+       instead of quietly mixing fresh and retained numbers. */
+    quality: cache.quality || null,
+    retained_count: retained.length,
+    retained: retained.map(i => i.symbol),
     failed: failed.map(i => ({ symbol: i.symbol, error: i.error })),
     items: cache.items
   };

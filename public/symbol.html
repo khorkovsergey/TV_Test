@@ -10,6 +10,7 @@
 <script src="/ia.js"></script>
 <script src="/features.js"></script>
 <script src="/modes.js"></script>
+<script src="/alerts.js"></script>
 <script src="/home.js"></script>
 <script src="/quotes.js"></script>
 <script src="/nav.js"></script>
@@ -39,8 +40,9 @@
   </div>
   <div class="right">
     <a class="new-launch" href="/new" title="Product innovations — what is new in this prototype">NEW <span class="n" id="newCount">8</span></a>
-    <button class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
-    <span style="font-size:14px;color:var(--tv-muted)">Sign in</span>
+    <button type="button" class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
+    <button type="button" class="signin-btn" id="signIn"
+      title="Accounts are not connected on this prototype">Sign in</button>
     <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
   </div>
 </nav>
@@ -60,7 +62,7 @@
       <div class="mono src mt-16" id="sourceLine"></div>
     </div>
     <div class="row" style="flex-wrap:wrap;gap:10px">
-      <button class="btn btn-primary" id="addWatch">Add to watchlist</button>
+      <button type="button" class="btn btn-primary" id="addWatch">Add to watchlist</button>
       <a class="btn btn-secondary" href="/charts" id="openChart">Open chart</a>
     </div>
   </div>
@@ -109,7 +111,7 @@
           company, the news, your horizon or your risk.</div>
         <div class="mono" style="font-size:10.5px;color:var(--tv-ghost);margin-top:12px" id="techNote"></div>
         <div style="border-top:1px solid var(--tv-line);margin-top:14px;padding-top:12px">
-          <div class="mono" style="font-size:10px;letter-spacing:.08em;color:#5B8DFF">HOW THIS RATING WAS FORMED</div>
+          <div class="mono" style="font-size:10px;letter-spacing:.08em;color:#5B8DFF">TECHNICAL SIGNAL SUMMARY — HOW IT WAS FORMED</div>
           <div id="ratingBox" style="margin-top:8px"></div>
         </div>
       </div>
@@ -124,7 +126,7 @@
         <div class="mono" style="font-size:10.5px;color:var(--tv-ghost)">ranked by size of today's move</div>
         <div id="peers" class="mt-16"></div>
         <!-- Journey rule: News → related assets -->
-        <button class="next-step" style="margin-top:12px" data-rule="related" data-to="symbol"
+        <button type="button" class="next-step" style="margin-top:12px" data-rule="related" data-to="symbol"
                 data-label="Related assets">Compare the whole class side by side <b>→</b></button>
       </div>
     </div>
@@ -144,7 +146,7 @@
         <div class="trail" style="margin-top:11px" id="trail"></div>
         <div style="font-size:12px;color:var(--tv-faint);margin-top:10px;line-height:1.45">
           Saved on this device. Continue from here or from Home — the Copilot sees it too.</div>
-        <button class="btn btn-quiet" id="resetTrail" style="margin-top:12px;padding:6px 14px;font-size:12px">Clear the trail</button>
+        <button type="button" class="btn btn-quiet" id="resetTrail" style="margin-top:12px;padding:6px 14px;font-size:12px">Clear the trail</button>
       </div>
 
       <div class="tv-card">
@@ -222,10 +224,10 @@ function renderTabs() {
   if (!shown.some(t => t.id === activeTab) && !later.some(t => t.id === activeTab)) activeTab = 'overview';
 
   $('hubTabs').innerHTML = shown.map(t =>
-      `<button role="tab" data-tab="${t.id}" aria-selected="${t.id === activeTab}"
+      `<button type="button" role="tab" data-tab="${t.id}" aria-selected="${t.id === activeTab}"
         class="${t.id === activeTab ? 'on' : ''}">${t.label}</button>`).join('')
     + (later.length ? `<details class="tab-more"><summary>More <span class="n">${later.length}</span></summary>
-        ${later.map(t => `<button role="tab" data-tab="${t.id}" aria-selected="${t.id === activeTab}"
+        ${later.map(t => `<button type="button" role="tab" data-tab="${t.id}" aria-selected="${t.id === activeTab}"
           class="${t.id === activeTab ? 'on' : ''}">${t.label}</button>`).join('')}
       </details>` : '');
 
@@ -266,7 +268,7 @@ function renderActionBar(d) {
 
   const btn = a => a.href
     ? `<a class="btn ${a.primary ? 'btn-primary' : 'btn-quiet'}" href="${a.href}" style="padding:8px 14px;font-size:12.5px">${a.label}</a>`
-    : `<button class="btn ${a.primary ? 'btn-primary' : 'btn-quiet'}" data-act="${a.act}" style="padding:8px 14px;font-size:12.5px">${a.label}</button>`;
+    : `<button type="button" class="btn ${a.primary ? 'btn-primary' : 'btn-quiet'}" data-act="${a.act}" style="padding:8px 14px;font-size:12.5px">${a.label}</button>`;
 
   $('actionBar').innerHTML = list.map(btn).join('')
     + (rest.length ? `<details class="act-more"><summary>More actions <span class="n">${rest.length}</span></summary>
@@ -280,7 +282,7 @@ function renderEventChip() {
     <span class="tag tag-warn">NEXT EVENT · PILOT</span>
     <span style="font-size:13px;color:var(--tv-muted)"><b style="color:var(--tv-white)">FOMC rate decision</b> in 18h 22m —
       historically touches this class</span>
-    <button class="btn btn-quiet" data-act="follow" style="padding:6px 12px;font-size:12px">Follow</button>
+    <button type="button" class="btn btn-quiet" data-act="follow" style="padding:6px 12px;font-size:12px">Follow</button>
     <a class="btn btn-quiet" href="/overview#events" style="padding:6px 12px;font-size:12px">Historical reaction</a>`;
 }
 
@@ -294,8 +296,15 @@ document.addEventListener('click', e => {
     P.track('watchlist_added', { symbol });
     renderActionBar(current);
   }
-  if (act === 'alert' || act === 'copilot') {
-    P.track(act === 'alert' ? 'alert_intent' : 'copilot_from_asset', { symbol });
+  /* §UI-002 — "Create an alert" creates an alert. It used to open the Copilot,
+     which is what the button next to it does, so two different promises had
+     one behaviour and neither produced an alert anywhere. */
+  if (act === 'alert') {
+    P.track('alert_intent', { symbol });
+    window.Alerts?.open(symbol, current?.price);
+  }
+  if (act === 'copilot') {
+    P.track('copilot_from_asset', { symbol });
     document.querySelector('.cp-fab')?.click();
   }
   if (act === 'follow') {
@@ -348,7 +357,7 @@ function renderTrail() {
 }
 
 $('steps').innerHTML = STEPS.map(s =>
-  `<button class="next-step" data-rule="${s.rule}" data-to="${s.to}" data-label="${Q.esc(s.label)}">
+  `<button type="button" class="next-step" data-rule="${s.rule}" data-to="${s.to}" data-label="${Q.esc(s.label)}">
      ${Q.esc(s.label)} <b>→</b></button>`).join('');
 
 document.addEventListener('click', e => {
@@ -479,13 +488,19 @@ function renderTechnicals(d) {
 
   $('ratingBox').innerHTML = `
     <div style="font-size:13.5px;color:var(--tv-text);line-height:1.6">
-      <div><b style="color:var(--tv-white)">${up} of ${readings.length}</b> readings are above their reference,
-        so they agree <b style="color:var(--tv-white)">${agreement}%</b> of the time.</div>
+      <div><b style="color:var(--tv-white)">${up} of ${readings.length}</b> readings put the current price
+        above the level each one measures, so they point the same way
+        <b style="color:var(--tv-white)">${agreement}%</b> of the time.</div>
+      <div style="margin-top:6px">Thresholds: price vs the 5- and 20-day averages, RSI(14) against 50,
+        and the midpoint of the 52-week range.</div>
       <div style="margin-top:6px">Formed by: ${readings.map(r =>
         `<span class="mono ${r.bull ? 'pos' : 'neg'}" style="font-size:11.5px">${r.name}</span>`).join(' · ')}</div>
       <div style="margin-top:6px">Timeframe: daily closes, last ${(d.series || []).length} bars.</div>
       <div style="margin-top:6px">Contradictions: ${contradictions}.</div>
-      <div style="margin-top:6px">Computed ${new Date().toUTCString().slice(5, 22)} UTC, from delayed prices.</div>
+      <div style="margin-top:6px">Quote as of ${Q.esc(d.asOf ? new Date(d.asOf).toUTCString().slice(5, 22) : 'unknown')} UTC
+        (delayed); readings computed from that snapshot, not from the time on your device.</div>
+      <div style="margin-top:6px">Data sufficiency: ${(d.series || []).length} daily closes
+        ${(d.series || []).length < 20 ? '— fewer than the 20 the longest average needs, so that reading is omitted' : '— enough for every reading shown'}.</div>
     </div>
     <div class="mono" style="font-size:10.5px;color:var(--tv-ghost);margin-top:11px">
       This is not a recommendation. It describes where the price sits relative to its own recent
@@ -519,7 +534,7 @@ function renderFeatureRail() {
   const list = ['NEW-02', 'NEW-07', 'NEW-06'].map(Fx.byId);
   document.getElementById('railCards').innerHTML = list.map(f => `
     <a class="next-step" href="${f.route}${f.id === 'NEW-07' ? '?from=asset&symbol=' + encodeURIComponent(symbol) : ''}" data-fid="${f.id}">
-      <span>${f.icon} ${f.shortName} ${Fx.badge(f.status)}
+      <span>${f.icon} ${f.shortName} ${Fx.badge(f)}
         <span style="display:block;font-size:11.5px;color:var(--tv-faint);margin-top:3px">${f.audience}</span></span>
       <b>→</b></a>`).join('');
   for (const f of list) Fx.track('strategic_feature_impression', f, { surface: 'assetHub' });

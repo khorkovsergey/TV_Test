@@ -11,11 +11,14 @@
 <script src="/ia.js"></script>
 <script src="/features.js"></script>
 <script src="/modes.js"></script>
+<script src="/alerts.js"></script>
 <script src="/home.js"></script>
 <script src="/nav.js"></script>
 <script src="/copilot.js" defer></script>
 </head>
 <body>
+
+<h1 class="visually-hidden">Interactive lesson — read a level on a real chart</h1>
 
 <div class="mock-strip">
   UNAFFILIATED CASE-STUDY MOCKUP · NOT A REAL PLATFORM · NOT INVESTMENT ADVICE
@@ -34,8 +37,9 @@
   </div>
   <div class="right">
     <a class="new-launch" href="/new" title="Product innovations — what is new in this prototype">NEW <span class="n" id="newCount">8</span></a>
-    <button class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
-    <span style="font-size:14px;color:var(--tv-muted)">Sign in</span>
+    <button type="button" class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
+    <button type="button" class="signin-btn" id="signIn"
+      title="Accounts are not connected on this prototype">Sign in</button>
     <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
   </div>
 </nav>
@@ -108,8 +112,8 @@
 
       <div style="flex:1;"></div>
       <div class="row" style="flex-wrap:wrap;gap:8px;">
-        <button class="btn btn-primary" id="nextBtn" disabled>Next: build a watchlist →</button>
-        <button class="btn btn-quiet" id="skipBtn">Skip</button>
+        <button type="button" class="btn btn-primary" id="nextBtn" disabled>Next: build a watchlist →</button>
+        <button type="button" class="btn btn-quiet" id="skipBtn">Skip</button>
       </div>
       <div class="mono" style="font-size:10px;color:var(--tv-ghost);">progress is saved · step 4 unlocks the watchlist step</div>
       <div class="disclaimer" style="margin-top:6px;">Education content, not investment advice.
@@ -155,7 +159,7 @@ function renderRail() {
   rail.innerHTML = TOOLS.map((t, i) => {
     const open = t.step === 0 || A.isDone(t.step);
     const title = open ? t.name : `${t.name} — unlocks at step ${t.step + 1}`;
-    return `<button class="t ${open && i === 0 ? 'on' : ''}" title="${title}"
+    return `<button type="button" class="t ${open && i === 0 ? 'on' : ''}" title="${title}"
               aria-label="${title}" ${open ? '' : 'disabled'}></button>`;
   }).join('') + `<div class="cap">${unlockedTools().length} of ${TOOLS.length} tools</div>`;
 

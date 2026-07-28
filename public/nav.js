@@ -223,9 +223,9 @@
        keys move between them, and the state is announced as text rather than
        as a colour (§12, accessibility). */
     const sw = h(`<span class="mode-switch" role="radiogroup" aria-label="Interface complexity">
-      ${MODES.map(m => `<button role="radio" data-mode="${m.id}" aria-checked="false"
+      ${MODES.map(m => `<button type="button" role="radio" data-mode="${m.id}" aria-checked="false"
         title="${esc(m.label)} — ${esc(m.hint)}">${m.label}</button>`).join('')}
-      <button class="mode-cmp" data-cmp="1" aria-haspopup="dialog"
+      <button type="button" class="mode-cmp" data-cmp="1" aria-haspopup="dialog"
         title="What changes when you switch — and what does not">?</button>
     </span>`);
     right.insertBefore(sw, right.firstChild);
@@ -293,7 +293,7 @@
     const back = h(`<div class="mode-cmp-back" role="dialog" aria-modal="true" aria-label="Compare modes"></div>`);
     const box = h(`<div class="mode-cmp-box">
       <div class="hd"><b>Simple · Standard · Pro</b>
-        <button class="x" aria-label="Close">✕</button></div>
+        <button type="button" class="x" aria-label="Close">✕</button></div>
       <p class="lead">One product, one set of routes, one account. The mode is a
         preset for how much is shown by default — nothing more.</p>
       <div class="cols">
@@ -310,7 +310,7 @@
               <li>chart preset: ${esc(p.chartPreset)}</li>
               <li>tables: ${esc(p.tableDensity)}</li>
             </ul>
-            <button class="btn ${id === cur ? 'btn-quiet' : 'btn-primary'}" data-pick="${id}"
+            <button type="button" class="btn ${id === cur ? 'btn-quiet' : 'btn-primary'}" data-pick="${id}"
               ${id === cur ? 'disabled' : ''}>${id === cur ? 'Current' : 'Switch to ' + esc(p.label)}</button>
           </div>`;
         }).join('')}
@@ -352,7 +352,7 @@
     const toast = h(`<div class="mode-toast" role="status">
       <b>${esc(m.label)} mode is on</b>
       <span>What appeared: ${esc(m.hint)}. Nothing was taken away — the switch moves both ways.</span>
-      <button class="btn btn-quiet" style="padding:5px 12px;font-size:12px">Got it</button>
+      <button type="button" class="btn btn-quiet" style="padding:5px 12px;font-size:12px">Got it</button>
     </div>`);
     document.body.appendChild(toast);
     toast.querySelector('button').addEventListener('click', () => toast.remove());
@@ -421,7 +421,7 @@
     if (!Fx) return [];
     return Fx.ALL.map(f => ({
       id: 'feat-' + f.id, label: f.shortName, desc: f.problem,
-      url: f.route, status: f.status === 'concept' ? 'mapped' : 'live',
+      url: f.route, status: (f.maturity === 'live' || f.maturity === 'beta') ? 'live' : 'mapped',
       level: 'simple', door: 'Feature', group: 'Product innovations',
       keywords: `${f.id} ${f.name} ${f.shortName} ${f.problem} ${f.solution} ${f.audience} ${f.searchTerms || ''}`
     }));
@@ -603,7 +603,7 @@
     if (!Fx || document.querySelector('.sc-fab')) return;
     const on = Fx.isShowcase();
     if (on) document.body.classList.add('showcase');
-    const b = h(`<button class="sc-fab ${on ? 'on' : ''}" aria-pressed="${on}"
+    const b = h(`<button type="button" class="sc-fab ${on ? 'on' : ''}" aria-pressed="${on}"
       title="Show the case note under each block — which hypothesis it tests and which metric would judge it">
       <span class="dot"></span><span class="lbl">${on ? 'Case notes on' : 'Case notes'}</span></button>`);
     b.addEventListener('click', () => {
@@ -626,6 +626,29 @@
     if (Fx && el) el.textContent = String(Fx.strategic().length);
   }
 
+  /* §UI-006 — this was a <span>: unreachable by keyboard, invisible to a
+     screen reader as a control, and it did nothing when clicked. It is a
+     button now, and it says what it is rather than implying an account
+     system that does not exist. */
+  function wireSignIn() {
+    const b = document.getElementById('signIn');
+    if (!b || b.dataset.wired) return;
+    b.dataset.wired = '1';
+    b.addEventListener('click', () => {
+      track('sign_in_clicked', { route: location.pathname });
+      if (document.querySelector('.signin-note')) return;
+      const note = h(`<div class="signin-note" role="status">
+        <b>Accounts are not connected here</b>
+        <span>This is a case-study prototype. Watchlists, alerts, saved screens, Academy progress
+          and your wealth profile are stored in this browser and stay on this device — which is why
+          nothing asks you to register before it is useful.</span>
+        <button type="button" class="btn btn-quiet">Got it</button></div>`);
+      document.body.appendChild(note);
+      note.querySelector('button').addEventListener('click', () => note.remove());
+      setTimeout(() => note.remove(), 12000);
+    });
+  }
+
   function init() {
     buildPanels();
     buildModeSwitch();
@@ -633,6 +656,7 @@
     wireAvatar();
     mountShowcase();
     paintNewCount();
+    wireSignIn();
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
     document.addEventListener('ui-mode-changed', repaintPanels);
   }

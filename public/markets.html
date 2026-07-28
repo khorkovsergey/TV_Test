@@ -10,6 +10,7 @@
 <script src="/ia.js"></script>
 <script src="/features.js"></script>
 <script src="/modes.js"></script>
+<script src="/alerts.js"></script>
 <script src="/home.js"></script>
 <script src="/quotes.js"></script>
 <script src="/nav.js"></script>
@@ -34,8 +35,9 @@
   </div>
   <div class="right">
     <a class="new-launch" href="/new" title="Product innovations — what is new in this prototype">NEW <span class="n" id="newCount">8</span></a>
-    <button class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
-    <span style="font-size:14px;color:var(--tv-muted)">Sign in</span>
+    <button type="button" class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
+    <button type="button" class="signin-btn" id="signIn"
+      title="Accounts are not connected on this prototype">Sign in</button>
     <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
   </div>
 </nav>
@@ -51,7 +53,7 @@
     </div>
     <div class="row" style="gap:10px;flex-wrap:wrap">
       <a class="btn btn-secondary" href="/screeners" style="padding:9px 16px">Open the screener →</a>
-      <button class="btn btn-quiet" id="refresh" style="padding:9px 16px">Refresh</button>
+      <button type="button" class="btn btn-quiet" id="refresh" style="padding:9px 16px">Refresh</button>
     </div>
   </div>
 
@@ -295,7 +297,7 @@ function renderHeat() {
 function renderTabs() {
   const all = [{ id: 'all', label: 'All' }, ...snap.classes];
   $('tabs').innerHTML = all.map(c =>
-    `<button data-cls="${c.id}" class="${c.id === activeClass ? 'on' : ''}">${c.label}</button>`).join('');
+    `<button type="button" data-cls="${c.id}" class="${c.id === activeClass ? 'on' : ''}">${c.label}</button>`).join('');
 }
 
 async function load(force) {

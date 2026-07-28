@@ -10,6 +10,7 @@
 <script src="/ia.js"></script>
 <script src="/features.js"></script>
 <script src="/modes.js"></script>
+<script src="/alerts.js"></script>
 <script src="/home.js"></script>
 <script src="/quotes.js"></script>
 <script src="/nav.js"></script>
@@ -39,27 +40,30 @@
   </div>
   <div class="right">
     <a class="new-launch" href="/new" title="Product innovations — what is new in this prototype">NEW <span class="n" id="newCount">8</span></a>
-    <button class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
-    <span style="font-size:14px;color:var(--tv-muted)">Sign in</span>
+    <button type="button" class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
+    <button type="button" class="signin-btn" id="signIn"
+      title="Accounts are not connected on this prototype">Sign in</button>
     <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
   </div>
 </nav>
+
+<h1 class="visually-hidden">Chart workspace</h1>
 
 <div class="toolbar" style="flex-wrap:wrap">
   <a class="sym" href="/symbols/BTCUSD" id="symLink">BTCUSD</a>
   <span class="tb-item" id="rangeLabel">1D · Candles</span>
   <div class="mode-pill" id="modePill">
-    <button data-mode="simple">Simple</button>
-    <button data-mode="standard">Standard</button>
-    <button data-mode="pro">Pro</button>
+    <button type="button" data-mode="simple">Simple</button>
+    <button type="button" data-mode="standard">Standard</button>
+    <button type="button" data-mode="pro">Pro</button>
   </div>
   <span class="mono" id="modeCaption" style="font-size:11px;color:var(--tv-faint)"></span>
-  <button class="tb-item" data-min="standard" data-feature="indicators" hidden>Indicators</button>
-  <button class="tb-item" data-min="standard" data-feature="alert" hidden>Alert</button>
-  <button class="tb-item" data-min="standard" data-feature="replay" hidden>Replay</button>
-  <button class="tb-item" data-min="pro" data-feature="templates" hidden>Templates</button>
-  <button class="tb-item" data-min="pro" data-feature="layouts" hidden>Layouts</button>
-  <button class="tb-item" data-min="pro" data-feature="pine" hidden>Pine Editor</button>
+  <button type="button" class="tb-item" data-min="standard" data-feature="indicators" hidden>Indicators</button>
+  <button type="button" class="tb-item" data-min="standard" data-feature="alert" hidden>Alert</button>
+  <button type="button" class="tb-item" data-min="standard" data-feature="replay" hidden>Replay</button>
+  <button type="button" class="tb-item" data-min="pro" data-feature="templates" hidden>Templates</button>
+  <button type="button" class="tb-item" data-min="pro" data-feature="layouts" hidden>Layouts</button>
+  <button type="button" class="tb-item" data-min="pro" data-feature="pine" hidden>Pine Editor</button>
   <span style="flex:1"></span>
   <div class="density" data-min="standard" hidden>
     <span>Density</span>
@@ -67,11 +71,11 @@
   </div>
   <!-- §7.5 — the tools above this preset, reachable without leaving it. -->
   <span class="adv-drawer" id="advDrawer" hidden>
-    <button class="tb-item"><span id="advLabel">Advanced tools</span> <span id="advCount">0</span></button>
+    <button type="button" class="tb-item"><span id="advLabel">Advanced tools</span> <span id="advCount">0</span></button>
   </span>
-  <button class="btn btn-quiet" id="makeDefault" style="padding:7px 12px;font-size:12px"
+  <button type="button" class="btn btn-quiet" id="makeDefault" style="padding:7px 12px;font-size:12px"
     title="Make the broader preset your default everywhere">Make it my default</button>
-  <button class="btn btn-secondary" id="fullBtn" style="padding:7px 14px;font-size:12.5px">Full interface →</button>
+  <button type="button" class="btn btn-secondary" id="fullBtn" style="padding:7px 14px;font-size:12.5px">Full interface →</button>
 </div>
 
 <div class="hintbar" id="hintbar">
@@ -79,21 +83,21 @@
   <span id="hintText">Simple preset: 3 drawing tools, 1 indicator, side panels hidden. Everything
     unlocks as you level up — or instantly via “Full interface”.</span>
   <span style="flex:1"></span>
-  <button class="btn btn-quiet" id="hintClose" style="padding:5px 12px;font-size:11.5px" aria-label="Dismiss">✕</button>
+  <button type="button" class="btn btn-quiet" id="hintClose" style="padding:5px 12px;font-size:11.5px" aria-label="Dismiss">✕</button>
 </div>
 
 <div class="work-shell" id="shell" data-density="2">
   <div class="toolrail" id="toolrail">
-    <button class="t" title="Crosshair" data-feature="tool_crosshair" aria-label="Crosshair"></button>
-    <button class="t" title="Horizontal line" data-feature="tool_hline" aria-label="Horizontal line"></button>
-    <button class="t" title="Trend line" data-feature="tool_trend" aria-label="Trend line"></button>
-    <button class="t locked" data-min="standard" title="Fibonacci" data-feature="tool_fib" aria-label="Fibonacci"></button>
-    <button class="t locked" data-min="standard" title="Brush" data-feature="tool_brush" aria-label="Brush"></button>
-    <button class="t locked" data-min="standard" title="Text" data-feature="tool_text" aria-label="Text"></button>
-    <button class="t locked" data-min="pro" title="Patterns" data-feature="tool_patterns" aria-label="Patterns"></button>
-    <button class="t locked" data-min="pro" title="Forecast" data-feature="tool_forecast" aria-label="Forecast"></button>
-    <button class="t locked" data-min="pro" title="Measure" data-feature="tool_measure" aria-label="Measure"></button>
-    <div class="cap" id="toolCap">3 of 40 tools</div>
+    <button type="button" class="t" title="Crosshair" data-feature="tool_crosshair" aria-label="Crosshair"></button>
+    <button type="button" class="t" title="Horizontal line" data-feature="tool_hline" aria-label="Horizontal line"></button>
+    <button type="button" class="t" title="Trend line" data-feature="tool_trend" aria-label="Trend line"></button>
+    <button type="button" class="t locked" data-min="standard" title="Fibonacci" data-feature="tool_fib" aria-label="Fibonacci"></button>
+    <button type="button" class="t locked" data-min="standard" title="Brush" data-feature="tool_brush" aria-label="Brush"></button>
+    <button type="button" class="t locked" data-min="standard" title="Text" data-feature="tool_text" aria-label="Text"></button>
+    <button type="button" class="t locked" data-min="pro" title="Patterns" data-feature="tool_patterns" aria-label="Patterns"></button>
+    <button type="button" class="t locked" data-min="pro" title="Forecast" data-feature="tool_forecast" aria-label="Forecast"></button>
+    <button type="button" class="t locked" data-min="pro" title="Measure" data-feature="tool_measure" aria-label="Measure"></button>
+    <div class="cap" id="toolCap">3 of 11 controls</div>
   </div>
 
   <div class="work-area">
@@ -131,7 +135,7 @@
       <div style="font-size:13px;color:var(--tv-text);margin-top:9px;line-height:1.5">2 events in this range:
         <b style="color:var(--tv-white)">CPI release</b> (Reuters 13:31) and a record
         <b style="color:var(--tv-white)">ETF inflow</b> (Farside 09:10).</div>
-      <button class="next-step" id="explainMove" style="margin-top:9px">Explain this move <b>→</b></button>
+      <button type="button" class="next-step" id="explainMove" style="margin-top:9px">Explain this move <b>→</b></button>
     </div>
   </div>
 
@@ -141,15 +145,19 @@
     <div class="hd" data-min="pro" hidden style="margin-top:10px">DOM · HOTLIST · PINE CONSOLE</div>
     <div style="flex:1"></div>
     <div class="hd">NEXT RESEARCH STEP</div>
-    <button class="next-step" id="nextStep"><span id="nextStepText">Symbol page: peers, sector, ETFs</span> <b>→</b></button>
+    <button type="button" class="next-step" id="nextStep"><span id="nextStepText">Symbol page: peers, sector, ETFs</span> <b>→</b></button>
   </aside>
 </div>
 
 <div class="tv-page" style="max-width:1180px;padding-top:20px">
   <div class="disclaimer" style="border-top:none;padding-top:0;margin-top:0">
-    Sample data for illustration — this workspace is a case-study shell, not a chart engine, and it
-    is not connected to a market data feed. The portal is for browsing and deciding; this screen is
-    the working surface, reached from Research or from the "Skip the portal" tile on the home page. Not investment advice.
+    <b>What is real here and what is not.</b> The price line, the side panel and the instrument
+    switcher use the same delayed quotes as the rest of the portal, fetched from the configured
+    public provider. The drawing tools, the indicator list, the replay control and the
+    selected-period intelligence are prototype surfaces: they demonstrate the workflow and compute
+    nothing. This is not a chart engine.
+    The portal is for browsing and deciding; this screen is the working surface, reached from
+    Research or from the &ldquo;Skip the portal&rdquo; tile on the home page. Not investment advice.
   </div>
 </div>
 
@@ -260,9 +268,13 @@ async function drawSymbol() {
 const CAPTIONS = {
   simple: '3 tools · 1 indicator · panels hidden',
   standard: '6 tools · indicators & alerts · watchlist panel',
-  pro: 'all 40 tools · multi-pane · DOM, Pine, layouts'
+  pro: 'every control on this prototype · multi-pane · DOM, Pine, layouts'
 };
-const TOOLCAP = { simple: '3 of 40 tools', standard: '6 of 40 tools', pro: '40 of 40 tools' };
+/* §CHART-002 — the old copy said "40 tools" and there were never forty of
+   anything: this workspace has three drawing controls and eight toolbar
+   buttons. Counting decorative buttons as capability is the kind of small
+   inflation that makes a reviewer stop believing the large claims. */
+const TOOLCAP = { simple: '3 of 11 controls', standard: '6 of 11 controls', pro: '11 of 11 controls' };
 const HINTS = {
   simple: 'Simple preset: 3 drawing tools, 1 indicator, side panels hidden. Everything unlocks as you level up — or instantly via “Full interface”.',
   standard: 'Standard preset: six tools, indicators, alerts and replay, plus your watchlist. Density is yours to set.',

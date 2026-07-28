@@ -10,6 +10,7 @@
 <script src="/ia.js"></script>
 <script src="/features.js"></script>
 <script src="/modes.js"></script>
+<script src="/alerts.js"></script>
 <script src="/home.js"></script>
 <script src="/quotes.js"></script>
 <script src="/hub.js"></script>
@@ -35,8 +36,9 @@
   </div>
   <div class="right">
     <a class="new-launch" href="/new" title="Product innovations — what is new in this prototype">NEW <span class="n" id="newCount">8</span></a>
-    <button class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
-    <span style="font-size:14px;color:var(--tv-muted)">Sign in</span>
+    <button type="button" class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
+    <button type="button" class="signin-btn" id="signIn"
+      title="Accounts are not connected on this prototype">Sign in</button>
     <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
   </div>
 </nav>
@@ -52,7 +54,7 @@
         honestly as a concept. A stand that dresses an idea up as a feature is worse than one with
         fewer features.</p>
     </div>
-    <button class="btn btn-secondary" id="toggleShowcase" style="padding:9px 16px">Showcase mode</button>
+    <button type="button" class="btn btn-secondary" id="toggleShowcase" style="padding:9px 16px">Showcase mode</button>
   </div>
 
   <div class="row mt-16" id="legend" style="gap:8px;flex-wrap:wrap"></div>
@@ -139,26 +141,45 @@ document.getElementById('askCopilot')?.addEventListener('click', () => document.
 
 const Fx = window.Features, P = window.Portal;
 
-function card(f, surface) {
+/* §7.16 — every mode sees the same thirteen features. What changes is the
+   framing: Simple leads with the user's problem, Standard with what the
+   product does, Pro with the mechanism and the metric. Never the set. */
+function card(f) {
+  const mode = P?.mode?.() || 'simple';
+  const lead = mode === 'pro'
+    ? `<div class="sol">${f.solution}</div>
+       <div class="prob" data-explain-level="context">Problem: ${f.problem}</div>`
+    : mode === 'standard'
+    ? `<div class="prob">Problem: ${f.problem}</div>
+       <div class="sol">${f.solution}</div>`
+    : `<div class="prob">${f.problem}</div>
+       <div class="sol" data-explain-level="deep">What we do about it: ${f.solution}</div>`;
   return `<a class="fcard" href="${f.route}" data-fid="${f.id}">
-    <div class="top"><span class="ic">${f.icon}</span>${Fx.badge(f.status)}</div>
+    <div class="top"><span class="ic">${f.icon}</span>${Fx.badge(f)}</div>
     <h3>${f.name}</h3>
-    <div class="prob">Problem: ${f.problem}</div>
-    <div class="sol">${f.solution}</div>
+    ${lead}
     <div class="case-note">Case hypothesis ${f.id} · metric: ${f.metric}</div>
-    <div class="meta">for ${f.audience} · depth ${f.depth}/5</div>
-    <div class="cta">See how it works →</div>
+    <div class="meta" ${mode === 'pro' ? '' : 'data-explain-level="context"'}>for ${f.audience} · depth ${f.depth}/5${mode === 'pro' ? ' · surfaces ' + f.surfaces.length : ''}</div>
+    <div class="cta">${mode === 'simple' ? 'See how it helps →' : mode === 'pro' ? 'Open →' : 'See how it works →'}</div>
   </a>`;
 }
 
+function paintCards() {
+  document.getElementById('workingCards').innerHTML = Fx.strategic().filter(f => Fx.working().includes(f)).map(f => card(f)).join('');
+  document.getElementById('conceptCards').innerHTML = Fx.concepts().map(f => card(f)).join('');
+  document.getElementById('coreCards').innerHTML = Fx.core().map(f => card(f)).join('');
+  P?.applyExplain?.(window.Modes?.policy(P?.mode?.()).explanationDepth);
+}
+document.addEventListener('ui-mode-changed', paintCards);
+
+/* The legend counts maturity, not novelty: "how many actually work" is the
+   question a reviewer has, and it is the one the old single status blurred. */
 const counts = {};
-for (const f of Fx.ALL) counts[f.status] = (counts[f.status] || 0) + 1;
+for (const f of Fx.ALL) counts[f.maturity] = (counts[f.maturity] || 0) + 1;
 document.getElementById('legend').innerHTML =
   Object.keys(Fx.BADGE).filter(s => counts[s]).map(s => Fx.badge(s) + ` <span class="mono src">${counts[s]}</span>`).join(' &nbsp; ');
 
-document.getElementById('workingCards').innerHTML = Fx.strategic().filter(f => f.status === 'new' || f.status === 'beta').map(f => card(f)).join('');
-document.getElementById('conceptCards').innerHTML = Fx.concepts().map(f => card(f)).join('');
-document.getElementById('coreCards').innerHTML = Fx.core().map(f => card(f)).join('');
+paintCards();
 
 document.addEventListener('click', e => {
   const a = e.target.closest('[data-fid]');

@@ -112,17 +112,17 @@
     const style = document.createElement('style'); style.textContent = css; document.head.appendChild(style);
     const ctx = getContext();
 
-    const fab = h('<button class="cp-fab" aria-label="Open Research Copilot">✦ Copilot</button>');
+    const fab = h('<button type="button" class="cp-fab" aria-label="Open Research Copilot">✦ Copilot</button>');
     const panel = h(`
       <aside class="cp-panel" role="dialog" aria-label="Research Copilot" aria-hidden="true">
-        <div class="cp-head"><div class="cp-title">✦ Research Copilot</div><button class="cp-close" aria-label="Close">✕</button></div>
+        <div class="cp-head"><div class="cp-title">✦ Research Copilot</div><button type="button" class="cp-close" aria-label="Close">✕</button></div>
         <div class="cp-ctx"></div>
         <div class="cp-body">
           <div class="cp-note">I can explain moves, compare instruments, link news to the chart, set up alerts and help with Pine Script. I see the page you are on — not your money, and not your positions.</div>
           <div class="cp-suggests"></div>
         </div>
         <div class="cp-esc"></div>
-        <div class="cp-input"><input type="text" placeholder="Ask about markets…" aria-label="Ask about markets"><button aria-label="Send">➤</button></div>
+        <div class="cp-input"><input type="text" placeholder="Ask about markets…" aria-label="Ask about markets"><button type="button" aria-label="Send">➤</button></div>
         <div class="cp-disc">AI ANSWERS · NOT INVESTMENT ADVICE</div>
       </aside>`);
     document.body.appendChild(fab);
@@ -132,9 +132,13 @@
     [ctx.page.toUpperCase().replace('_', ' '), ctx.symbol, ctx.chartRange, ctx.mode.toUpperCase()]
       .forEach(t => chips.appendChild(h('<span class="cp-chip">' + esc(t) + '</span>')));
 
+    /* How many openers are offered is a policy number: three in Simple, five
+       in Standard, eight in Pro (§8.1). The rest are still askable — the input
+       has never been limited by the mode. */
     const sugg = panel.querySelector('.cp-suggests');
-    (SUGGESTS[ctx.page] || SUGGESTS.portal).forEach(s => {
-      const b = h('<button class="cp-suggest">' + esc(s) + '</button>');
+    const cap = window.Modes ? window.Modes.policy(ctx.mode).maxPrimaryActions : 3;
+    (SUGGESTS[ctx.page] || SUGGESTS.portal).slice(0, cap).forEach(s => {
+      const b = h('<button type="button" class="cp-suggest">' + esc(s) + '</button>');
       b.addEventListener('click', () => send(s));
       sugg.appendChild(b);
     });
@@ -153,7 +157,7 @@
             if (!f) return '';
             Fx.track('strategic_feature_impression', f, { surface: 'copilot' });
             return `<a href="${f.route}?from=copilot" data-fid="${f.id}"><span>${f.icon}</span>
-              <span><b>${title}</b> ${Fx.badge(f.status)}<br><span class="s">${sub}</span></span></a>`;
+              <span><b>${title}</b> ${Fx.badge(f)}<br><span class="s">${sub}</span></span></a>`;
           }).join('');
       esc_.addEventListener('click', e => {
         const a = e.target.closest('[data-fid]');
@@ -189,7 +193,7 @@
 
       const acts = msg.querySelector('.cp-actions');
       (data.actions || []).forEach(a => {
-        const b = h('<button class="cp-action">' + esc(a.label) + '</button>');
+        const b = h('<button type="button" class="cp-action">' + esc(a.label) + '</button>');
         b.addEventListener('click', () => runAction(a, b));
         acts.appendChild(b);
       });
@@ -242,7 +246,7 @@
     function showError(message, question) {
       const box = h('<div class="cp-msg err"><div class="cp-text"></div><div class="cp-actions"></div></div>');
       box.querySelector('.cp-text').textContent = message;
-      const retry = h('<button class="cp-action">Try again</button>');
+      const retry = h('<button type="button" class="cp-action">Try again</button>');
       retry.addEventListener('click', () => { box.remove(); send(question); });
       box.querySelector('.cp-actions').appendChild(retry);
       body.appendChild(box);

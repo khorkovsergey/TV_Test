@@ -10,6 +10,7 @@
 <script src="/ia.js"></script>
 <script src="/features.js"></script>
 <script src="/modes.js"></script>
+<script src="/alerts.js"></script>
 <script src="/home.js"></script>
 <script src="/quotes.js"></script>
 <script src="/hub.js"></script>
@@ -35,8 +36,9 @@
   </div>
   <div class="right">
     <a class="new-launch" href="/new" title="Product innovations — what is new in this prototype">NEW <span class="n" id="newCount">8</span></a>
-    <button class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
-    <span style="font-size:14px;color:var(--tv-muted)">Sign in</span>
+    <button type="button" class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
+    <button type="button" class="signin-btn" id="signIn"
+      title="Accounts are not connected on this prototype">Sign in</button>
     <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
   </div>
 </nav>
@@ -153,11 +155,15 @@ Hub.mount('capital', mode => `
 
   <h2 class="mt-32" id="portfolio" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">Money</h2>
   <div class="mt-16" id="capitalPromos" style="display:flex;flex-direction:column;gap:8px"></div>
-  <div class="stubs mt-16">
-    ${H.pilotCard({ title: 'Portfolio', what: 'Positions, result, yield, allocation by currency, sector and country, risk, concentration, a benchmark, and the news and events that touch the holdings.', actions: [{ label: 'Start from a watchlist', url: '#watchlists', primary: true }], note: 'no brokerage connection exists on this stand' })}
-    ${H.pilotCard({ title: 'Wealth Hub', what: 'Market assets together with cash, deposits and currency structure — plus the share of capital that is not working, liquidity, and how a macro event reaches your money.', actions: [{ label: 'How events reach assets', url: '/overview#events' }] })}
-    ${H.pilotCard({ title: 'Goals & scenarios', what: 'A goal with an amount, a horizon, a currency and a risk level; then what changes if the market falls, if rates move, if the currency moves.', actions: [{ label: 'Learn the vocabulary first', url: '/learn#investing' }] })}
-  </div>
+  <div class="mt-16">${H.modules(mode, [
+    { complexity: 2, html: H.pilotCard({ title: 'Portfolio', what: 'Positions, result, yield, allocation by currency, sector and country, risk, concentration, a benchmark, and the news and events that touch the holdings.', actions: [{ label: 'Start from a watchlist', url: '#watchlists', primary: true }], note: 'no brokerage connection exists on this stand' }) },
+    { complexity: 1, html: H.pilotCard({ title: 'Wealth Hub', what: 'Market assets together with cash, deposits and currency structure — plus the share of capital that is not working, liquidity, and how a macro event reaches your money.', actions: [{ label: 'How events reach assets', url: '/overview#events' }] }) },
+    { complexity: 2, html: H.pilotCard({ title: 'Goals & scenarios', what: 'A goal with an amount, a horizon, a currency and a risk level; then what changes if the market falls, if rates move, if the currency moves.', actions: [{ label: 'Learn the vocabulary first', url: '/learn#investing' }] }) }
+,
+    { complexity: 3, html: H.pilotCard({ title: "Risk decomposition", what: "Where the risk actually comes from: by position, by sector, by currency and by factor — not one number for the whole portfolio.", actions: [{ label: "Build a profile", url: "/capital/wealth" }], note: 'a professional default: open in Pro, folded at other levels — never removed' }) },
+    { complexity: 3, html: H.pilotCard({ title: "Scenario comparison", what: "Two or more reallocations side by side on the same axes, with what each one costs in expected drawdown.", actions: [{ label: "Open scenarios", url: "/capital/wealth#scenarios" }], note: 'a professional default: open in Pro, folded at other levels — never removed' }) },
+    { complexity: 3, html: H.pilotCard({ title: "Benchmark & contribution", what: "Which decisions produced the result, measured against a benchmark you pick rather than the one that flatters.", actions: [{ label: "Pick a benchmark", url: "/markets?cls=indices" }], note: 'a professional default: open in Pro, folded at other levels — never removed' }) }
+  ])}</div>
 `);
 
 /* §VIS-006 — the three features that belong next to somebody's money, and the
@@ -200,7 +206,7 @@ async function paintWatch() {
         <span style="color:var(--tv-faint);font-size:12.5px;flex:1;overflow:hidden;text-overflow:ellipsis">${Q.esc(i.name)}</span>
         <span class="p">${Q.price(i.price, i)}</span>
         <span class="c ${Q.cls(i.changePct)}">${Q.pct(i.changePct)}</span>
-        <button class="preset" data-drop="${Q.esc(i.symbol)}" style="padding:4px 10px;font-size:11px">remove</button>
+        <button type="button" class="preset" data-drop="${Q.esc(i.symbol)}" style="padding:4px 10px;font-size:11px">remove</button>
       </div>`;
     }).join('') + `<div class="mono" style="font-size:10.5px;color:var(--tv-ghost);margin-top:10px">stored on this device · ${Q.esc(snap.isSample ? 'sample quotes' : snap.source)}</div>`;
   } catch {
@@ -208,17 +214,34 @@ async function paintWatch() {
   }
 }
 
+/* Reads the shared alert store, so an alert created on the asset hub or by the
+   Copilot shows up here — which is what "your alerts" has to mean. */
 function paintAlerts() {
-  let alerts = [];
-  try { alerts = JSON.parse(localStorage.getItem('alerts') || '[]'); } catch {}
+  const A = window.Alerts;
+  const alerts = A ? A.list() : [];
   const box = document.getElementById('alertBody');
   if (!box) return;
   box.innerHTML = alerts.length
-    ? alerts.slice(-6).map(a => `<div class="mover-row"><span class="s">${Q.esc(a.symbol || '?')}</span>
-        <span style="flex:1;font-size:12.5px;color:var(--tv-muted)">${Q.esc(a.condition || '')} ${Q.esc(a.value ?? '')}</span></div>`).join('')
-    : `<div style="font-size:13px;color:var(--tv-muted)">No alerts yet. The Copilot can prepare one — you confirm it.</div>
-       <button class="btn btn-quiet mt-16" id="askAlert" style="padding:8px 14px;font-size:12.5px">Ask the Copilot</button>`;
+    ? alerts.slice(-6).map(a => `<div class="mover-row">
+        <a class="s" href="/symbols/${encodeURIComponent(a.symbol)}">${Q.esc(a.symbol || '?')}</a>
+        <span style="flex:1;font-size:12.5px;color:var(--tv-muted)">${Q.esc(A.describe(a))}</span>
+        <button type="button" class="preset" data-drop-alert="${Q.esc(a.id)}" style="padding:4px 10px;font-size:11px">remove</button>
+      </div>`).join('')
+      + `<div class="mono" style="font-size:10.5px;color:var(--tv-orange);margin-top:10px">
+           saved on this device · nothing watches the market for you and no notification is sent</div>`
+    : `<div style="font-size:13px;color:var(--tv-muted)">No alerts yet. Open an instrument and use
+         “Create an alert” — or ask the Copilot to prepare one, which you then confirm.</div>
+       <div class="row mt-16" style="gap:8px;flex-wrap:wrap">
+         <a class="btn btn-quiet" href="/symbols/BTCUSD" style="padding:8px 14px;font-size:12.5px">Open an instrument</a>
+         <button type="button" class="btn btn-quiet" id="askAlert" style="padding:8px 14px;font-size:12.5px">Ask the Copilot</button>
+       </div>`;
 }
+
+document.addEventListener('alerts-changed', paintAlerts);
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-drop-alert]');
+  if (b) { window.Alerts?.remove(b.dataset.dropAlert); paintAlerts(); }
+});
 
 function paintSaved() {
   const journey = P.journey();

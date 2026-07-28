@@ -3,19 +3,22 @@
 /* Было body{min-width:1280px} — это заставляло телефоны скроллиться вбок и
    противоречило критерию приёмки «мобильная ширина не разваливается».
    Ширину держим на самой навигации, где она действительно нужна. */
-.portal-nav{min-width:1180px}
-@media (max-width:1180px){
-  .portal-nav{min-width:0;flex-wrap:wrap;height:auto;padding:12px 16px;gap:12px}
-  .portal-nav .search{display:none}
-  .portal-nav .menu{gap:14px;font-size:14px;order:3;width:100%;overflow-x:auto}
-}
-
 /* Постоянная плашка: стенд не должен выдавать себя за настоящую платформу. */
 .mock-strip{
   background:var(--tv-orange-dim);border-bottom:1px solid #4a3510;color:var(--tv-orange);
   font-family:var(--tv-mono);font-size:11px;letter-spacing:.04em;text-align:center;padding:7px 16px}
 .mock-strip b{color:var(--tv-orange)}
-.portal-nav{display:flex;align-items:center;gap:22px;height:64px;padding:0 24px;background:var(--tv-black);border-bottom:1px solid var(--tv-line);white-space:nowrap}
+/* §CSS-001 — the confirmed cascade bug.
+
+   The mobile block used to sit ABOVE this declaration. Same selector, same
+   specificity, later in the file — so `.portal-nav{height:64px}` and
+   `.portal-nav .search{display:flex}` silently won over the max-width rules
+   that were supposed to stack the header and hide the search on a phone. The
+   media query looked present and did nothing.
+
+   Base first, overrides after. That is the whole fix, and the reason it is
+   worth a comment is that it looked correct for three releases. */
+.portal-nav{display:flex;align-items:center;gap:22px;height:64px;padding:0 24px;background:var(--tv-black);border-bottom:1px solid var(--tv-line);white-space:nowrap;min-width:1180px}
 .portal-nav .logo img{height:20px;display:block}
 /* Ширина под подсказку «Search or ask: “why is BTC up?”» — она длиннее прежней
    и на 280px обрезалась бы посреди вопроса. */
@@ -159,12 +162,23 @@ body[data-ui-mode] .grid-2,
 body[data-ui-mode] .routes{gap:var(--den-gap)}
 body[data-ui-mode] .q-table td{padding:calc(var(--den-pad) * .55) 12px;font-size:var(--den-font)}
 
-/* Explanation depth is the other half of the preset: Simple keeps the "what
-   this means" copy, Pro drops the tutorial voice but never the trust label,
-   the source or the timestamp (§8.2). */
-body[data-explain="minimal"] .term-note,
-body[data-explain="minimal"] .explain-copy{display:none}
-body[data-explain="guided"] .explain-copy{display:block}
+/* Explanation depth is the other half of the preset, and until now it was a
+   field in the policy that nothing read — every page carried exactly the same
+   number of explaining words in all three modes.
+
+   Two levels of explanatory copy, and the mode decides how much survives:
+
+     guided      everything — what it means, why it matters, what to do next
+     contextual  the short line stays, the teaching paragraph goes
+     minimal     the professional reads the number, not the lesson
+
+   What is NEVER removed by this rule: trust labels, sources, timestamps,
+   delays and disclaimers (§8.2). Those carry no `data-explain-level`. */
+body[data-explain="contextual"] [data-explain-level="deep"]{display:none}
+body[data-explain="minimal"] [data-explain-level="deep"],
+body[data-explain="minimal"] [data-explain-level="context"]{display:none}
+
+body[data-explain="minimal"] .term-note{display:none}
 .folded{opacity:.55}
 body[data-ui-mode] .brief-row{padding:calc(var(--den-pad) * .6) 18px}
 body[data-ui-mode="pro"] .tv-page{max-width:1400px}
@@ -442,3 +456,51 @@ body[data-ui-mode="pro"]      [data-only~="pro"]{display:revert}
 .tab-more .n,.act-more .n{font-family:var(--tv-mono, monospace);font-size:10px;color:var(--tv-ghost)}
 .tab-more[open]{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap}
 .act-more[open]{display:block;width:100%}
+
+
+/* --- Alert dialog (§UI-002) ---------------------------------------------- */
+.alert-back{position:fixed;inset:0;z-index:9400;background:rgba(6,8,12,.72);
+  display:flex;align-items:flex-start;justify-content:center;padding:10vh 16px;overflow-y:auto}
+.alert-box{width:min(520px,100%);background:var(--tv-panel);border:1px solid var(--tv-line);
+  border-radius:12px;padding:20px 22px;box-shadow:0 24px 70px rgba(0,0,0,.6)}
+.alert-box .hd{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.alert-box .hd b{font-size:16px;color:var(--tv-white)}
+.alert-box .hd .x{background:none;border:none;color:var(--tv-muted);font-size:16px;cursor:pointer}
+
+
+/* --- Sign in: an honest control (§UI-006) -------------------------------- */
+.signin-btn{background:none;border:none;font-family:var(--tv-font);font-size:14px;
+  color:var(--tv-muted);cursor:pointer;padding:6px 4px}
+.signin-btn:hover{color:var(--tv-white)}
+.signin-note{position:fixed;right:18px;bottom:86px;z-index:9400;max-width:360px;
+  background:var(--tv-ink);border:1px solid var(--tv-line);border-radius:12px;padding:14px 16px;
+  box-shadow:0 14px 40px rgba(0,0,0,.55)}
+.signin-note b{display:block;color:#fff;font-size:13.5px;margin-bottom:6px}
+.signin-note span{display:block;font-size:12.5px;color:var(--tv-muted);line-height:1.55}
+.signin-note button{margin-top:10px;padding:5px 12px;font-size:12px}
+
+/* --- Header at narrow widths (§CSS-001, §CSS-002) ------------------------
+   Placed at the end of the file on purpose: these have to win. */
+@media (max-width:1180px){
+  .portal-nav{min-width:0;flex-wrap:wrap;height:auto;padding:12px 16px;gap:12px}
+  .portal-nav .search{display:none}
+  .portal-nav .menu{gap:14px;font-size:14px;order:3;width:100%;overflow-x:auto}
+  .mode-switch button{padding:5px 9px;font-size:11.5px}
+}
+@media (max-width:720px){
+  /* Six sections plus search, Copilot, mode switch, NEW and the profile do not
+     fit a phone. The sections scroll as a row; nothing is removed. */
+  .portal-nav{gap:10px;padding:10px 12px}
+  .portal-nav .menu{gap:16px;-webkit-overflow-scrolling:touch;padding-bottom:2px}
+  .portal-nav .menu::-webkit-scrollbar{height:0}
+  .new-launch{padding:4px 8px;font-size:10.5px}
+  .nav-panel{position:fixed;left:8px;right:8px;top:auto;min-width:0;max-height:70vh;overflow-y:auto}
+  body{overflow-x:hidden}
+}
+
+
+/* A heading that the layout has no room for but a screen reader needs
+   (§A11Y-001). Not display:none — that would hide it from assistive
+   technology too, which is the opposite of the point. */
+.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+  clip:rect(0 0 0 0);white-space:nowrap;border:0}

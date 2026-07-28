@@ -308,6 +308,28 @@ window.Portal = (function () {
     const p = policy(m);
     document.body.dataset.density = p.density;
     document.body.dataset.explain = p.explanationDepth;
+    applyExplain(p.explanationDepth);
+  }
+
+  /* The explanation layer, applied rather than merely declared.
+
+     It started as two CSS rules, which meant a page could claim an explanation
+     depth while every mode carried exactly the same words — the stylesheet was
+     the only thing that knew, and nothing could check it. Now the depth is
+     applied to the elements themselves, so it survives a missing stylesheet
+     and can be asserted.
+
+     What this never touches: trust labels, sources, timestamps, delays and
+     disclaimers. Those carry no data-explain-level and stay in every mode. */
+  const DEPTH = { guided: 2, contextual: 1, minimal: 0 };
+  const LEVEL = { context: 1, deep: 2 };
+
+  function applyExplain(depth) {
+    const budget = DEPTH[depth] ?? 2;
+    document.querySelectorAll('[data-explain-level]').forEach(el => {
+      const need = LEVEL[el.dataset.explainLevel] ?? 1;
+      el.hidden = need > budget;
+    });
   }
 
   function init() {
@@ -323,7 +345,7 @@ window.Portal = (function () {
   return {
     variant, track, events, meaningful, observe,
     watchlist, toggleSymbol, saveWatchlist, registerClick,
-    mode, setMode, allows, policy, applyBodyMode, MODES, ORDER,
+    mode, setMode, allows, policy, applyBodyMode, applyExplain, MODES, ORDER,
     density, setDensity, featureFirstUse,
     journey, journeyMeta, pushJourney, suggestNext, lastKind, RULES,
     BOUNCE_MS

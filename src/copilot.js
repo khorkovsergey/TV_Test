@@ -112,11 +112,15 @@ async function quoteLine(symbol) {
 }
 
 function contextBlock(ctx = {}) {
-  // Standard and Pro are both "has seen a chart before"; only beginner needs
-  // every term defined. Anything unrecognised falls back to the careful side.
-  const level = ctx.mode === 'standard' || ctx.mode === 'pro'
-    ? 'Experienced: concise professional language is fine, no hand-holding.'
-    : 'Beginner: plain language, define any term you use, no jargon.';
+  /* Three registers, not two. Pro used to be indistinguishable from Standard
+     here, which made the mode a label rather than a difference. What never
+     changes with the register: the sources, the AI label and the disclaimer. */
+  const level = ctx.mode === 'pro'
+    ? 'Professional: assume fluency. Lead with the answer, use exact terms, quantify where you can, '
+      + 'offer a multi-step workflow rather than a single tip, and skip encouragement entirely.'
+    : ctx.mode === 'standard'
+    ? 'Experienced: concise professional language is fine, no hand-holding, but define anything unusual.'
+    : 'Beginner: plain language, define any term you use, no jargon, and end with one clear next step.';
   const journey = Array.isArray(ctx.journey) && ctx.journey.length
     ? ctx.journey.slice(-5).join(' → ')
     : 'nothing yet';

@@ -10,6 +10,7 @@
 <script src="/ia.js"></script>
 <script src="/features.js"></script>
 <script src="/modes.js"></script>
+<script src="/alerts.js"></script>
 <script src="/home.js"></script>
 <script src="/quotes.js"></script>
 <script src="/hub.js"></script>
@@ -35,8 +36,9 @@
   </div>
   <div class="right">
     <a class="new-launch" href="/new" title="Product innovations — what is new in this prototype">NEW <span class="n" id="newCount">8</span></a>
-    <button class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
-    <span style="font-size:14px;color:var(--tv-muted)">Sign in</span>
+    <button type="button" class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
+    <button type="button" class="signin-btn" id="signIn"
+      title="Accounts are not connected on this prototype">Sign in</button>
     <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
   </div>
 </nav>
@@ -132,7 +134,7 @@ Hub.mount('research', mode => `
     <div class="tv-card">
       <div class="row" style="justify-content:space-between"><p class="title" style="margin:0">Search everything</p><span class="tag tag-fact">LIVE</span></div>
       <div style="font-size:13.5px;color:var(--tv-muted);margin-top:6px">Tickers, companies, pages, actions and 49 instruments — one field, grouped results.</div>
-      <button class="btn btn-primary mt-16" id="openPalette" style="padding:9px 16px">Open search · ⌘K</button>
+      <button type="button" class="btn btn-primary mt-16" id="openPalette" style="padding:9px 16px">Open search · ⌘K</button>
     </div>
     <div class="tv-card">
       <div class="row" style="justify-content:space-between"><p class="title" style="margin:0">Asset Hub</p><span class="tag tag-fact">LIVE</span></div>
@@ -147,11 +149,15 @@ Hub.mount('research', mode => `
   </div>
 
   <h2 class="mt-32" id="fundamentals" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">Study</h2>
-  <div class="stubs mt-16">
-    ${H.pilotCard({ title: 'Fundamentals', what: 'Reporting, multiples, dividends, seasonality and company comparison. In Simple mode each figure says what it means, what is good or bad, what to compare it with and when it was updated.', actions: [{ label: 'See a live instrument first', url: '/symbols/AAPL', primary: true }], note: 'no fundamentals vendor is connected to this stand' })}
-    ${H.pilotCard({ title: 'Macro & rates', what: 'Countries, inflation, employment, GDP, rates, bonds, yield curves and macro maps — wired as event → affected markets → affected assets → chart → alert.', actions: [{ label: 'Rates and volatility now', url: '/markets?cls=rates' }] })}
-    ${H.pilotCard({ title: 'Options & derivatives', what: 'Chains, implied volatility, open interest, strikes, expirations and strategies, with the risks stated in plain words. Hidden from Simple by default, reachable always.', actions: [{ label: 'Where it lives', url: '/sitemap#research' }] })}
-  </div>
+  <div class="mt-16">${H.modules(mode, [
+    { complexity: 2, html: H.pilotCard({ title: 'Fundamentals', what: 'Reporting, multiples, dividends, seasonality and company comparison. In Simple mode each figure says what it means, what is good or bad, what to compare it with and when it was updated.', actions: [{ label: 'See a live instrument first', url: '/symbols/AAPL', primary: true }], note: 'no fundamentals vendor is connected to this stand' }) },
+    { complexity: 2, html: H.pilotCard({ title: 'Macro & rates', what: 'Countries, inflation, employment, GDP, rates, bonds, yield curves and macro maps — wired as event → affected markets → affected assets → chart → alert.', actions: [{ label: 'Rates and volatility now', url: '/markets?cls=rates' }] }) },
+    { complexity: 3, html: H.pilotCard({ title: 'Options & derivatives', what: 'Chains, implied volatility, open interest, strikes, expirations and strategies, with the risks stated in plain words. Hidden from Simple by default, reachable always.', actions: [{ label: 'Where it lives', url: '/sitemap#research' }] }) }
+,
+    { complexity: 3, html: H.pilotCard({ title: "Options & derivatives desk", what: "Chains, implied volatility, open interest, skew and expirations in one compact panel, with the risk of each structure stated in words rather than Greek letters.", actions: [{ label: "Where it lives", url: "/sitemap#research" }], note: 'a professional default: open in Pro, folded at other levels — never removed' }) },
+    { complexity: 3, html: H.pilotCard({ title: "Correlation & factor view", what: "What actually moves together, over the period you chose — the check that turns \"diversified\" from a feeling into a number.", actions: [{ label: "Market map", url: "/markets#heatmap" }], note: 'a professional default: open in Pro, folded at other levels — never removed' }) },
+    { complexity: 3, html: H.pilotCard({ title: "Seasonality & regime", what: "How this instrument behaved in this month, this quarter and this rate regime historically. A fact about the past, labelled as one.", actions: [{ label: "See an instrument", url: "/symbols/BTCUSD" }], note: 'a professional default: open in Pro, folded at other levels — never removed' }) }
+  ])}</div>
 
   <h2 class="mt-32" id="strategies" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">Check</h2>
   <div class="stubs mt-16">

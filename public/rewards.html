@@ -10,6 +10,7 @@
 <script src="/ia.js"></script>
 <script src="/features.js"></script>
 <script src="/modes.js"></script>
+<script src="/alerts.js"></script>
 <script src="/home.js"></script>
 <script src="/quotes.js"></script>
 <script src="/nav.js"></script>
@@ -34,8 +35,9 @@
   </div>
   <div class="right">
     <a class="new-launch" href="/new" title="Product innovations — what is new in this prototype">NEW <span class="n" id="newCount">8</span></a>
-    <button class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
-    <span style="font-size:14px;color:var(--tv-muted)">Sign in</span>
+    <button type="button" class="btn btn-secondary" id="askCopilot" style="padding:8px 16px">✦ Copilot</button>
+    <button type="button" class="signin-btn" id="signIn"
+      title="Accounts are not connected on this prototype">Sign in</button>
     <span class="avatar"><img src="/assets/tv-square-white.svg" alt=""></span>
   </div>
 </nav>
@@ -163,7 +165,7 @@ const K = 'rewards_ledger';
         '<p class="title" style="margin:0;font-size:14px">' + w[1] + '</p>' +
         '<span class="mono" style="font-size:12px;color:var(--tv-green)">+' + w[2] + '</span></div>' +
         '<div style="font-size:12.5px;color:var(--tv-faint);margin-top:6px;line-height:1.5">' + w[3] + '</div>' +
-        '<button class="btn btn-quiet mt-16" data-earn="' + w[0] + '" style="padding:8px 14px;font-size:12.5px">Simulate</button></div>';
+        '<button type="button" class="btn btn-quiet mt-16" data-earn="' + w[0] + '" style="padding:8px 14px;font-size:12.5px">Simulate</button></div>';
     }).join('');
 
     $('history').hidden = l.length === 0;
