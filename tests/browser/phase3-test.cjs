@@ -274,8 +274,9 @@ const text = d => d.body.textContent.replace(/\s+/g, ' ');
 
   console.log('\n[Регресс] Прежние гарантии не сломаны');
   const reg = await open('/overview', { wait: 2200 });
-  ok('в навигации четыре домена и дверь More',
-     [...reg.d.querySelectorAll('.portal-nav .menu > .nav-door > a')].length === 5,
+  /* Simple: четыре ядровых домена + Academy + дверь More. */
+  ok('в навигации пять доменов и дверь More',
+     [...reg.d.querySelectorAll('.portal-nav .menu > .nav-door > a')].length === 6,
      String(reg.d.querySelectorAll('.portal-nav .menu > .nav-door > a').length));
   ok('переключатель режимов на месте', reg.d.querySelectorAll('.mode-switch [data-mode]').length === 3);
   ok('витрина не влияет на режим', reg.d.body.dataset.uiMode === 'simple' || !!reg.d.body.dataset.uiMode);

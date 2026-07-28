@@ -54,9 +54,10 @@ const navOf = d => [...d.querySelectorAll('.portal-nav .menu a:not(.nav-panel a)
 
 
 
-/* Четыре домена вместо шести смешанных разделов. Верхний уровень перестал
-   зависеть от режима — именно это и было целью релиза. */
-const SECTIONS = ['Home', 'Market', 'Symbols', 'Economy'];
+/* Пять доменов в реестре: четыре ядровых плюс Academy. Ядро одинаково во
+   всех режимах, Academy ведёт в Simple и уезжает в More в остальных. */
+const SECTIONS = ['Home', 'Market', 'Symbols', 'Economy', 'Academy'];
+const CORE = ['Home', 'Market', 'Symbols', 'Economy'];
 
 const PAGES = ['/', '/overview', '/research', '/money', '/trade', '/learn', '/community',
 
@@ -93,9 +94,9 @@ const PAGES = ['/', '/overview', '/research', '/money', '/trade', '/learn', '/co
   /* Верхнее меню больше не одинаково во всех режимах — это и есть суть
      mode-first v2. Проверяем то, что осталось обещанием: Standard равен
      вчерашней базовой линии, а из любого режима достижим каждый раздел. */
-  ok('те же четыре домена в Standard',
+  ok('те же четыре ядровых домена в Standard',
      JSON.stringify(hub.w.Navigation.topNav('standard').lead
-       .filter(e => e.type === 'section').map(e => e.label)) === JSON.stringify(SECTIONS),
+       .filter(e => e.type === 'section').map(e => e.label)) === JSON.stringify(CORE),
      hub.w.Navigation.topNav('standard').lead.map(e => e.label).join(','));
 
   ok('из любого режима достижим каждый раздел',
@@ -225,9 +226,9 @@ const PAGES = ['/', '/overview', '/research', '/money', '/trade', '/learn', '/co
 
   console.log('\n[Меню] Карта, а не указатель');
 
-  ok('панели у всех четырёх доменов плюс дверь More',
+  ok('панели у всех пяти доменов плюс дверь More',
 
-     home.d.querySelectorAll('.portal-nav .menu .nav-panel').length === 5,
+     home.d.querySelectorAll('.portal-nav .menu .nav-panel').length === 6,
 
      String(home.d.querySelectorAll('.portal-nav .menu .nav-panel').length));
 

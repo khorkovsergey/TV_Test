@@ -20,17 +20,25 @@
   const esc = s => String(s ?? '').replace(/[&<>"]/g, c =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
-  /* Currency comes from the profile and is never converted silently. */
+  /* The portal is written in English, so the formatting locale is stated
+     rather than inherited. `undefined` means "whatever the browser is set to",
+     which rendered the month heading as «июль 2026 г.» on a Russian machine —
+     one Cyrillic line in the middle of an English page. The locale of a
+     product is a product decision, not a browser setting.
+
+     The CURRENCY still comes from the profile: the language is ours, the money
+     is the person's. */
+  const LOCALE = 'en-US';
   const cur = () => S.state().profile.primaryCurrency || 'USD';
   const money = n => {
     const v = Number(n) || 0;
     try {
-      return new Intl.NumberFormat(undefined, { style: 'currency', currency: cur(), maximumFractionDigits: 0 }).format(v);
+      return new Intl.NumberFormat(LOCALE, { style: 'currency', currency: cur(), maximumFractionDigits: 0 }).format(v);
     } catch { return v.toFixed(0) + ' ' + cur(); }
   };
   const monthName = key => {
     const [y, m] = String(key).split('-').map(Number);
-    return new Date(y, (m || 1) - 1, 1).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+    return new Date(y, (m || 1) - 1, 1).toLocaleDateString(LOCALE, { month: 'long', year: 'numeric' });
   };
 
   const month = () => M.thisMonth();

@@ -142,8 +142,8 @@ async function switchTo(p, mode) {
   /* Четыре домена плюс дверь More — одинаково во всех режимах. Раньше
      ожидалось пять разделов плюс More, потому что верхний уровень зависел
      от режима. */
-  ok('четыре доменные панели и дверь More в Simple',
-     panels.length === 5 && simpleNav.d.querySelector('.nav-more'), String(panels.length));
+  ok('пять доменных панелей и дверь More в Simple',
+     panels.length === 6 && simpleNav.d.querySelector('.nav-more'), String(panels.length));
   ok('в Simple есть дисклоужер More tools', panels.some(p => p.querySelector('.more-tools')));
   const simpleLinks = new Set([...simpleNav.d.querySelectorAll('.nav-panel a[data-ia]')].map(a => a.dataset.ia));
   const proNav = await open('/overview', { store: modeStore('pro'), wait: 2200 });
@@ -445,7 +445,7 @@ async function switchTo(p, mode) {
        p.d.querySelectorAll('.portal-nav .menu > a, .portal-nav .menu > .nav-door > a').length >= 5
        && Boolean(p.d.querySelector('.nav-more')));
     if (mode === 'standard') {
-      ok('standard: четыре домена на первом уровне',
+      ok('standard: четыре ядровых домена на первом уровне',
          p.w.Navigation.topNav('standard').lead
            .filter(e => e.type === 'section').map(e => e.label).join(' · ')
            === 'Home · Market · Symbols · Economy');

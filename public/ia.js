@@ -310,12 +310,14 @@ window.IA = (function () {
     { id: 'home',    label: 'Home',    question: 'What matters to me today and what should I do next?' },
     { id: 'market',  label: 'Market',  question: 'What is happening across asset classes?' },
     { id: 'symbols', label: 'Symbols', question: 'What is happening with this instrument?' },
-    { id: 'economy', label: 'Economy', question: 'Which macro indicators and events are moving markets?' }
+    { id: 'economy', label: 'Economy', question: 'Which macro indicators and events are moving markets?' },
+    { id: 'academy', label: 'Academy', question: 'What do I need to understand next, and how do I try it safely?' }
   ];
 
   const FALLBACK_OWNER = [
     ['/economy', 'economy'], ['/markets', 'market'], ['/screeners', 'market'],
-    ['/symbols', 'symbols'], ['/charts', 'symbols'], ['/research', 'symbols']
+    ['/symbols', 'symbols'], ['/charts', 'symbols'], ['/research', 'symbols'],
+    ['/learn', 'academy'], ['/trade', 'academy']
   ];
 
   function ownerDomain(url) {

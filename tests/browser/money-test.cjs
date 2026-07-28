@@ -294,6 +294,30 @@ const text = d => d.body.textContent.replace(/\s+/g, ' ');
   ok('сказано, что это прототип', /prototype/i.test(honest));
   ok('сказано, что это не финансовый совет', /not financial advice|no.*advice/i.test(honest));
 
+  /* ---------------------------------------------------------------- язык
+
+     Заголовок месяца выводился через локаль браузера и на русской машине
+     читался как «июль 2026 г.» — одна кириллическая строка посреди
+     англоязычной страницы. Локаль продукта — решение продукта, а не
+     настройка браузера. Валюта при этом по-прежнему из профиля: язык наш,
+     деньги — человека. */
+  console.log('\n[Язык] Формат не наследуется у браузера');
+
+  const fs = require('fs');
+  const path = require('path');
+  const pageSrc = fs.readFileSync(
+    path.join(__dirname, '..', '..', 'public', 'money', 'page.js'), 'utf8');
+
+  ok('локаль форматирования задана явно', /const LOCALE = 'en-US'/.test(pageSrc));
+  ok('ни один формат не берёт локаль из браузера',
+    !/toLocaleDateString\(undefined|toLocaleString\(undefined|NumberFormat\(undefined/.test(pageSrc));
+
+  const langPage = await open('/money', { store: shared, wait: 1600 });
+  const heading = (langPage.d.getElementById('monthTitle')?.textContent || '').trim();
+  ok('заголовок месяца — на английском', /^[A-Za-z]+ \d{4}$/.test(heading), heading);
+  ok('кириллицы на странице нет', !/[а-яА-ЯёЁ]/.test(langPage.d.body.textContent),
+    (langPage.d.body.textContent.match(/[а-яА-ЯёЁ]+/) || [''])[0]);
+
   console.log(`\n${pass} ok, ${fail} fail\n`);
   process.exit(fail ? 1 : 0);
 })();

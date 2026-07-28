@@ -82,6 +82,12 @@
     border-radius:12px;padding:10px;display:none;z-index:9500;box-shadow:0 18px 50px rgba(0,0,0,.6)}
   .nav-door.open .nav-panel{display:block}
   .nav-panel .tl{font-size:12px;color:var(--tv-faint);padding:4px 10px 8px;line-height:1.4}
+  /* A named block inside a domain's menu (Home → Personal Wealth Hub). The
+     heading is not a link and does not look like one. */
+  .nav-group{margin:6px 0 2px;padding:8px 0 2px;border-top:1px solid var(--tv-line)}
+  .nav-group:first-of-type{border-top:0;margin-top:0;padding-top:0}
+  .nav-group .ng-title{font-family:var(--tv-mono);font-size:9.5px;letter-spacing:.1em;
+    text-transform:uppercase;color:#5B8DFF;padding:2px 10px 6px}
   .nav-panel a{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:8px 10px;border-radius:8px;
     font-size:13.5px;font-weight:400;color:var(--tv-text)}
   .nav-panel a:hover{background:var(--tv-ink-2);color:#fff}
@@ -187,13 +193,37 @@
 
     const row = i => `<a href="${esc(i.url)}" data-ia="${esc(i.id || i.label)}">
           <span>${esc(i.label)}</span>
-          <span class="d">${esc(i.desc || i.group || '')}</span></a>`;
+          <span class="d">${esc(i.desc || '')}</span></a>`;
+
+    /* A domain may name a block inside its menu — Home carries the Personal
+       Wealth Hub. The heading is a heading, not a link: the hub is the sum of
+       the pages under it, and pointing the heading at one of them would make
+       that one look like the whole thing.
+
+       Grouped entries keep their source order and stay together; ungrouped
+       ones render exactly as before, so a domain that names no block is
+       untouched by this. */
+    function rowsWithGroups(list) {
+      const out = [];
+      const seen = new Set();
+      for (const i of list) {
+        if (!i.group) { out.push(row(i)); continue; }
+        if (seen.has(i.group)) continue;
+        seen.add(i.group);
+        const block = list.filter(x => x.group === i.group);
+        out.push(`<div class="nav-group" role="group" aria-label="${esc(i.group)}">
+            <div class="ng-title">${esc(i.group)}</div>
+            ${block.map(row).join('')}
+          </div>`);
+      }
+      return out.join('');
+    }
 
     panel.innerHTML = `<div class="tl">${esc(section.question)}</div>
-      ${rows.map(row).join('')}
+      ${rowsWithGroups(rows)}
       ${more.length ? `<details class="more-tools">
         <summary>More in ${esc(section.label)} <span class="n">${more.length}</span></summary>
-        ${more.map(row).join('')}
+        ${rowsWithGroups(more)}
       </details>` : ''}
       <div class="all"><a href="${esc(section.url)}">Open ${esc(section.label)} →</a></div>`;
 

@@ -112,10 +112,25 @@ const topMenu = d => [...d.querySelectorAll('.portal-nav .menu > a, .portal-nav 
   const domainRow = m => N.topNav(m).lead
     .filter(e => e.type === 'section').map(e => e.label).join(' · ');
 
-  ok('10. четыре домена в Simple', domainRow('simple') === DOMAIN_ROW, domainRow('simple'));
-  ok('11. те же четыре домена в Standard и Professional',
-    domainRow('standard') === DOMAIN_ROW && domainRow('pro') === DOMAIN_ROW,
-    domainRow('standard') + ' / ' + domainRow('pro'));
+  const coreRow = m => N.topNav(m).lead
+    .filter(e => e.type === 'section' && N.CORE_DOMAIN_IDS.includes(e.id))
+    .map(e => e.label).join(' · ');
+
+  ok('10. четыре ядровых домена в Simple', coreRow('simple') === DOMAIN_ROW, coreRow('simple'));
+  ok('11. те же четыре в Standard и Professional',
+    coreRow('standard') === DOMAIN_ROW && coreRow('pro') === DOMAIN_ROW,
+    coreRow('standard') + ' / ' + coreRow('pro'));
+
+  /* Academy — осознанное исключение: ведёт в Simple, в двери More в
+     остальных. Проверяется именно так, а не «одинаково везде», потому что
+     обещание сузили честно, а не молча. */
+  ok('11c. Academy ведёт в Simple и уезжает в More в остальных',
+    N.academyPlacement('simple') === 'lead'
+    && N.academyPlacement('standard') === 'more'
+    && N.academyPlacement('pro') === 'more',
+    ['simple', 'standard', 'pro'].map(m => m + '=' + N.academyPlacement(m)).join(' '));
+  ok('11d. Academy достижима из любого режима',
+    ['simple', 'standard', 'pro'].every(m => N.academyPlacement(m) !== 'absent'));
   ok('11b. это утверждается самим реестром, а не только тестом',
     N.domainsAreStable());
 
@@ -179,6 +194,10 @@ const topMenu = d => [...d.querySelectorAll('.portal-nav .menu > a, .portal-nav 
     nav.standard.menu.join(' · ') === 'Home · Market · Symbols · Economy · More',
     nav.standard.menu.join(' · '));
 
+  ok('15d. Simple добавляет Academy пятым пунктом, после четырёх ядровых',
+    nav.simple.menu.slice(0, 5).join(' · ') === 'Home · Market · Symbols · Economy · Academy',
+    nav.simple.menu.join(' · '));
+
   /* More больше не хранит вытесненные домены — вытеснять нечего. Он хранит
      утилиты, которые доменами никогда и не были. */
   ok('16. More несёт утилиты, а не домены',
@@ -190,7 +209,14 @@ const topMenu = d => [...d.querySelectorAll('.portal-nav .menu > a, .portal-nav 
     ['simple', 'standard', 'pro'].every(m => {
       const ids = N.menu('home', m);
       const seen = new Set(ids.rows.concat(ids.more).map(e => e.id));
-      return ['money', 'learn', 'practice', 'community', 'experts', 'academy'].every(x => seen.has(x));
+      return ['money', 'community', 'experts', 'networth', 'goals'].every(x => seen.has(x));
+    }));
+
+  ok('16d. обучение и практика достижимы из меню Academy во всех режимах',
+    ['simple', 'standard', 'pro'].every(m => {
+      const r = N.menu('academy', m);
+      const seen = new Set(r.rows.concat(r.more).map(e => e.id));
+      return ['academy', 'hub', 'paper', 'journal', 'pine'].every(x => seen.has(x));
     }));
 
   ok('16b. прямой маршрут не получает поддельную мега-панель', (() => {
@@ -218,8 +244,8 @@ const topMenu = d => [...d.querySelectorAll('.portal-nav .menu > a, .portal-nav 
   })());
 
   const rawMarkets = await (await fetch(B + '/markets')).text();
-  ok('17c. без JS в разметке четыре домена',
-    ['Home', 'Market', 'Symbols', 'Economy']
+  ok('17c. без JS в разметке пять доменов',
+    ['Home', 'Market', 'Symbols', 'Economy', 'Academy']
       .every(l => rawMarkets.includes('>' + l + '</a>')));
 
   ok('17d. в шапке больше нет ни поля поиска, ни кнопки Copilot',
@@ -496,9 +522,13 @@ const topMenu = d => [...d.querySelectorAll('.portal-nav .menu > a, .portal-nav 
   ok('73. Professional открывается чистым капиталом',
     leadModule(mn.pro) === 'netWorth', leadModule(mn.pro));
 
+  /* Разделитель разрядов теперь запятая: локаль форматирования задана явно
+     как en-US, а не унаследована у браузера. Проверка принимает и то и
+     другое — она о расчёте, а не о пунктуации. */
   ok('73b. модуль чистого капитала существует и считает', (() => {
     const t = mn.pro.d.getElementById('netWorth').textContent.replace(/\s+/g, ' ');
-    return /What you own/.test(t) && /1\s?500/.test(t) && /Net worth/.test(t) && /1\s?300/.test(t);
+    return /What you own/.test(t) && /1[,\s]?500/.test(t)
+      && /Net worth/.test(t) && /1[,\s]?300/.test(t);
   })(), mn.pro.d.getElementById('netWorth').textContent.replace(/\s+/g, ' ').slice(0, 80));
 
   ok('77. расчёты денег одинаковы во всех режимах',
@@ -872,14 +902,39 @@ const topMenu = d => [...d.querySelectorAll('.portal-nav .menu > a, .portal-nav 
 
   console.log('\n[IA] Четыре домена и их владение');
 
-  ok('200. реестр объявляет ровно четыре домена',
-    N.TOP_LEVEL_DOMAINS.join(',') === 'home,market,symbols,economy',
+  ok('200. реестр объявляет четыре ядровых домена и Academy',
+    N.CORE_DOMAIN_IDS.join(',') === 'home,market,symbols,economy'
+    && N.TOP_LEVEL_DOMAINS.join(',') === 'home,market,symbols,economy,academy',
     N.TOP_LEVEL_DOMAINS.join(','));
+
+  ok('200b. обучение и практика принадлежат Academy',
+    N.ownerOf('/learn') === 'academy' && N.ownerOf('/learn/academy') === 'academy'
+    && N.ownerOf('/trade') === 'academy',
+    [N.ownerOf('/learn'), N.ownerOf('/trade')].join('|'));
+
+  /* Personal Wealth Hub — блок внутри меню Home, во всех трёх режимах. */
+  ok('200c. блок Personal Wealth Hub есть в Home в каждом режиме',
+    ['simple', 'standard', 'pro'].every(m =>
+      N.menu('home', m).rows.some(e => e.group === N.WEALTH)),
+    ['simple', 'standard', 'pro'].map(m =>
+      m + '=' + N.menu('home', m).rows.filter(e => e.group === N.WEALTH).length).join(' '));
+
+  ok('200d. My Budget лежит внутри этого блока',
+    ['simple', 'standard', 'pro'].every(m => {
+      const r = N.menu('home', m);
+      const b = r.rows.concat(r.more).find(e => e.id === 'money');
+      return b && b.group === N.WEALTH;
+    }));
+
+  /* Experts — одна и та же дверь на любом уровне. */
+  ok('200e. Expert Marketplace ведёт меню Home во всех режимах',
+    ['simple', 'standard', 'pro'].every(m =>
+      N.menu('home', m).rows.some(e => e.id === 'experts')));
 
   ok('201. владелец маршрута разрешается по длиннейшему префиксу',
     N.ownerOf('/economy') === 'economy' && N.ownerOf('/markets?cls=stocks') === 'market'
     && N.ownerOf('/symbols/NVDA') === 'symbols' && N.ownerOf('/research/ai-private') === 'symbols'
-    && N.ownerOf('/learn/academy') === 'home' && N.ownerOf('/') === 'home',
+    && N.ownerOf('/learn/academy') === 'academy' && N.ownerOf('/') === 'home',
     [N.ownerOf('/economy'), N.ownerOf('/markets'), N.ownerOf('/symbols/NVDA'), N.ownerOf('/')].join('|'));
 
   ok('202. ни одно назначение инвентаря не осталось без владельца',

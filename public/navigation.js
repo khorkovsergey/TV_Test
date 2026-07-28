@@ -53,7 +53,19 @@ window.Navigation = (function () {
      in Standard should still recognise it in Professional — so `plain` is
      used only where the ordinary label assumes knowledge a beginner has not
      been given yet. */
-  const E = (id, label, url, desc, plain) => ({ id, label, url, desc, plain: plain || null });
+  const E = (id, label, url, desc, plain, group) =>
+    ({ id, label, url, desc, plain: plain || null, group: group || null });
+
+  /* A named block inside a domain's menu. Home carries one: the Personal
+     Wealth Hub, which is where somebody's own money lives — this month, net
+     worth, goals, safety, accounts. It is a heading rather than a link,
+     because the hub is the sum of the pages under it and sending the heading
+     to one of them would make that one look like the whole thing.
+
+     The block is shown in ALL THREE modes. What a mode changes is how many of
+     its rows lead: Simple opens with the three a beginner can act on today,
+     Professional opens with net worth and scenarios. */
+  const WEALTH = 'Personal Wealth Hub';
 
   const DOMAINS = [
     /* ------------------------------------------------------------- Home */
@@ -63,25 +75,37 @@ window.Navigation = (function () {
       role: 'Entry point of the portal. Aggregates markets, news, ideas and content modules.',
       entries: [
         E('today',    'Today',              '/overview',          'what moved, and why'),
-        E('money',    'My Budget',          '/money',             'income, spending, what is left', 'Manage my money'),
-        E('learn',    'Learn',              '/learn',             'six guided steps on live data', 'Learn without risk'),
-        E('academy',  'Guided Academy',     '/learn/academy',     'learning inside the product'),
-        E('practice', 'Practice',           '/trade',             'virtual balance, real prices', 'Practise trading'),
+        E('money',    'My Budget',          '/money',             'income, spending, what is left', 'Manage my money', WEALTH),
+        E('tx',       'Transactions',       '/money/transactions', 'the notebook, replaced', null, WEALTH),
+        E('budget',   'Budget',             '/money/budget',      'planned against actual', null, WEALTH),
+        E('goals',    'Goals',              '/money/goals',       'what you are saving for', null, WEALTH),
+        E('safety',   'Financial safety',   '/money/safety',      'reserve, debts, tax', null, WEALTH),
+        E('accounts', 'Accounts',           '/money/accounts',    'cash, cards, deposits', null, WEALTH),
+        E('networth', 'Net worth',          '/money/net-worth',   'what you own minus what you owe', null, WEALTH),
+        E('investing','Investing',          '/money/investing',   'only when it becomes relevant', null, WEALTH),
+        E('scenarios','Scenarios',          '/money/scenarios',   'what changes if you move money', null, WEALTH),
         E('community','Community',          '/community',         'curated, labelled, dated', 'Ideas for beginners'),
         E('continue', 'Saved work',         '/money#saved',       'screens, journey, Copilot history', 'Continue my work'),
         E('recent',   'Recent symbols',     '/symbols/BTCUSD',    'the instruments you opened'),
         E('watchlists','Watchlists',        '/money#watchlists',  'the symbols you follow'),
         E('alerts',   'Alerts',             '/money#alerts',      'price and event alerts'),
         E('screens',  'Saved Screeners',    '/screeners#saved',   'the questions you keep asking'),
+        /* Human help is the same offer at every level: somebody with money
+           questions deserves the same door whether they call themselves a
+           beginner or a professional. It leads Home's menu in all three
+           modes, in the same place — this is the one entry deliberately
+           exempt from per-mode ordering. */
         E('experts',  'Expert Marketplace', '/capital/experts',   'a human adviser, matched to your situation'),
         E('rewards',  'Community Rewards',  '/community/rewards', 'one loop instead of four links'),
         E('space',    'My space',           '/money#saved',       'everything you keep, in one place'),
         E('new',      'What’s New',         '/new',               'what is new in this prototype')
       ],
       lead: {
-        simple:   ['today', 'money', 'learn', 'practice', 'community', 'continue'],
-        standard: ['today', 'money', 'learn', 'practice', 'community', 'continue', 'experts', 'new'],
-        pro:      ['continue', 'alerts', 'watchlists', 'screens', 'recent', 'money', 'space', 'new']
+        /* Шесть строк — потолок панели. Safety уезжает в блок под More
+           вместе с остальным кошельком, а не выталкивает Experts. */
+        simple:   ['today', 'money', 'goals', 'community', 'continue', 'experts'],
+        standard: ['today', 'money', 'tx', 'goals', 'networth', 'community', 'continue', 'experts', 'new'],
+        pro:      ['continue', 'alerts', 'watchlists', 'screens', 'networth', 'scenarios', 'investing', 'money', 'experts', 'space', 'new']
       }
     },
 
@@ -181,6 +205,55 @@ window.Navigation = (function () {
         pro:      ['calendar', 'rates', 'curves', 'compare', 'indicators', 'earnings', 'dividends', 'ipo', 'impact', 'reaction']
       }
     }
+,
+
+    /* --------------------------------------------------------- Academy
+
+       The fifth domain, and the one that is NOT in the top row of every mode.
+
+       Simple leads with it, after the four core domains; Standard and
+       Professional keep it in the `More` door. That is a deliberate exception
+       to the rule the previous release established, and it is worth naming:
+       somebody who finds the Academy in Simple and then switches to Standard
+       loses it from the header. The cost is real. What buys it back is that
+       the domain is still ONE press away in `More` in every mode, carries the
+       active state when you are inside it, and never stops existing — so the
+       exception is "less prominent", not "gone".
+
+       It holds everything that teaches: the guided course, the tracks, the
+       answers, and the practice surfaces, because practising without money is
+       learning rather than trading. Practice therefore leaves Home. */
+    {
+      id: 'academy', label: 'Academy', url: '/learn/academy',
+      question: 'What do I need to understand next, and how do I try it safely?',
+      role: 'Everything that teaches: the guided course, the tracks, the answers and the practice surfaces.',
+      entries: [
+        E('academy',   'Guided Academy',        '/learn/academy',        'six lessons on live data'),
+        E('lesson',    'Interactive lesson',    '/learn/academy/lesson', 'read a level on a real chart'),
+        E('start',     'Start here',            '/learn#start',          'ten steps through the product'),
+        E('hub',       'All learning tracks',   '/learn',                'the whole curriculum in one place'),
+        E('money',     'Personal-finance basics','/learn#money',         'before any market question'),
+        E('investing', 'Investing basics',      '/learn#investing',      'cash, deposits, bonds, ETFs'),
+        E('trading',   'Trading basics',        '/learn#trading',        'analysis, orders, risk'),
+        E('charts',    'Chart skills',          '/learn#charts',         'reading a chart without guessing'),
+        E('pine',      'Pine Script',           '/learn#pine',           'syntax, debugging, publication'),
+        E('strategy',  'Strategy testing',      '/learn#strategy',       'evidence for a rule, not an opinion'),
+        E('expertled', 'Expert-led tracks',     '/learn/academy#tracks', 'written by the advisers, with their record'),
+        E('qa',        'Structured Q&A',        '/learn#qa',             'short answer, then the explanation'),
+        E('help',      'Help centre',           '/learn#help',           ''),
+        /* Practice belongs here: a paper trade is a lesson you are allowed to
+           get wrong. It left Home in this release. */
+        E('paper',     'Paper Trading',         '/trade#practice',       'virtual balance, real prices'),
+        E('scenario',  'First practice scenario','/trade#start',         'market → instrument → risk'),
+        E('replay',    'Bar replay',            '/charts',               'replay a past period'),
+        E('journal',   'Trading journal',       '/trade#journal',        'why you entered, what happened')
+      ],
+      lead: {
+        simple:   ['academy', 'start', 'money', 'investing', 'paper', 'qa'],
+        standard: ['academy', 'hub', 'investing', 'trading', 'charts', 'paper', 'journal', 'qa'],
+        pro:      ['pine', 'strategy', 'journal', 'replay', 'expertled', 'academy', 'hub']
+      }
+    }
   ];
 
   /* Things you KEEP, behind the profile rather than inside a domain. Derived
@@ -256,10 +329,18 @@ window.Navigation = (function () {
     R('charts', 'Chart', '/charts', 'the workspace')
   ];
 
+  /* The four that never move. Academy is a domain too, but it is not part of
+     this row's promise — see its own comment above. */
+  const CORE_DOMAIN_IDS = ['home', 'market', 'symbols', 'economy'];
+  const CORE = CORE_DOMAIN_IDS.map(SEC);
+
   const PROFILES = {
-    simple:   { lead: DOMAINS.map(d => SEC(d.id)), more: MORE_EXTRAS.slice() },
-    standard: { lead: DOMAINS.map(d => SEC(d.id)), more: MORE_EXTRAS.slice() },
-    pro:      { lead: DOMAINS.map(d => SEC(d.id)).concat(PRO_SHORTCUTS), more: MORE_EXTRAS.slice() }
+    /* Simple leads with the Academy after the four core domains: at this level
+       the next useful action is usually a lesson, and a beginner should not
+       have to open a door to find one. */
+    simple:   { lead: CORE.concat([SEC('academy')]), more: MORE_EXTRAS.slice() },
+    standard: { lead: CORE.slice(), more: [SEC('academy')].concat(MORE_EXTRAS) },
+    pro:      { lead: CORE.concat(PRO_SHORTCUTS), more: [SEC('academy')].concat(MORE_EXTRAS) }
   };
 
   const profile = m => PROFILES[m] || PROFILES.standard;
@@ -297,11 +378,26 @@ window.Navigation = (function () {
     });
   }
 
-  /* The top row must read identically in all three modes. Asserted rather
-     than assumed, because this is the property the release exists for. */
+  /* The FOUR CORE domains must read identically, in the same order, in all
+     three modes. Academy is deliberately excluded from this promise: it leads
+     in Simple and lives in `More` elsewhere. Narrowing the assertion is the
+     honest way to make an exception — the alternative is deleting the check
+     and calling the property true by silence. */
   function domainsAreStable() {
-    const read = m => topNav(m).lead.filter(e => e.type === 'section').map(e => e.label).join(' · ');
-    return read('simple') === read('standard') && read('standard') === read('pro');
+    const read = m => topNav(m).lead
+      .filter(e => e.type === 'section' && CORE_DOMAIN_IDS.includes(e.id))
+      .map(e => e.label).join(' · ');
+    return read('simple') === read('standard') && read('standard') === read('pro')
+      && read('simple') === 'Home · Market · Symbols · Economy';
+  }
+
+  /* Where Academy sits in a given mode. Named so a page or a test can ask
+     rather than infer it from the rendered menu. */
+  function academyPlacement(m) {
+    const nav = topNav(m);
+    if (nav.lead.some(e => e.id === 'academy')) return 'lead';
+    if (nav.more.some(e => e.id === 'academy')) return 'more';
+    return 'absent';
   }
 
   /* Kept so `nav.js` does not have to change: ordering now lives in `lead`,
@@ -320,9 +416,11 @@ window.Navigation = (function () {
     ['/research/ai-private', 'symbols'],
     ['/research',       'symbols'],
     ['/money',          'home'],
-    ['/learn',          'home'],
+    /* Learning and practice belong to Academy now — including `/trade`, which
+       is paper trading rather than trading. */
+    ['/learn',          'academy'],
+    ['/trade',          'academy'],
     ['/community',      'home'],
-    ['/trade',          'home'],
     ['/capital/experts','home'],
     ['/capital',        'home'],
     ['/new',            'home'],
@@ -351,6 +449,7 @@ window.Navigation = (function () {
     menu, byId, all, labelFor,
     PROFILES, PRO_SHORTCUTS, profile, resolve, topNav,
     everySectionReachable, everyEntryReachable, domainsAreStable,
+    CORE_DOMAIN_IDS, academyPlacement, WEALTH,
     prioritise, ROUTE_OWNER, ownerOf, ownerLabel
   };
 })();
