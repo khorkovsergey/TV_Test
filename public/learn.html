@@ -170,14 +170,14 @@ Hub.mount('learn', mode => `
 
   <h2 class="mt-32" id="investing" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">Tracks</h2>
   <div class="mt-16">${H.modules(mode, [
-    { complexity: 1, html: H.pilotCard({ title: 'Investing', what: 'Asset classes, fundamentals, portfolio, dividends, risk, horizon, goals and diversification — for someone building, not trading.' , actions: [{ label: 'Capital section', url: '/capital' }] }) },
-    { complexity: 2, html: H.pilotCard({ title: 'Trading', what: 'Technical analysis, charts, indicators, order types, risk management, strategies, journal and backtesting.', actions: [{ label: 'Practice first', url: '/trade#practice', primary: true }] }) },
-    { complexity: 3, html: H.pilotCard({ title: 'Pine Script', what: 'Basics, syntax, examples, editor, debugging, publication and documentation.', actions: [{ label: 'Community scripts', url: '/community#scripts' }] }) }
+    { id: 'investing', complexity: 1, html: H.pilotCard({ title: 'Investing', what: 'Asset classes, fundamentals, portfolio, dividends, risk, horizon, goals and diversification — for someone building, not trading.' , actions: [{ label: 'Capital section', url: '/capital' }] }) },
+    { id: 'trading', complexity: 2, html: H.pilotCard({ title: 'Trading', what: 'Technical analysis, charts, indicators, order types, risk management, strategies, journal and backtesting.', actions: [{ label: 'Practice first', url: '/trade#practice', primary: true }] }) },
+    { id: 'pine-script', complexity: 3, html: H.pilotCard({ title: 'Pine Script', what: 'Basics, syntax, examples, editor, debugging, publication and documentation.', actions: [{ label: 'Community scripts', url: '/community#scripts' }] }) }
 ,
-    { complexity: 3, html: H.pilotCard({ title: "Pine and automation track", what: "Syntax, debugging, publication, strategy testing and the workflows that turn a rule into a script.", actions: [{ label: "Pine in Research", url: "/research#pine" }], note: 'a professional default: open in Pro, folded at other levels — never removed' }) },
-    { complexity: 3, html: H.pilotCard({ title: "Professional workflows", what: "Multi-chart layouts, saved workspaces, keyboard-first navigation and the habits that make density readable rather than loud.", actions: [{ label: "Open the workspace", url: "/charts" }], note: 'a professional default: open in Pro, folded at other levels — never removed' }) },
-    { complexity: 3, html: H.pilotCard({ title: "Expert-led tracks", what: "Courses written by the licensed advisers in the marketplace, with their record attached.", actions: [{ label: "See the experts", url: "/capital/experts?from=academy" }], note: 'a professional default: open in Pro, folded at other levels — never removed' }) }
-  ])}</div>
+    { id: 'pine-and-automation-track', complexity: 3, html: H.pilotCard({ title: "Pine and automation track", what: "Syntax, debugging, publication, strategy testing and the workflows that turn a rule into a script.", actions: [{ label: "Pine in Research", url: "/research#pine" }], note: 'a professional default: open in Pro, folded at other levels — never removed' }) },
+    { id: 'professional-workflows', complexity: 3, html: H.pilotCard({ title: "Professional workflows", what: "Multi-chart layouts, saved workspaces, keyboard-first navigation and the habits that make density readable rather than loud.", actions: [{ label: "Open the workspace", url: "/charts" }], note: 'a professional default: open in Pro, folded at other levels — never removed' }) },
+    { id: 'expert-led-tracks', complexity: 3, html: H.pilotCard({ title: "Expert-led tracks", what: "Courses written by the licensed advisers in the marketplace, with their record attached.", actions: [{ label: "See the experts", url: "/capital/experts?from=academy" }], note: 'a professional default: open in Pro, folded at other levels — never removed' }) }
+  ], 'learn')}</div>
 
   <h2 class="mt-32" id="qa" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">Structured answers</h2>
   <div class="stubs mt-16">

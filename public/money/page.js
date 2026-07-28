@@ -255,6 +255,52 @@
        Simple        the month, the ledger, one next step
        Standard      the month, then categories, goals and safety
        Professional  net worth first, then the structure behind it            */
+  /* §19.4 — the subview router. One page, one store, eight addresses. A
+     subview never hides a module: it decides which one leads and folds the
+     rest, so every figure stays one click away and `/money` itself is still
+     the whole dashboard. */
+  const VIEWS = [
+    { path: '/money',              id: 'all',       label: 'This month',  lead: null },
+    { path: '/money/transactions', id: 'recent',    label: 'Transactions', lead: 'recent' },
+    { path: '/money/budget',       id: 'categories',label: 'Budget',       lead: 'categories' },
+    { path: '/money/accounts',     id: 'netWorth',  label: 'Accounts',     lead: 'netWorth' },
+    { path: '/money/goals',        id: 'goals',     label: 'Goals',        lead: 'goals' },
+    { path: '/money/safety',       id: 'safety',    label: 'Safety',       lead: 'safety' },
+    { path: '/money/net-worth',    id: 'netWorth',  label: 'Net worth',    lead: 'netWorth' },
+    { path: '/money/investing',    id: 'investing', label: 'Investing',    lead: null },
+    { path: '/money/scenarios',    id: 'scenarios', label: 'Scenarios',    lead: null }
+  ];
+
+  const currentView = () => VIEWS.find(v => v.path === location.pathname) || VIEWS[0];
+
+  function paintViews() {
+    const box = $('moneyViews');
+    if (!box) return;
+    const here = currentView();
+    box.innerHTML = VIEWS.map(v =>
+      `<a class="preset${v.path === here.path ? ' on' : ''}" href="${v.path}">${esc(v.label)}</a>`
+    ).join('');
+  }
+
+  /* Depth that is not built yet says so instead of rendering as if it were.
+     `investing` and `scenarios` have no module on this page. */
+  function paintViewNote() {
+    const here = currentView();
+    const box = $('viewNote');
+    if (!box) return;
+    const unbuilt = { investing: 'Investing', scenarios: 'Scenarios' };
+    if (unbuilt[here.id]) {
+      box.hidden = false;
+      box.style.display = '';
+      box.innerHTML = `<b>${esc(unbuilt[here.id])} — PROTOTYPE.</b> This view is named in the
+        navigation and its module is not built. What is below is the full dashboard, unchanged;
+        nothing here has been calculated for ${esc(unbuilt[here.id].toLowerCase())}.`;
+    } else {
+      box.hidden = true;
+      box.style.display = 'none';
+    }
+  }
+
   function applyMode() {
     const mode = P?.mode?.() || 'simple';
     const policy = window.Modes?.policy(mode);
@@ -281,11 +327,26 @@
 
       /* Placement decides what is open and what is folded. `overflow` and
          `advanced` still render — folded is a disclosure, never a deletion. */
+      const view = currentView();
       for (const [id, el] of nodes) {
-        const place = comp.modulePlacement[id] || 'secondary';
-        const open = place === 'lead' || place === 'primary' || place === 'secondary';
+        let place = comp.modulePlacement[id] || 'secondary';
+        /* A subview promotes its own module to lead. It never demotes another
+           one out of sight: the route changes emphasis, not availability. */
+        if (view.lead) {
+          /* Exactly one lead. A subview promotes its module and demotes the
+             mode's lead to primary — two leads would mean neither is one. */
+          if (id === view.lead) place = 'lead';
+          else if (place === 'lead') place = 'primary';
+        }
+        const open = place === 'lead' || place === 'primary' || place === 'secondary'
+          || (view.lead && id === view.lead);
         el.classList.toggle('folded-card', !open);
         el.dataset.placement = place;
+      }
+      /* Lead first in the DOM, so the route the visitor typed is what they see. */
+      if (view.lead && nodes.has(view.lead)) {
+        const el = nodes.get(view.lead);
+        if (el.parentElement) el.parentElement.insertBefore(el, el.parentElement.firstChild);
       }
     } else {
       /* Fallback for a build where the matrix has not loaded. */
@@ -333,7 +394,7 @@
     $('dash').hidden = !started;
     if (!started) { paintOnboarding(); applyMode(); return; }
     paintTotals(); paintCategories(); paintRecent(); paintGoals(); paintSafety();
-    paintNetWorth(); paintNextStep();
+    paintNetWorth(); paintNextStep(); paintViews(); paintViewNote();
     applyMode();
   }
 

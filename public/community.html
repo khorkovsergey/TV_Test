@@ -168,11 +168,11 @@ Hub.mount('community', mode => `
 
   <h2 class="mt-32" id="scripts" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">Built by people</h2>
   <div class="mt-16">${H.modules(mode, [
-    { complexity: 2, html: H.pilotCard({ title: 'Authors', what: 'Profiles, subscriptions, wizards, developers, statistics, publication history, reputation and disclosure.', note: 'disclosure is the part that makes the rest usable' }) },
-    { complexity: 3, html: H.pilotCard({ title: 'Scripts', what: 'Indicators and strategies: open source, invite-only, paid, popular, new and editor-picked.', actions: [{ label: 'Pine in Research', url: '/research#pine' }] }) },
-    { complexity: 3, html: H.pilotCard({ title: 'Pine creators', what: 'Ranked by what their scripts actually did, with version history and the disclosure attached to each publication.', actions: [{ label: 'Pine', url: '/research#pine' }], note: 'open in Pro, folded at other levels — never removed' }) },
-    { complexity: 3, html: H.pilotCard({ title: 'Moderation and disclosure', what: 'Who reviewed what, which claims carry a record, and where the conflicts of interest are declared.', actions: [{ label: 'Feeds above', url: '#ideas' }] }) }
-  ])}</div>
+    { id: 'authors', complexity: 2, html: H.pilotCard({ title: 'Authors', what: 'Profiles, subscriptions, wizards, developers, statistics, publication history, reputation and disclosure.', note: 'disclosure is the part that makes the rest usable' }) },
+    { id: 'scripts', complexity: 3, html: H.pilotCard({ title: 'Scripts', what: 'Indicators and strategies: open source, invite-only, paid, popular, new and editor-picked.', actions: [{ label: 'Pine in Research', url: '/research#pine' }] }) },
+    { id: 'pine-creators', complexity: 3, html: H.pilotCard({ title: 'Pine creators', what: 'Ranked by what their scripts actually did, with version history and the disclosure attached to each publication.', actions: [{ label: 'Pine', url: '/research#pine' }], note: 'open in Pro, folded at other levels — never removed' }) },
+    { id: 'moderation-and-disclosure', complexity: 3, html: H.pilotCard({ title: 'Moderation and disclosure', what: 'Who reviewed what, which claims carry a record, and where the conflicts of interest are declared.', actions: [{ label: 'Feeds above', url: '#ideas' }] }) }
+  ], 'community')}</div>
 
   <!-- Expert Marketplace is complexity 1 by rule: the feature is most valuable
        precisely to the visitor who does not want to master the tools (§7.14). -->

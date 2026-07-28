@@ -16,6 +16,10 @@ old model.
 **State adapters: four of eight.** Home, Chart, Money and Screener register one. Asset Hub,
 Academy, Expert Marketplace and Copilot do not.
 
+**`/money/*` is a real router now (§19.4).** Eight addresses, one page, one store: the route
+decides which module leads and folds the rest, and `investing` and `scenarios` — which have no
+module — say `PROTOTYPE` rather than rendering the dashboard as if they were built.
+
 An earlier version of this file said "only Home is registered". That was wrong: at the time
 `registerStateAdapter` was called by nobody at all — the method existed, the suite checked that
 the *function* existed, and no page used it. Corrected here rather than quietly fixed.
@@ -66,10 +70,11 @@ Professional opens with net worth. Order and folding come from the matrix; nothi
 The matrix declares compositions for sixteen surfaces. **One page reads its own** — `/research`.
 The rest still compose themselves the way they did before, which means:
 
-- `hub.js` accepts a composition, but only `/research` passes one. Overview, Learn, Community,
-  Practice and Capital still call it the old way and are unchanged.
+- `hub.js` composition is now read by `/research`, `/overview`, `/learn`, `/community` and
+  `/trade`. `/capital` (legacy) still calls it the old way, deliberately: it is compatibility
+  material and gets no new behaviour.
 
-- Screener still has one form layout (§16, §27 open).
+
 - Asset Hub still has one tab policy (§17 open).
 
 - Academy still adds a class and folds `[data-advanced]` (GAP-10 open).

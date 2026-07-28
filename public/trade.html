@@ -156,10 +156,10 @@ Hub.mount('trade', mode => `
 
   <h2 class="mt-32" id="practice" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">Practice</h2>
   <div class="mt-16">${H.modules(mode, [
-    { complexity: 1, html: H.pilotCard({ title: 'Paper trading', what: 'A virtual balance with commissions and leverage simulated, so a decision costs attention rather than money.', actions: [{ label: 'Learn it in the Academy', url: '/learn/academy', primary: true }] }) },
-    { complexity: 2, html: H.pilotCard({ title: 'Bar replay & scenarios', what: 'Replay a past period bar by bar and act as if it were live — the cheapest way to find out whether a rule survives contact with the market.', actions: [{ label: 'Open the workspace', url: '/charts' }] }) },
-    { complexity: 2, html: H.pilotCard({ title: 'Decision journal', what: 'Why you entered, what you expected, what happened. The part most platforms leave out and most people need most.', actions: [{ label: 'Saved research', url: '/capital#saved' }] }) }
-  ])}</div>
+    { id: 'paper-trading', complexity: 1, html: H.pilotCard({ title: 'Paper trading', what: 'A virtual balance with commissions and leverage simulated, so a decision costs attention rather than money.', actions: [{ label: 'Learn it in the Academy', url: '/learn/academy', primary: true }] }) },
+    { id: 'bar-replay-scenarios', complexity: 2, html: H.pilotCard({ title: 'Bar replay & scenarios', what: 'Replay a past period bar by bar and act as if it were live — the cheapest way to find out whether a rule survives contact with the market.', actions: [{ label: 'Open the workspace', url: '/charts' }] }) },
+    { id: 'decision-journal', complexity: 2, html: H.pilotCard({ title: 'Decision journal', what: 'Why you entered, what you expected, what happened. The part most platforms leave out and most people need most.', actions: [{ label: 'Saved research', url: '/capital#saved' }] }) }
+  ], 'practice')}</div>
 
   <h2 class="mt-32" id="brokers" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">Brokers</h2>
   <div class="mt-16">${H.modules(mode, [

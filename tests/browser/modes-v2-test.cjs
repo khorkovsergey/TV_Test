@@ -634,6 +634,64 @@ const topMenu = d => [...d.querySelectorAll('.portal-nav .menu > a, .portal-nav 
     return adapter && adapter.filters && adapter.filters.chgMin === 3;
   })());
 
+  /* --------------------------------- P1: подвиды денег и остальные хабы */
+
+  console.log('\n[P1] Подвиды My Money и хабы разделов');
+
+  /* §19.4 — восемь маршрутов больше не отдают одну и ту же страницу. */
+  const seedV = JSON.stringify({
+    schemaVersion: 1, profile: { onboardingPath: 'notebook' },
+    transactions: [{ id: 't1', type: 'income', amount: 1000, date: new Date().toISOString().slice(0, 10), categoryId: 'salary', accountId: 'a1' }],
+    accounts: [{ id: 'a1', name: 'Cash', type: 'cash', openingBalance: 500, includedInNetWorth: true }],
+    liabilities: [], goals: [], recurring: []
+  });
+  const view = async path => open(path, {
+    store: new Map([['ui_mode', 'standard'], ['money_store_v1', seedV]]), wait: 1600
+  });
+  const leadOfMoney = r => [...r.d.querySelectorAll('#dash [data-placement="lead"]')]
+    .map(e => e.dataset.moduleId).join(',');
+
+  const vAll = await view('/money');
+  const vGoals = await view('/money/goals');
+  const vNet = await view('/money/net-worth');
+  const vScen = await view('/money/scenarios');
+
+  ok('75a. маршрут решает, какой модуль ведёт',
+    leadOfMoney(vAll) === 'totals' && leadOfMoney(vGoals) === 'goals'
+    && leadOfMoney(vNet) === 'netWorth',
+    [leadOfMoney(vAll), leadOfMoney(vGoals), leadOfMoney(vNet)].join(' / '));
+
+  ok('75b. ведущий модуль ровно один',
+    [vAll, vGoals, vNet].every(r => r.d.querySelectorAll('#dash [data-placement="lead"]').length === 1));
+
+  ok('75c. подвид ничего не удаляет — модули на месте',
+    new Set([vAll, vGoals, vNet, vScen]
+      .map(r => r.d.querySelectorAll('#dash [data-module-id]').length)).size === 1);
+
+  ok('75d. непостроенная глубина помечена, а не выдана за рабочую',
+    !vScen.d.getElementById('viewNote').hidden
+    && /PROTOTYPE/.test(vScen.d.getElementById('viewNote').textContent),
+    vScen.d.getElementById('viewNote').textContent.slice(0, 60));
+
+  ok('75e. между подвидами можно переходить',
+    vAll.d.querySelectorAll('#moneyViews a').length >= 8,
+    String(vAll.d.querySelectorAll('#moneyViews a').length));
+
+  ok('77b. данные во всех подвидах одни и те же',
+    new Set([vAll, vGoals, vNet].map(r =>
+      r.d.getElementById('totals').textContent.replace(/\s+/g, ' '))).size === 1);
+
+  /* Остальные хабы читают композицию. */
+  for (const [path, label] of [['/overview', 'Overview'], ['/learn', 'Learn'],
+                               ['/community', 'Community'], ['/trade', 'Practice']]) {
+    const si = await open(path, { mode: 'simple', wait: 1400 });
+    const pr = await open(path, { mode: 'pro', wait: 1400 });
+    const lead = r => [...r.d.querySelectorAll('.hub-lead .title')].map(t => t.textContent).join();
+    ok(`${label}: есть ведущий модуль и он разный в Simple и Professional`,
+      lead(si).length > 0 && lead(pr).length > 0 && lead(si) !== lead(pr),
+      lead(si) + ' vs ' + lead(pr));
+  }
+
   /* ------------------------------------------------------- обещания */
 
   console.log('\n[Обещания] Переключатель говорит правду');

@@ -199,11 +199,11 @@ Hub.mount('overview', mode => `
   </div>
 
   <div class="mt-16">${H.modules(mode, [
-    { complexity: 2, html: H.pilotCard({ title: 'Other calendars', what: 'Earnings, dividends, IPOs, central-bank decisions, corporate and token events, all filterable by your assets.', actions: [{ label: 'Where they live', url: '/sitemap#overview' }] }) },
-    { complexity: 3, html: H.pilotCard({ title: 'Market breadth', what: 'How many instruments are advancing against declining, by class and by sector — the number that says whether one green index is the whole market or one stock.', actions: [{ label: 'See the market map', url: '/markets#heatmap' }], note: 'a professional default: open in Pro, folded elsewhere' }) },
-    { complexity: 3, html: H.pilotCard({ title: 'Volatility and rates panel', what: 'VIX, the yield curve and the dollar in one compact strip, because most single-asset questions are really questions about these three.', actions: [{ label: 'Open rates', url: '/markets?cls=rates' }] }) },
-    { complexity: 3, html: H.pilotCard({ title: 'Multi-country macro compare', what: 'Two or more economies side by side on the same measure, with the release schedule aligned.', actions: [{ label: 'Macro & rates', url: '/research#macro' }] }) }
-  ])}</div>
+    { id: 'other-calendars', complexity: 2, html: H.pilotCard({ title: 'Other calendars', what: 'Earnings, dividends, IPOs, central-bank decisions, corporate and token events, all filterable by your assets.', actions: [{ label: 'Where they live', url: '/sitemap#overview' }] }) },
+    { id: 'market-breadth', complexity: 3, html: H.pilotCard({ title: 'Market breadth', what: 'How many instruments are advancing against declining, by class and by sector — the number that says whether one green index is the whole market or one stock.', actions: [{ label: 'See the market map', url: '/markets#heatmap' }], note: 'a professional default: open in Pro, folded elsewhere' }) },
+    { id: 'volatility-and-rates-panel', complexity: 3, html: H.pilotCard({ title: 'Volatility and rates panel', what: 'VIX, the yield curve and the dollar in one compact strip, because most single-asset questions are really questions about these three.', actions: [{ label: 'Open rates', url: '/markets?cls=rates' }] }) },
+    { id: 'multi-country-macro-compare', complexity: 3, html: H.pilotCard({ title: 'Multi-country macro compare', what: 'Two or more economies side by side on the same measure, with the release schedule aligned.', actions: [{ label: 'Macro & rates', url: '/research#macro' }] }) }
+  ], 'overview')}</div>
 `);
 
 /* Live brief and attribution */

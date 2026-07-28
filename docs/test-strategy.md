@@ -21,7 +21,7 @@ tests/
     phase3-test.cjs      118  strategic features: registry, surfaces, honesty
     money-test.cjs        95  My Money: arithmetic, ladder, the fitness-trainer scenario
     chart-test.cjs        90  candles, selection, chart context, sources, chart actions
-    modes-v2-test.cjs     87  three compositions: policy, navigation, home, orchestrator, registers
+    modes-v2-test.cjs    114  three compositions: policy, navigation, home, orchestrator, registers
     home-test.cjs        101  task home, A/B control, funnel
     v2-test.cjs           87
     data-test.cjs         80  live market layer, degradation, honest failure
