@@ -80,14 +80,24 @@ const PAGES = ['/', '/charts', '/symbols/BTCUSD', '/learn/academy', '/learn/acad
      !/Pricing/.test(d.querySelector('main').textContent) && /Pricing/.test(d.querySelector('.portal-footer').textContent));
 
   console.log('\n[§2] Одна навигация на всех страницах');
-  const NAV = ['Markets', 'Research', 'My Money', 'Learn', 'Community', 'Practice'];
+  /* Эталон снимается с первой страницы прогона: смысл проверки — «оболочка
+     одинакова везде», а не «в меню всегда эти шесть слов». Слова теперь
+     зависят от режима, и это намеренно. */
+  let NAV = null;
   for (const p of PAGES) {
     const page = await open(p);
     const nav = [...page.d.querySelectorAll('.portal-nav .menu a:not(.nav-panel a)')].map(a => a.textContent.trim());
-    ok(p + ' — 6 пунктов', JSON.stringify(nav) === JSON.stringify(NAV), nav.join(','));
+    /* Верхнее меню теперь зависит от режима, поэтому проверяется не длина, а
+       то, ради чего эта проверка существовала: оболочка одинакова на всех
+       страницах. Эталон берётся с первой страницы прогона. */
+    if (!NAV) NAV = nav;
+    ok(p + ' — та же навигация, что и везде', JSON.stringify(nav) === JSON.stringify(NAV), nav.join(','));
     ok(p + ' — Copilot в шапке', /Copilot/.test(page.d.querySelector('.portal-nav .right').textContent));
     ok(p + ' — переключатель режима в шапке', Boolean(page.d.querySelector('.portal-nav .mode-switch')));
-    ok(p + ' — нет Products/More в шапке', !/Products|>More</.test(page.d.querySelector('.portal-nav').innerHTML));
+    /* `More` теперь честная дверь для того, что режим вытеснил, — без неё
+       обещание «каждый раздел достижим» было бы неправдой. Products как не
+       было, так и нет. */
+    ok(p + ' — нет Products в шапке', !/Products/.test(page.d.querySelector('.portal-nav').innerHTML));
     ok(p + ' — нет пилюли Get started в шапке', !/Get started/i.test(page.d.querySelector('.portal-nav').textContent));
     ok(p + ' — подсказка поиска из спеки',
        page.d.querySelector('.portal-nav .search').textContent.includes('Search or ask: “why is BTC up?”'),

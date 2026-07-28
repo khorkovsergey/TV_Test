@@ -195,12 +195,19 @@ const vis = el => el && !el.hidden && el.style.display !== 'none';
   ok('без ошибок', !events.some(e => e.startsWith('ERR')), events.filter(e => e.startsWith('ERR'))[0]);
 
   console.log('\n[13] Регрессия навигации и Copilot');
-  const NAV = ['Markets', 'Research', 'My Money', 'Learn', 'Community', 'Practice'];
+  /* Эталон снимается с первой страницы прогона: смысл проверки — «оболочка
+     одинакова везде», а не «в меню всегда эти шесть слов». Слова теперь
+     зависят от режима, и это намеренно. */
+  let NAV = null;
   for (const p of ['/charts', '/symbols/BTCUSD']) {
     store.clear(); session.clear();
     const page = await open(p);
     const nav = [...page.d.querySelectorAll('.portal-nav .menu a:not(.nav-panel a)')].map(a => a.textContent.trim());
-    ok(p + ' — 6 пунктов', JSON.stringify(nav) === JSON.stringify(NAV), nav.join(','));
+    /* Верхнее меню теперь зависит от режима, поэтому проверяется не длина, а
+       то, ради чего эта проверка существовала: оболочка одинакова на всех
+       страницах. Эталон берётся с первой страницы прогона. */
+    if (!NAV) NAV = nav;
+    ok(p + ' — та же навигация, что и везде', JSON.stringify(nav) === JSON.stringify(NAV), nav.join(','));
     ok(p + ' — виджет Copilot', Boolean(page.d.querySelector('.cp-fab')));
     ok(p + ' — дисклеймер', /not investment advice/i.test(page.d.body.textContent));
   }

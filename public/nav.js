@@ -40,7 +40,7 @@
      to call a mode something the rest of the product does not. */
   const MODES = (window.Modes ? window.Modes.LIST.map(id => {
     const p = window.Modes.policy(id);
-    return { id, label: p.label, hint: p.hint };
+    return { id, label: p.label, shortLabel: p.shortLabel || p.label, hint: p.hint };
   }) : [
     { id: 'simple',   label: 'Simple',   hint: 'fewer panels, terms explained, one main action' },
     { id: 'standard', label: 'Standard', hint: 'full asset hub, screeners, fundamentals, saved layouts' },
@@ -153,9 +153,18 @@
        implementation states; a visitor reading a menu is choosing a task, and
        internal maturity competes with that. The full status map lives in
        Showcase and on the site map. */
-    const { rows, more } = NAV
+    let { rows, more } = NAV
       ? NAV.menu(section.id, mode)
       : IA.menuSplit(section, mode, 6);
+
+    /* §GAP-04 — Standard and Professional had byte-identical panels in five of
+       six sections, because the rows were whatever the source array listed
+       first under a fixed cap. A mode with a declared priority gets its own
+       leading rows; a mode without one keeps the source order. */
+    if (NAV && NAV.prioritise) {
+      rows = NAV.prioritise(section.id, mode, rows);
+      more = NAV.prioritise(section.id, mode, more);
+    }
 
     const row = i => `<a href="${esc(i.url)}" data-ia="${esc(i.id || i.label)}">
           <span>${esc(i.label)}</span>
@@ -176,18 +185,133 @@
     });
   }
 
-  function repaintPanels() { panels.forEach(paintPanel); }
+  /* A mode change rebuilds the bar as well as the panels: the profiles decide
+     which sections lead, so repainting only the insides would leave a
+     Professional looking at a Simple top row. No reload — the visitor keeps
+     their scroll position and whatever they were typing. */
+  function repaintPanels() {
+    const focused = document.activeElement;
+    const focusedLabel = focused && focused.closest && focused.closest('.portal-nav .menu')
+      ? focused.textContent.trim() : null;
+
+    rebuildNav();
+
+    if (focusedLabel) {
+      const again = [...document.querySelectorAll('.portal-nav .menu a')]
+        .find(a => a.textContent.trim() === focusedLabel);
+      if (again) { try { again.focus(); } catch {} }
+    }
+  }
+
+  /* Panels are rebuilt from scratch because the set of section anchors itself
+     changes with the mode. `panels` is the registry of what currently exists. */
+  function rebuildNav() {
+    panels.length = 0;
+    buildPanels();
+  }
+
+  /* --------------------------------------------------- top-level menu
+
+     §11/GAP-03. The static anchors in each page are the Standard order and
+     stay exactly that: they are the no-JS fallback and the thing a returning
+     visitor sees before a single script runs. What changes at runtime is
+     which of them lead — and, in Professional, that Screeners and Charts join
+     them as direct destinations rather than rows inside a panel.
+
+     Nothing is removed. Everything displaced lands in `More`, which is the
+     only honest way to keep the promise the switcher makes. */
+
+  function buildTopMenu() {
+    const menu = document.querySelector('.portal-nav .menu');
+    const NAV = window.Navigation;
+    if (!menu || !NAV || !NAV.topNav) return null;
+
+    const mode = P()?.mode?.() || 'simple';
+    const nav = NAV.topNav(mode);
+
+    /* Anchors are rebuilt, not reused. Reusing them kept the previous build's
+       click listener attached: after one mode switch a door opened and closed
+       on the same press, because two handlers were toggling it. Focus is
+       restored by label afterwards, which is what reuse was for. */
+    const active = location.pathname;
+    menu.innerHTML = '';
+
+    for (const entry of nav.lead) {
+      const a = document.createElement('a');
+      a.textContent = entry.label;
+      a.href = entry.url;
+      a.className = entry.type === 'route' ? 'nav-direct' : '';
+      /* A direct route gets no panel and no caret: pretending a single
+         destination has a submenu is how a menu stops being a map. */
+      a.dataset.navType = entry.type;
+      a.dataset.navId = entry.id;
+      if (active === entry.url || (entry.url !== '/' && active.startsWith(entry.url))) {
+        a.classList.add('active');
+      }
+      menu.appendChild(a);
+    }
+
+    if (nav.more.length) {
+      const wrap = document.createElement('span');
+      wrap.className = 'nav-door nav-more';
+      const link = document.createElement('a');
+      link.href = '/sitemap';
+      link.textContent = 'More';
+      link.dataset.navType = 'more';
+      link.setAttribute('aria-expanded', 'false');
+      link.setAttribute('aria-haspopup', 'true');
+      wrap.appendChild(link);
+
+      const panel = h('<div class="nav-panel" role="group" aria-label="More"></div>');
+      /* Same shape as a section row — `data-ia` and a label span — so anything
+         that enumerates the menu sees these as ordinary destinations rather
+         than as a special case it has to know about. */
+      panel.innerHTML = nav.more.map(e =>
+        `<a href="${esc(e.url)}" data-ia="${esc(e.id || e.label)}">
+           <span>${esc(e.label)}</span>
+           <span class="d">${esc(e.desc || '')}</span></a>`
+      ).join('');
+      wrap.appendChild(panel);
+      menu.appendChild(wrap);
+
+      /* §11.5 — More carries the active state when the open page is one of
+         the sections this mode displaced. Otherwise a Professional reading
+         /money sees no indication of where they are at all. */
+      if (nav.more.some(e => e.url && e.url !== '/' && active.startsWith(e.url))) {
+        link.classList.add('active');
+      }
+
+      link.addEventListener('click', e => {
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button === 1) return;
+        e.preventDefault(); e.stopPropagation();
+        const open = wrap.classList.contains('open');
+        closeAll();
+        if (!open) {
+          wrap.classList.add('open');
+          link.setAttribute('aria-expanded', 'true');
+          track('nav_menu_opened', { menu: 'more', mode });
+        }
+      });
+    }
+
+    return nav;
+  }
 
   function buildPanels() {
     const menu = document.querySelector('.portal-nav .menu');
     if (!menu) return;
+    buildTopMenu();
 
     /* §P0-A — the menus read the USER navigation registry now. `ia.js` stays
        the product inventory and keeps powering the palette, the site map and
        the showcase; it stopped being what an ordinary visitor reads. */
     const NAV = window.Navigation;
     for (const section of (NAV ? NAV.SECTIONS : IA.SECTIONS)) {
-      const link = [...menu.querySelectorAll('a')].find(a => a.textContent.trim() === section.label);
+      /* Top level only. Searching the whole menu also matched the section's
+         own row inside the More panel, which attached a second mega panel
+         inside a panel. */
+      const link = [...menu.querySelectorAll(':scope > a')]
+        .find(a => a.textContent.trim() === section.label && a.dataset.navType === 'section');
       if (!link) continue;
 
       /* Clicking the section name opens its menu — the label is the target, not
@@ -228,7 +352,13 @@
         if (a) track('nav_menu_item', { menu: section.id, item: a.dataset.ia });
       });
     }
-    document.addEventListener('click', closeAll);
+    /* One document listener for the lifetime of the page: `buildPanels` runs
+       again on every mode change, and adding a closer each time would leave a
+       growing stack of them behind. */
+    if (!buildPanels.wired) {
+      buildPanels.wired = true;
+      document.addEventListener('click', closeAll);
+    }
   }
 
   /* --------------------------------------------------------- mode switch */
@@ -424,7 +554,10 @@
       list.push({
         id: 'act-mode-' + m.id, label: `Switch to ${m.label} mode`, desc: m.hint,
         run: () => { P()?.setMode?.(m.id, 'palette'); document.dispatchEvent(new CustomEvent('ui-mode-changed', { detail: { to: m.id } })); repaintPanels(); },
-        keywords: 'mode switch ' + m.id
+        /* Somebody looking for Professional types "pro" — the short label and
+           the id are both search terms, or the rename would make the palette
+           worse than before it. */
+        keywords: ['mode', 'switch', m.id, m.label, m.shortLabel].join(' ').toLowerCase()
       });
     }
     return list.map(a => ({ ...a, status: 'live', level: 'simple', door: 'Action', group: 'Actions' }));

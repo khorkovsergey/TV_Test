@@ -12,6 +12,8 @@
 <script src="/navigation.js"></script>
 <script src="/features.js"></script>
 <script src="/modes.js"></script>
+<script src="/mode-surfaces.js"></script>
+<script src="/mode-orchestrator.js"></script>
 <script src="/alerts.js"></script>
 <script src="/home.js"></script>
 <script src="/quotes.js"></script>
@@ -59,7 +61,21 @@
 
 <main class="tv-page" style="max-width:1180px">
 
-  <div class="routes" style="margin-top:8px">
+  <!-- §12.2 — Standard opens with what you were doing, not with a catalogue.
+       Built from state the page already reads; empty for a first visit, and
+       then it simply does not appear. -->
+  <div class="tv-card mt-16" id="continueStrip" data-module-id="continue" hidden>
+    <div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <p class="title" style="margin:0">Continue</p>
+      <span class="mono" style="font-size:10px;color:var(--tv-faint);letter-spacing:.08em">WHERE YOU LEFT OFF</span>
+    </div>
+    <div class="row mt-16" style="gap:8px;flex-wrap:wrap" id="continueItems"></div>
+  </div>
+
+  <div class="mono" id="homeGroupLabel" hidden
+       style="margin-top:22px;font-size:10px;letter-spacing:.08em;color:var(--tv-faint)"></div>
+
+  <div class="routes" data-module-id="tasks" style="margin-top:8px">
     <!-- §9.1 — three primary tasks, and money first. The old first screen
          offered seven equal routes plus a Pro escape hatch; a person who has
          never invested could not tell which one was for them. -->
@@ -76,16 +92,16 @@
     <a class="route bg-card bg-dashboard" href="/charts" data-route="skip_portal"><div class="ic" style="color:#9db4ff">PRO?</div><h3>Skip the portal</h3><p>The full professional workspace is one click away — and clearly separated from browsing.</p><div class="go" style="color:#9db4ff">Open Supercharts ↗</div></a>
   </div>
 
-  <!-- Folded, not removed: Simple starts with four tasks and this opens the
-       rest. Switching to Standard or Pro opens them permanently. -->
+  <!-- Folded, never removed. The count is computed, so the label cannot drift
+       from the array the way the old hardcoded "4" did. -->
   <button type="button" class="btn btn-quiet mt-16" id="moreRoutes" hidden style="padding:9px 16px">
-    Show <span id="moreRoutesCount">4</span> more tasks
+    <span id="moreRoutesLabel">Show more tasks</span> <span id="moreRoutesCount">0</span>
   </button>
 
   <!-- §7.2 — Pro opens with a compact dashboard strip. Before this the home
        page was byte-identical in Standard and Pro, which is the anti-pattern
        §13 names: a mode with no distinct purpose. -->
-  <div class="tv-card mt-24" id="proStrip" hidden>
+  <div class="tv-card mt-24" id="proStrip" data-module-id="desk" hidden>
     <div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
       <p class="title" style="margin:0">Your desk</p>
       <span class="mono" style="font-size:10px;color:#B48CFF;letter-spacing:.08em">PRO DEFAULT</span>
@@ -542,32 +558,126 @@ async function loadBrief() {
 /* §7.1 — Simple shows four routes and one main call to action; the rest fold
    into "Advanced". §7.2 and §7.3 open them up. Nothing is blocked: the folded
    block is one click away, and every route is in Ctrl K and the site map. */
-const SIMPLE_ROUTES = ['manage_money', 'understand_market', 'research_asset'];
+/* §12 — three real Home compositions, not one grid with things hidden.
+
+   Before this the page had nine equal task cards, hid six of them in Simple
+   with `style.display`, and gave Professional the same nine plus one strip.
+   That is the anti-pattern the whole mode system exists to fix: Professional
+   was Standard with a decoration.
+
+   Now each mode has its own objective, read from the surface matrix:
+
+     Simple        pick the first useful thing        four guided tasks
+     Standard      continue yesterday's work           Continue / Today / Explore
+     Professional  open a tool, or resume the desk     desk leads, tasks fold
+
+   All nine routes stay reachable in every mode — what changes is which lead. */
+
+const SIMPLE_ROUTES = ['manage_money', 'understand_market', 'research_asset', 'learn'];
+const STANDARD_EXPLORE = ['manage_money', 'understand_market', 'research_asset',
+                          'track_instruments', 'learn', 'skip_portal'];
+
+const HOME_LABEL = {
+  simple: '',
+  standard: 'EXPLORE',
+  pro: 'EXPLORE THE PLATFORM'
+};
+
+/* The Continue strip is built from work the visitor has actually done. Nothing
+   is invented: an empty state means the block does not appear at all. */
+function paintContinue() {
+  const items = [];
+  const ls = k => { try { return localStorage.getItem(k); } catch { return null; } };
+  const json = k => { try { return JSON.parse(ls(k) || 'null'); } catch { return null; } };
+
+  const symbol = ls('active_symbol');
+  if (symbol) items.push(['Back to ' + symbol, '/symbols/' + encodeURIComponent(symbol)]);
+
+  const research = json('saved_chart_research');
+  if (Array.isArray(research) && research.length) {
+    items.push([research.length + ' saved research', '/money#saved']);
+  }
+  const screens = json('saved_screens');
+  if (Array.isArray(screens) && screens.length) {
+    items.push([screens.length + ' saved screener' + (screens.length > 1 ? 's' : ''), '/screeners#saved']);
+  }
+  const money = json('money_store_v1');
+  if (money && Array.isArray(money.transactions) && money.transactions.length) {
+    items.push([money.transactions.length + ' transactions', '/money']);
+  }
+  const done = json('academy_done');
+  if (Array.isArray(done) && done.length) {
+    items.push(['Academy: ' + done.length + ' of 6', '/learn/academy']);
+  }
+
+  const box = $('continueItems');
+  if (box) {
+    box.innerHTML = items.map(([label, url]) =>
+      `<a class="preset" href="${url}">${label}</a>`).join('');
+  }
+  return items.length;
+}
 
 function applyMode() {
   const mode = P.mode();
   const routes = [...document.querySelectorAll('.routes [data-route]')];
+  const S = window.ModeSurfaces;
+  const comp = S ? S.get('home', mode) : null;
+
+  /* Which routes lead, by mode. Everything else folds — it is never removed,
+     and the count on the button is computed rather than written down. */
+  const lead =
+    mode === 'simple' ? SIMPLE_ROUTES :
+    mode === 'standard' ? STANDARD_EXPLORE :
+    [];                                     /* Professional leads with the desk */
 
   routes.forEach(r => {
-    const keep = mode !== 'simple' || SIMPLE_ROUTES.includes(r.dataset.route);
+    const keep = lead.length === 0 ? false : lead.includes(r.dataset.route);
     r.style.display = keep ? '' : 'none';
+    r.hidden = !keep;
   });
 
-  const hidden = routes.filter(r => r.style.display === 'none');
-  $('moreRoutes').hidden = hidden.length === 0;
+  const hidden = routes.filter(r => r.hidden);
+  const more = $('moreRoutes');
+  more.hidden = hidden.length === 0;
+  more.style.display = hidden.length === 0 ? 'none' : '';
   $('moreRoutesCount').textContent = hidden.length;
+  $('moreRoutesLabel').textContent =
+    mode === 'pro' ? 'Explore the platform' : 'Show more tasks';
 
-  /* In Simple the secondary button steps aside so there is one obvious action;
-     in Pro the brief gets the extra columns instead of the explanations. */
+  const label = $('homeGroupLabel');
+  label.textContent = HOME_LABEL[mode] || '';
+  label.hidden = !HOME_LABEL[mode] || hidden.length === routes.length;
+  label.style.display = label.hidden ? 'none' : '';
+
+  /* Continue: Standard and Professional only, and only when there is
+     something to continue. Simple opens with the task, not with history. */
+  const cont = $('continueStrip');
+  const count = paintContinue();
+  const wantContinue = mode !== 'simple' && count > 0;
+  cont.hidden = !wantContinue;
+  cont.style.display = wantContinue ? '' : 'none';
+
   $('guestCta').style.display = mode === 'simple' ? 'none' : '';
-  $('modeChip').textContent = mode.toUpperCase() + ' MODE · ON';
+  $('modeChip').textContent =
+    (window.Modes ? window.Modes.policy(mode).label : mode).toUpperCase() + ' MODE · ON';
+  if (comp) $('modeChip').title = comp.objective;
 
-  /* The professional desk: a Pro default, and the reason Pro is no longer a
-     renamed Standard on this page. */
+  /* The professional desk. In Pro it LEADS: the strip is moved above the task
+     grid rather than appended under it, which is the difference between a
+     composition and a decoration. */
   const strip = $('proStrip');
   if (strip) {
-    const pro = (window.Modes ? window.Modes.policy(mode).showAdvancedByDefault : mode === 'pro');
+    const pro = mode === 'pro';
     strip.hidden = !pro;
+    strip.style.display = pro ? '' : 'none';
+    const main = document.querySelector('main.tv-page');
+    const anchor = $('continueStrip');
+    if (pro && main && strip.previousElementSibling !== null && anchor) {
+      main.insertBefore(strip, anchor);
+    } else if (!pro && main && $('moreRoutes') && strip.parentElement === main) {
+      main.insertBefore(strip, $('moreRoutes').nextSibling);
+    }
     if (pro && !strip.dataset.painted) {
       strip.dataset.painted = '1';
       const watch = (P.watchlist() || []).length;
@@ -579,12 +689,22 @@ function applyMode() {
       ].map(([k, v]) => `<div class="st"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
     }
   }
+
+  document.body.dataset.homeProfile = window.Modes
+    ? window.Modes.policy(mode).homeProfile : mode;
+  if (window.ModeOrchestrator) window.ModeOrchestrator.apply('home', document);
 }
 
-$('moreRoutes')?.addEventListener('click', () => {
-  document.querySelectorAll('.routes [data-route]').forEach(r => { r.style.display = ''; });
+/* Folding is never a wall: one press opens everything this mode did not lead
+   with, for this visit, without touching the stored preference. */
+$('moreRoutes').addEventListener('click', () => {
+  const routes = [...document.querySelectorAll('.routes [data-route]')];
+  routes.forEach(r => { r.hidden = false; r.style.display = ''; });
   $('moreRoutes').hidden = true;
-  P.track('advanced_routes_revealed', { mode: P.mode() });
+  $('moreRoutes').style.display = 'none';
+  const label = $('homeGroupLabel');
+  label.hidden = false; label.style.display = '';
+  P.track('home_more_routes_opened', { mode: P.mode(), opened: routes.length });
 });
 
 document.addEventListener('ui-mode-changed', applyMode);

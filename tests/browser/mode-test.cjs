@@ -139,15 +139,31 @@ async function switchTo(p, mode) {
   const simpleNav = await open('/overview', { store: modeStore('simple'), wait: 2200 });
   // седьмая дверь — «My space» за аватаром, она не раздел
   const panels = [...simpleNav.d.querySelectorAll('.menu .nav-door > .nav-panel')];
-  ok('шесть секционных панелей в Simple', panels.length === 6, String(panels.length));
+  /* Начиная с mode-first v2 верхний уровень зависит от режима: Simple ведёт
+     пятью разделами, шестая дверь — More, куда уходит вытесненное. */
+  ok('пять секционных панелей и дверь More в Simple',
+     panels.length === 6 && simpleNav.d.querySelector('.nav-more'), String(panels.length));
   ok('в Simple есть дисклоужер More tools', panels.some(p => p.querySelector('.more-tools')));
   const simpleLinks = new Set([...simpleNav.d.querySelectorAll('.nav-panel a[data-ia]')].map(a => a.dataset.ia));
   const proNav = await open('/overview', { store: modeStore('pro'), wait: 2200 });
   const proLinks = new Set([...proNav.d.querySelectorAll('.nav-panel a[data-ia]')].map(a => a.dataset.ia));
-  ok('Simple видит столько же пунктов, сколько Pro', simpleLinks.size === proLinks.size,
-     `simple=${simpleLinks.size} pro=${proLinks.size}`);
-  const missing = [...proLinks].filter(x => !simpleLinks.has(x));
-  ok('ни один пункт не доступен только в Pro', missing.length === 0, missing.join(','));
+  /* Прежняя проверка требовала одинакового набора ссылок в меню всех режимов.
+     Это и есть то, что релиз меняет: Professional ведёт Screeners и Charts, а
+     My Money уходит под More вместе со своей панелью. Инвариант перенесён туда,
+     где он остаётся правдой, — в реестр: ни одна запись раздела не теряется ни
+     в одном режиме, и каждый раздел достижим. */
+  const N = simpleNav.w.Navigation;
+  ok('ни одна запись раздела не потеряна ни в одном режиме',
+     N.SECTIONS.every(sec => M.LIST.every(m => {
+       const r = N.menu(sec.id, m);
+       const got = new Set(r.rows.concat(r.more).map(x => x.label));
+       return sec.primary.concat(sec.more).every(x => got.has(x.label));
+     })));
+  ok('каждый раздел достижим в каждом режиме',
+     M.LIST.every(m => N.everySectionReachable(m)));
+  ok('вытесненное лежит под More, а не пропадает',
+     [...proNav.d.querySelectorAll('.nav-more .nav-panel a')].map(a => a.textContent).join()
+       .includes('My Money'));
 
   console.log('\n[Стратегические фичи] Видны во всех режимах (§2.3)');
   /* §3.2 — раздел называется My Money, а пункт меню — «This month»:
@@ -155,7 +171,15 @@ async function switchTo(p, mode) {
   const MUST = ['This month', 'Expert Marketplace', 'Community Rewards', 'Guided Academy', 'Screener'];
   for (const mode of M.LIST) {
     const p = mode === 'simple' ? simpleNav : mode === 'pro' ? proNav : await open('/overview', { store: modeStore('standard'), wait: 2200 });
-    const labels = [...p.d.querySelectorAll('.nav-panel a[data-ia] span')].map(s => s.textContent.trim());
+    /* Раздел, вытесненный режимом под More, не рендерит свою панель — поэтому
+       наличие его пунктов проверяется там, где оно остаётся правдой: в реестре
+       навигации. Утверждение то же самое — «режим не прячет стратегическое», —
+       но проверяется не через то, какая панель сейчас открыта. */
+    const NAVREG = p.w.Navigation;
+    const labels = NAVREG.SECTIONS.flatMap(sec => {
+      const r = NAVREG.menu(sec.id, mode);
+      return r.rows.concat(r.more).map(x => x.label);
+    }).concat(NAVREG.topNav(mode).lead.concat(NAVREG.topNav(mode).more).map(e => e.label));
     const hay = labels.join(' | ');
     const gone = MUST.filter(x => !new RegExp(x, 'i').test(hay));
     ok(`${mode}: ${MUST.length} стратегических пунктов на месте`, gone.length === 0, gone.join(','));
@@ -411,8 +435,17 @@ async function switchTo(p, mode) {
   console.log('\n[Регресс] Прежние гарантии');
   for (const mode of M.LIST) {
     const p = await open('/overview', { store: modeStore(mode), wait: 2200 });
-    ok(`${mode}: шесть разделов в шапке`,
-       p.d.querySelectorAll('.portal-nav .menu > .nav-door > a').length === 6);
+    /* Число дверей теперь зависит от режима — это и есть mode-first v2.
+       Гарантия, которая осталась: Standard равен вчерашней базовой линии, и
+       из любого режима достижим каждый раздел. */
+    ok(`${mode}: верхнее меню непусто и содержит дверь More`,
+       p.d.querySelectorAll('.portal-nav .menu > a, .portal-nav .menu > .nav-door > a').length >= 5
+       && Boolean(p.d.querySelector('.nav-more')));
+    if (mode === 'standard') {
+      ok('standard: прежние шесть разделов на первом уровне',
+         p.w.Navigation.topNav('standard').lead.map(e => e.label).join(' · ')
+           === 'Markets · Research · My Money · Learn · Community · Practice');
+    }
     ok(`${mode}: без ошибок исполнения`, p.events.length === 0, p.events.join(' | '));
   }
   const classic = await (await fetch(B + '/classic')).text();

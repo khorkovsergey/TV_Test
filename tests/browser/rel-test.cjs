@@ -88,9 +88,20 @@ const PAGES = ['/', '/overview', '/research', '/money', '/trade', '/learn', '/co
 
      hub.w.Navigation.SECTIONS.map(s => s.label).join(','));
 
-  ok('в навигации ровно шесть пунктов', JSON.stringify(navOf(hub.d)) === JSON.stringify(SECTIONS), navOf(hub.d).join(','));
+  /* Верхнее меню больше не одинаково во всех режимах — это и есть суть
+     mode-first v2. Проверяем то, что осталось обещанием: Standard равен
+     вчерашней базовой линии, а из любого режима достижим каждый раздел. */
+  ok('Standard — прежние шесть разделов',
+     JSON.stringify(hub.w.Navigation.topNav('standard').lead.map(e => e.label)) === JSON.stringify(SECTIONS),
+     hub.w.Navigation.topNav('standard').lead.map(e => e.label).join(','));
 
-  const banned = ['Products', 'More', 'Brokers', 'Screeners', 'Ideas', 'Pine', 'Wealth Hub', 'AI Private', 'Expert Marketplace'];
+  ok('из любого режима достижим каждый раздел',
+     ['simple', 'standard', 'pro'].every(m => hub.w.Navigation.everySectionReachable(m)));
+
+  /* `More` и `Screeners` перестали быть запрещёнными: первое — честная дверь
+     для вытесненного, второе — прямой маршрут, который Professional получает
+     на первом уровне намеренно. Остальное по-прежнему не место в меню. */
+  const banned = ['Products', 'Brokers', 'Ideas', 'Pine', 'Wealth Hub', 'AI Private', 'Expert Marketplace'];
 
   ok('нет запрещённых верхнеуровневых пунктов',
 
@@ -178,9 +189,12 @@ const PAGES = ['/', '/overview', '/research', '/money', '/trade', '/learn', '/co
 
   ok('переключатель в шапке', Boolean(sw) && sw.querySelectorAll('[data-mode]').length === 3);
 
-  ok('подписи Simple/Standard/Pro',
-
-     [...sw.querySelectorAll('[data-mode]')].map(b => b.textContent).join(',') === 'Simple,Standard,Pro');
+  /* §GAP-01 — человек читает Professional; идентификатор в хранилище
+     остаётся `pro`, и миграция это проверяет отдельно. */
+  ok('подписи Simple/Standard/Professional',
+     /Simple,Standard,(Pro|Professional)/.test(
+       [...sw.querySelectorAll('[data-mode]')].map(b => b.textContent).join(',')),
+     [...sw.querySelectorAll('[data-mode]')].map(b => b.textContent).join(','));
 
   click(home.w, sw.querySelector('[data-mode="standard"]'));
 
@@ -234,15 +248,22 @@ const PAGES = ['/', '/overview', '/research', '/money', '/trade', '/learn', '/co
 
      «See everything in X» описывало инвентарь, а не задачу. */
 
-  ok('в каждой панели есть вход в раздел',
-
-     [...home.d.querySelectorAll('.portal-nav .menu .nav-panel')].every(p => /Open .+ →/.test(p.textContent)));
+  /* Панель `More` — не раздел, у неё нет своей страницы, поэтому входа
+     «Open X →» у неё быть и не может. */
+  ok('в каждой панели раздела есть вход в раздел',
+     [...home.d.querySelectorAll('.portal-nav .menu .nav-door:not(.nav-more) .nav-panel')]
+       .every(p => /Open .+ →/.test(p.textContent)));
 
 
 
   /* Меню открывается нажатием на название раздела, а не на микро-стрелку. */
 
-  const doorLink = home.d.querySelector('.nav-door > a');
+  /* Именно Markets: в Simple первой дверью идёт My Money, и проверять
+     «название осталось чистым» на случайной первой двери — значит проверять
+     порядок, а не название. */
+  const doorLink = [...home.d.querySelectorAll('.nav-door > a')]
+    .find(a => a.textContent.trim() === 'Markets')
+    || home.d.querySelector('.nav-door > a');
 
   ok('название раздела — цель для клика', doorLink.getAttribute('aria-haspopup') === 'true');
 
@@ -440,7 +461,9 @@ const PAGES = ['/', '/overview', '/research', '/money', '/trade', '/learn', '/co
 
   await probe('yield', 'yield');
 
-  await probe('pro mode', 'Pro mode');
+  /* Название стало Professional; человек по-прежнему набирает «pro», поэтому
+     короткое имя и идентификатор остались поисковыми словами. */
+  await probe('pro mode', 'Professional mode');
 
   await probe('xauusd', 'XAUUSD');
 

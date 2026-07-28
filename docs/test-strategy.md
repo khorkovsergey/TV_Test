@@ -16,11 +16,12 @@ tests/
   check-copy.cjs       banned spellings and unverifiable claims
   browser/
     rel-test.cjs         160  architecture, six sections, routes, navigation
-    mode-test.cjs        195  Simple/Standard/Pro: policy, migration, state, differences
+    mode-test.cjs        197  Simple/Standard/Professional: policy, migration, state, differences
     fix-test.cjs         122  fixes from the earlier fix-prompts
     phase3-test.cjs      118  strategic features: registry, surfaces, honesty
     money-test.cjs        95  My Money: arithmetic, ladder, the fitness-trainer scenario
-    chart-test.cjs        83  candles, selection, chart context, sources, chart actions
+    chart-test.cjs        90  candles, selection, chart context, sources, chart actions
+    modes-v2-test.cjs     68  three compositions: policy, navigation, home, orchestrator
     home-test.cjs        101  task home, A/B control, funnel
     v2-test.cjs           87
     data-test.cjs         80  live market layer, degradation, honest failure

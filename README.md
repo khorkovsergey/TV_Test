@@ -13,8 +13,8 @@ every screen says so.
 
 | | |
 |---|---|
-| Architecture | Six sections — Overview · Research · Capital · Trade · Learn · Community. 98 destinations, none of them lost in any mode. |
-| Experience presets | Simple / Standard / Pro change density, explanation depth, default panels and how many actions lead. Never access, never the plan. |
+| Architecture | Six sections — Markets · Research · My Money · Learn · Community · Practice. 98 destinations in the inventory, none of them lost in any mode. |
+| Experience presets | Simple / Standard / **Professional** are three compositions of one product: which sections lead the menu, what the home page opens with, module order, density, explanation depth, form layout and the Copilot's register. Never access, never the plan — the internal id stays `pro`. |
 | Market layer | 49 instruments, delayed quotes from a public provider, 60-second cache, honest degradation — the last good snapshot survives a provider outage. Historical OHLCV per symbol/interval/range behind its own cache. |
 | AI | Research Copilot on every page; on `/charts` it sees the candle you selected and searches around that session rather than today. Brief, matching and summary in the Expert Marketplace flow. Claude Opus 5. |
 | Strategic features | Nine bets, labelled by maturity rather than by novelty — see [`docs/feature-maturity.md`](docs/feature-maturity.md). |
@@ -119,6 +119,13 @@ Engineering decisions, not decoration:
 | [`docs/market-data-resilience.md`](docs/market-data-resilience.md) | The cache-overwrite bug and what replaced it |
 | [`docs/test-strategy.md`](docs/test-strategy.md) | Why browser suites against a real server |
 | [`docs/mode-architecture.md`](docs/mode-architecture.md) | One policy, three presets, and the visibility vocabulary |
+| [`docs/mode-first-v2-product-model.md`](docs/mode-first-v2-product-model.md) | Why a mode changes hierarchy and never access |
+| [`docs/mode-first-v2-current-source-audit.md`](docs/mode-first-v2-current-source-audit.md) | What the modes measurably were before v2 |
+| [`docs/mode-first-v2-navigation-matrix.md`](docs/mode-first-v2-navigation-matrix.md) | The three top-level profiles and the panel priority |
+| [`docs/mode-first-v2-surface-matrix.md`](docs/mode-first-v2-surface-matrix.md) | Sixteen surfaces, three compositions each |
+| [`docs/mode-first-v2-state-preservation.md`](docs/mode-first-v2-state-preservation.md) | Why a mode switch must not eat a half-typed sentence |
+| [`docs/mode-first-v2-implementation-summary.md`](docs/mode-first-v2-implementation-summary.md) | The mode-first v2 P0 release |
+| [`docs/mode-first-v2-remaining-backlog.md`](docs/mode-first-v2-remaining-backlog.md) | What P0 deliberately did not do |
 | [`docs/mode-page-behaviour-matrix.md`](docs/mode-page-behaviour-matrix.md) | Per-page behaviour in all three modes, before and after |
 | [`docs/mode-logic-current-state-audit.md`](docs/mode-logic-current-state-audit.md) | What the modes actually did before the refactor |
 | [`docs/mode-migration.md`](docs/mode-migration.md) | How stored preferences are repaired |

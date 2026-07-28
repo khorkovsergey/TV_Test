@@ -137,7 +137,7 @@ window.Features = (function () {
     /* Improvements to journeys that already existed — badged so the demo can
        point at them, not so they shout at an end user forever. */
     { id: 'CORE-01', name: 'Task-based Home', shortName: 'Task Home', maturity: 'live', releaseMarker: 'improved', commercialTier: 'included', priority: 'core', icon: '▤',
-      problem: 'The first screen sold a slogan and a subscription.', solution: 'Seven tasks and a market brief instead of a product showcase.',
+      problem: 'The first screen sold a slogan and a subscription.', solution: 'Three mode-specific home compositions instead of one product showcase: a guided task, your day, or a working desk.',
       audience: 'Every new visitor', route: '/', surfaces: ['whatsNew', 'showcase'], related: [], metric: 'Time to first meaningful action', depth: 5, searchTerms: 'home start page first screen tasks' },
     { id: 'CORE-02', name: 'Progressive Complexity', shortName: 'Simple / Standard / Pro', maturity: 'live', releaseMarker: 'improved', commercialTier: 'included', priority: 'core', icon: '▥',
       problem: 'Forty tools on the first visit and no way to grow into them.', solution: 'Three modes changing density, tabs, panels and explanations — never access.',

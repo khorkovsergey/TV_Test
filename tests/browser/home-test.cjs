@@ -85,9 +85,15 @@ const navText = d => [...d.querySelectorAll('.portal-nav .menu a:not(.nav-panel 
   ok('нет ошибок исполнения', !events.some(e => e.startsWith('ERR')), events.filter(e => e.startsWith('ERR'))[0]);
   ok('заголовок — вопрос, а не слоган', /What do you want to do today/.test(d.querySelector('h1').textContent));
   ok('старого промо-героя нет', !/Look first/.test(d.body.textContent));
-  ok('навигация из 6 пунктов',
-     JSON.stringify(navText(d)) === JSON.stringify(['Markets', 'Research', 'My Money', 'Learn', 'Community', 'Practice']),
-     navText(d).join(','));
+  /* Верхнее меню зависит от режима начиная с mode-first v2. Обещание, которое
+     осталось: Standard — вчерашняя базовая линия, и каждый раздел достижим
+     из любого режима. */
+  ok('Standard — прежние шесть разделов',
+     JSON.stringify(w.Navigation.topNav('standard').lead.map(e => e.label))
+       === JSON.stringify(['Markets', 'Research', 'My Money', 'Learn', 'Community', 'Practice']),
+     w.Navigation.topNav('standard').lead.map(e => e.label).join(','));
+  ok('каждый раздел достижим в любом режиме',
+     ['simple', 'standard', 'pro'].every(m => w.Navigation.everySectionReachable(m)));
   ok('в шапке Copilot, режим, профиль', /Copilot/.test(d.querySelector('.portal-nav .right').textContent));
   ok('нет pricing-first кнопок «Get started»', !/Get started/i.test(d.body.textContent));
   ok('нет кнопки See plans', !/See plans/i.test(d.body.textContent));
@@ -164,11 +170,12 @@ const navText = d => [...d.querySelectorAll('.portal-nav .menu a:not(.nav-panel 
      /PORTAL HOME/.test(c.d.querySelector('.cp-ctx').textContent), c.d.querySelector('.cp-ctx').textContent);
 
   console.log('\n[7] Навигация одинакова на всех страницах');
-  const NAV = ['Markets', 'Research', 'My Money', 'Learn', 'Community', 'Practice'];
+  let NAV = null;
   for (const p of ['/', '/charts', '/learn/academy', '/learn/academy/lesson', '/capital/experts', '/staff', '/metrics']) {
     store.clear(); session.clear();
     const page = await open(p, 'home_variant=task; tv_seen=1');
-    ok(p + ' — 6 пунктов', JSON.stringify(navText(page.d)) === JSON.stringify(NAV), navText(page.d).join(','));
+    if (!NAV) NAV = navText(page.d);
+    ok(p + ' — та же навигация, что и везде', JSON.stringify(navText(page.d)) === JSON.stringify(NAV), navText(page.d).join(','));
     ok(p + ' — Copilot в шапке', /Copilot/.test(page.d.querySelector('.portal-nav .right').textContent));
     ok(p + ' — без ошибок', !page.events.some(e => e.startsWith('ERR')),
        page.events.filter(e => e.startsWith('ERR'))[0]);

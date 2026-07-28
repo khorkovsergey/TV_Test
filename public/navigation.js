@@ -162,6 +162,28 @@ window.Navigation = (function () {
 
   const ORDER = { simple: 0, standard: 1, pro: 2 };
 
+  /* §11.4 — which entries lead a section's panel in a given mode. Declared
+     before `menu()` because `menu()` reads it; a section without an entry
+     keeps the source order it always had. */
+  const PANEL_PRIORITY = {
+    research: {
+      pro: ['Screener', 'Chart', 'Options', 'Strategies & testing', 'Pine', 'Fundamentals'],
+      standard: ['Find an asset', 'Screener', 'Chart', 'Fundamentals', 'Compare', 'Saved research']
+    },
+    markets: {
+      pro: ['All market data', 'Market map', 'Stocks', 'Crypto', 'Currencies', 'Rates & commodities']
+    },
+    money: {
+      pro: ['Net worth', 'Accounts', 'Investing', 'Scenarios', 'This month', 'Transactions']
+    },
+    learn: {
+      pro: ['Pine Script', 'Strategy testing', 'Chart skills', 'Expert-led tracks', 'Guided Academy', 'Start here']
+    },
+    practice: {
+      pro: ['Trading journal', 'Bar replay', 'Paper Trading', 'First practice scenario']
+    }
+  };
+
   /* What a section's menu opens with, and what sits under "More".
      Unlike the inventory split, nothing here is unbuilt — `more` is depth,
      not a list of things that do not exist. */
@@ -170,15 +192,123 @@ window.Navigation = (function () {
     if (!s) return { rows: [], more: [] };
     const max = ORDER[mode] ?? 0;
     const fits = i => (ORDER[i.level] ?? 0) <= max;
-    return {
-      section: s,
-      rows: s.primary.filter(fits),
-      more: s.primary.filter(i => !fits(i)).concat(s.more)
-    };
+
+    let rows = s.primary.filter(fits);
+    let more = s.primary.filter(i => !fits(i)).concat(s.more);
+
+    /* §GAP-04. Sorting inside the buckets was not enough: Pine, Options and
+       Strategies live in `more`, so a Professional never saw them lead the
+       Research panel no matter how the leading rows were ordered. A declared
+       priority therefore PROMOTES entries across the split — the named ones
+       lead, and whatever they displace moves down rather than away. */
+    const order = PANEL_PRIORITY[sectionId] && PANEL_PRIORITY[sectionId][mode];
+    if (order) {
+      const pool = rows.concat(more);
+      const byLabel = new Map(pool.map(i => [i.label, i]));
+      const lead = order.map(l => byLabel.get(l)).filter(Boolean);
+      const rest = pool.filter(i => !order.includes(i.label));
+      const cap = Math.max(rows.length, lead.length);
+      rows = lead.concat(rest).slice(0, cap);
+      more = lead.concat(rest).slice(cap);
+    }
+
+    return { section: s, rows, more };
   }
 
   const byId = id => SECTIONS.find(s => s.id === id) || null;
   const all = () => SECTIONS.flatMap(s => s.primary.concat(s.more).map(i => ({ ...i, section: s.id })));
 
-  return { SECTIONS, WORKSPACE, ORDER, menu, byId, all };
+  /* ------------------------------------------------- top-level profiles
+
+     §11/GAP-03. Until now the top bar was static HTML repeated in 25 pages
+     and identical in every mode, while `menu()` varied only the rows inside a
+     panel. The result was measurable: in five sections out of six the
+     Professional panel was byte-identical to Standard, and a professional
+     never got Screeners or Charts at the top level at all.
+
+     A profile decides what LEADS. Everything displaced goes under `More` —
+     which is why the promise is "every destination remains reachable" and not
+     "the menu is the same". Routes are referenced, never duplicated: a direct
+     item points at a path the route registry already owns. */
+
+  const R = (id, label, url, desc) => ({ type: 'route', id, label, url, desc });
+  const SEC = sectionId => ({ type: 'section', sectionId });
+
+  const MORE_EXTRAS = [
+    R('new', 'Product innovations', '/new', 'what is new in this prototype'),
+    R('workspace', 'My workspace', '/money#saved', 'watchlists, alerts, saved research'),
+    R('sitemap', 'Full site map', '/sitemap', 'every destination and whether it works here')
+  ];
+
+  const PROFILES = {
+    /* Money and Learn first: somebody new can act on both today, and neither
+       needs a market opinion to be useful. */
+    simple: {
+      lead: [SEC('money'), SEC('learn'), SEC('markets'), SEC('research'), SEC('practice')],
+      more: [SEC('community'), R('experts', 'Expert Marketplace', '/capital/experts', 'a human adviser, matched')]
+        .concat(MORE_EXTRAS)
+    },
+
+    /* The compatibility baseline. A returning visitor must find yesterday's
+       menu, in yesterday's order. This row is a promise, not a preference. */
+    standard: {
+      lead: [SEC('markets'), SEC('research'), SEC('money'), SEC('learn'), SEC('community'), SEC('practice')],
+      more: [R('experts', 'Expert Marketplace', '/capital/experts', 'a human adviser, matched')]
+        .concat(MORE_EXTRAS)
+    },
+
+    /* Tools, not topics. Screeners and Charts are destinations a professional
+       types towards; making them a submenu row costs a click every time. */
+    pro: {
+      lead: [
+        SEC('markets'),
+        R('screeners', 'Screeners', '/screeners', 'ask the market a question'),
+        R('charts', 'Charts', '/charts', 'the workspace'),
+        SEC('research'),
+        SEC('practice')
+      ],
+      more: [SEC('money'), SEC('learn'), SEC('community'),
+             R('experts', 'Expert Marketplace', '/capital/experts', 'a human adviser, matched')]
+        .concat(MORE_EXTRAS)
+    }
+  };
+
+  const profile = m => PROFILES[m] || PROFILES.standard;
+
+  /* Resolve a profile entry to something renderable without the caller having
+     to know the difference between a section and a direct route. */
+  function resolve(entry) {
+    if (!entry) return null;
+    if (entry.type === 'section') {
+      const s = byId(entry.sectionId);
+      return s ? { type: 'section', id: s.id, label: s.label, url: s.url, section: s } : null;
+    }
+    return entry;
+  }
+
+  const topNav = m => ({
+    lead: profile(m).lead.map(resolve).filter(Boolean),
+    more: profile(m).more.map(resolve).filter(Boolean)
+  });
+
+  /* The invariant the profiles must not break: nothing a mode displaces may
+     become unreachable. Checkable, and checked. */
+  function everySectionReachable(m) {
+    const nav = topNav(m);
+    const seen = new Set(nav.lead.concat(nav.more)
+      .filter(e => e.type === 'section').map(e => e.id));
+    return SECTIONS.every(s => seen.has(s.id));
+  }
+
+  function prioritise(sectionId, m, items) {
+    const order = PANEL_PRIORITY[sectionId] && PANEL_PRIORITY[sectionId][m];
+    if (!order) return items;
+    const rank = l => { const i = order.indexOf(l); return i === -1 ? order.length : i; };
+    return [...items].sort((a, b) => rank(a.label) - rank(b.label));
+  }
+
+  return {
+    SECTIONS, WORKSPACE, ORDER, menu, byId, all,
+    PROFILES, PANEL_PRIORITY, profile, resolve, topNav, everySectionReachable, prioritise
+  };
 })();

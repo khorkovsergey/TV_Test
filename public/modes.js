@@ -25,14 +25,22 @@ window.Modes = (function () {
 
   const POLICIES = {
     simple: {
-      id: 'simple', label: 'Simple',
-      description: 'Понятный старт',
+      id: 'simple', label: 'Simple', shortLabel: 'Simple',
+      description: 'Понятный путь и объяснения',
       tagline: 'essentials, with the terms explained',
       hint: 'fewer panels by default, plain language, one obvious next step',
       complexity: 1,
       density: 'comfortable',
       explanationDepth: 'guided',
+      /* §7 — the four profiles that turn a mode from a density setting into a
+         composition. Each names a policy the surfaces read; none of them is a
+         permission, and none changes a number. */
+      navigationProfile: 'guided',
+      homeProfile: 'guided-home',
+      formProfile: 'wizard',
+      copilotProfile: 'teacher',
       maxPrimaryActions: 3,
+      maxPrimaryTabs: 5,
       chartPreset: 'simple',
       defaultCommunityFeed: 'editors',
       showContextualEducation: true,
@@ -40,14 +48,19 @@ window.Modes = (function () {
       tableDensity: 'comfortable'
     },
     standard: {
-      id: 'standard', label: 'Standard',
-      description: 'Полный анализ',
+      id: 'standard', label: 'Standard', shortLabel: 'Standard',
+      description: 'Полноценная ежедневная платформа',
       tagline: 'the complete everyday product',
       hint: 'full asset hub, screeners, fundamentals, saved layouts',
       complexity: 2,
       density: 'balanced',
       explanationDepth: 'contextual',
+      navigationProfile: 'balanced',
+      homeProfile: 'daily-home',
+      formProfile: 'grouped',
+      copilotProfile: 'researcher',
       maxPrimaryActions: 5,
+      maxPrimaryTabs: 8,
       chartPreset: 'standard',
       defaultCommunityFeed: 'for-you',
       showContextualEducation: true,
@@ -55,14 +68,26 @@ window.Modes = (function () {
       tableDensity: 'standard'
     },
     pro: {
-      id: 'pro', label: 'Pro',
-      description: 'Профессиональное рабочее пространство',
-      tagline: 'maximum density and advanced tools',
+      /* §GAP-01 — the internal id stays `pro`: it is in stored preferences, in
+         every `data-min` attribute and in three migrations. What changes is the
+         word a person reads. `shortLabel` exists because a mobile switcher has
+         room for three words, not for "Professional". */
+      id: 'pro', label: 'Professional', shortLabel: 'Pro',
+      description: 'Скорость, плотность и продвинутые инструменты',
+      tagline: 'speed, density and the advanced tools',
       hint: 'compact layout, multi-chart, Pine, strategy tester, shortcuts',
       complexity: 3,
       density: 'compact',
       explanationDepth: 'minimal',
+      navigationProfile: 'professional',
+      homeProfile: 'professional-desk',
+      formProfile: 'dense',
+      copilotProfile: 'analyst',
       maxPrimaryActions: 8,
+      maxPrimaryTabs: 12,
+      /* Внутренний токен, а не подпись: он совпадает с идентификатором режима
+         и потребляется кодом. Переименовать его — churn без пользы; менять
+         надо то, что человек читает, а это `label`. */
       chartPreset: 'pro',
       defaultCommunityFeed: 'full',
       showContextualEducation: false,
@@ -188,11 +213,15 @@ window.Modes = (function () {
      copy in the UI cannot drift from the rule in the code.
   */
   const CHANGES = [
+    'which sections lead the top menu — everything else moves under "More"',
+    'what the home page opens with: a guided task, your day, or a working desk',
+    'the order modules appear in, and which one leads a page',
     'how much is shown by default — information density',
-    'which panels and columns open without being asked for',
+    'which panels, tabs and columns open without being asked for',
     'how much explanation comes with each number',
     'the chart preset: tools, indicators and side panels',
-    'table row height and the default column set',
+    'how a form is laid out: one step at a time, grouped, or dense',
+    'how the Copilot answers — teacher, researcher or analyst',
     'how many primary actions a page offers before "More"',
     'the default community feed'
   ];
@@ -203,7 +232,11 @@ window.Modes = (function () {
     'every saved thing: watchlists, alerts, portfolios, research, layouts',
     'your account and permissions',
     'the prices themselves — no number changes with the mode',
-    'the six sections and every route',
+    /* §10 — the old promise was "the six sections", and mode-specific top
+       navigation deliberately breaks it: Professional leads with Screeners and
+       Charts. What can still be promised is the part that actually matters —
+       nothing becomes unreachable. */
+    'every route and every destination — what moves is the order, never the access',
     'every strategic feature: Academy, Copilot, Wealth Hub, AI Private, Expert Marketplace, Rewards'
   ];
 
