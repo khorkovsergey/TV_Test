@@ -119,6 +119,21 @@ window.Features = (function () {
       depth: 2, searchTerms: 'rewards points referral gifts store loyalty earn creator programme'
     },
 
+    {
+      id: 'TUNE-10', name: 'Chart Research Copilot', shortName: 'Chart Copilot',
+      prominence: 'flagship', maturity: 'beta', releaseMarker: 'new', commercialTier: 'included',
+      priority: 'strategic', icon: '◫',
+      problem: 'A chart shows what the price did and never what happened. To find out, a person leaves the chart, opens a search engine and tries to remember which day they were looking at.',
+      solution: 'Select any candle or period and ask what happened. The Copilot sees the exact session, searches around that date rather than today, separates company, sector and macro factors, shows dated sources, and puts the events it found back on the chart.',
+      audience: 'Anyone who has looked at a chart and wondered why',
+      route: '/charts',
+      surfaces: ['chart', 'whatsNew', 'showcase', 'commandPalette', 'search', 'academy'],
+      related: ['NEW-02', 'NEW-01'],
+      metric: 'Candle selected → question asked → sourced answer → chart action',
+      depth: 4,
+      searchTerms: 'chart candle why did it move what happened that day news for this date select candle explain the drop ohlc volume spike'
+    },
+
     /* Improvements to journeys that already existed — badged so the demo can
        point at them, not so they shout at an end user forever. */
     { id: 'CORE-01', name: 'Task-based Home', shortName: 'Task Home', maturity: 'live', releaseMarker: 'improved', commercialTier: 'included', priority: 'core', icon: '▤',

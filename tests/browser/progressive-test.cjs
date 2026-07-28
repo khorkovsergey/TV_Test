@@ -38,65 +38,67 @@ const vis = el => el && !el.hidden && el.style.display !== 'none';
   ok('без ошибок исполнения', !events.some(e => e.startsWith('ERR')), events.filter(e => e.startsWith('ERR'))[0]);
   ok('режим по умолчанию beginner', w.Portal.mode() === 'simple', w.Portal.mode());
   ok('активна кнопка Beginner', d.querySelector('#modePill .on').dataset.mode === 'simple');
-  ok('открыто 3 инструмента из 9', d.querySelectorAll('.toolrail .t:not(.locked)').length === 3,
-     String(d.querySelectorAll('.toolrail .t:not(.locked)').length));
-  /* §CHART-002 — было «3 of 40 tools», а сорока инструментов здесь никогда
-     не было: три рисовалки и восемь кнопок тулбара. Считать декоративные
-     кнопки возможностями — та самая мелкая инфляция, из-за которой перестают
-     верить крупным заявлениям. */
-  ok('подпись рельса «3 of 11»', d.getElementById('toolCap').textContent === '3 of 11 controls',
+  ok('открыто 3 инструмента из 9', d.querySelectorAll('.cw-tool:not(.locked)').length === 3,
+     String(d.querySelectorAll('.cw-tool:not(.locked)').length));
+  /* Рельс считает то, что на нём действительно есть: девять рисовалок.
+     Прежняя подпись «3 of 11 controls» приплюсовывала к инструментам кнопки
+     тулбара — та же мелкая инфляция, против которой был §CHART-002. */
+  ok('подпись рельса «3 of 9»', d.getElementById('toolCap').textContent === '3 of 9',
      d.getElementById('toolCap').textContent);
-  ok('боковая панель скрыта', d.getElementById('sidePanel').hidden);
-  ok('пункты тулбара standard скрыты', [...d.querySelectorAll('[data-min="standard"]:not(.t)')].every(el => !vis(el)));
+  /* Панель больше НЕ прячется в Simple, и это осознанная смена гарантии: в
+     ней живёт Copilot, а весь смысл новой страницы — клик по свече открывает
+     ответ про этот день. Спрятать её в Simple значило бы отобрать у новичка
+     ровно то, ради чего страница переписана. */
+  ok('панель доступна и в Simple — в ней Copilot', !d.getElementById('sidePanel').hidden);
+  ok('пункты тулбара standard скрыты',
+     [...d.querySelectorAll('.cw-toolbar [data-min="standard"]')].every(el => !vis(el)));
   // Инструменты не прячутся, а тушатся: видно, что впереди есть куда расти.
   ok('закрытые инструменты видны, но притушены',
-     [...d.querySelectorAll('.toolrail .t.locked')].every(el => vis(el) && el.title));
+     [...d.querySelectorAll('.cw-tool.locked')].every(el => vis(el) && el.title));
   ok('слайдер плотности скрыт', !vis(d.querySelector('.density')));
-  ok('pro-оверлей прозрачен', d.getElementById('proOverlay').style.opacity === '0');
-  ok('модуль новостей диапазона скрыт', d.getElementById('rangeNews').hidden);
-  ok('подсказка beginner видна', vis(d.getElementById('hintbar')));
+  ok('интрадей закрыт в Simple', !vis(d.querySelector('[data-interval="1h"]')));
+  ok('подсказка «кликните свечу» видна', vis(d.getElementById('simpleHint')));
   ok('событие mode_switch source=default при первом назначении',
      w.Portal.events().some(e => e.event === 'mode_switch' && e.source === 'default'));
 
   console.log('\n[2] Standard включается без перезагрузки');
   click(w, d.querySelector('#modePill [data-mode="standard"]'));
   ok('режим standard', w.Portal.mode() === 'standard');
-  ok('открыто 6 инструментов', d.querySelectorAll('.toolrail .t:not(.locked)').length === 6,
-     String(d.querySelectorAll('.toolrail .t:not(.locked)').length));
-  ok('боковая панель показана', !d.getElementById('sidePanel').hidden);
-  ok('сетка получила колонку панели', d.getElementById('shell').classList.contains('with-panel'));
-  ok('Indicators/Alert/Replay видны', [...d.querySelectorAll('[data-min="standard"]')].every(vis));
-  ok('pro-пункты всё ещё скрыты', [...d.querySelectorAll('[data-min="pro"]:not(.t)')].every(el => !vis(el)));
-  ok('pro-инструменты остаются закрытыми', d.querySelectorAll('.toolrail .t.locked').length === 3);
-  ok('новости диапазона появились', !d.getElementById('rangeNews').hidden);
-  ok('подсказка beginner убрана', d.getElementById('hintbar').style.display === 'none');
+  ok('открыто 6 инструментов', d.querySelectorAll('.cw-tool:not(.locked)').length === 6,
+     String(d.querySelectorAll('.cw-tool:not(.locked)').length));
+  ok('Indicators/Alert/Replay видны',
+     [...d.querySelectorAll('.cw-toolbar [data-min="standard"]')].every(vis));
+  ok('часовые свечи открылись', vis(d.querySelector('[data-interval="1h"]')));
+  ok('pro-пункты всё ещё скрыты',
+     [...d.querySelectorAll('.cw-toolbar [data-min="pro"]')].every(el => !vis(el)));
+  ok('pro-инструменты остаются закрытыми', d.querySelectorAll('.cw-tool.locked').length === 3);
+  ok('подсказка Simple убрана', !vis(d.getElementById('simpleHint')));
   ok('событие mode_switch source=pill',
      w.Portal.events().some(e => e.event === 'mode_switch' && e.source === 'pill' && e.to === 'standard'));
 
   console.log('\n[3] «Full interface →» даёт pro мгновенно');
   click(w, d.getElementById('fullBtn'));
   ok('режим pro', w.Portal.mode() === 'pro');
-  ok('открыты все 9 инструментов', d.querySelectorAll('.toolrail .t:not(.locked)').length === 9);
-  ok('подпись «11 of 11»', d.getElementById('toolCap').textContent === '11 of 11 controls',
+  ok('открыты все 9 инструментов', d.querySelectorAll('.cw-tool:not(.locked)').length === 9);
+  ok('подпись «9 of 9»', d.getElementById('toolCap').textContent === '9 of 9',
      d.getElementById('toolCap').textContent);
-  ok('pro-пункты тулбара видны', [...d.querySelectorAll('.tb-item[data-min="pro"]')].every(vis));
-  ok('multi-pane показан', d.getElementById('proOverlay').style.opacity === '1');
+  ok('pro-пункты тулбара видны', [...d.querySelectorAll('.cw-toolbar [data-min="pro"]')].every(vis));
+  ok('15-минутки открылись', vis(d.querySelector('[data-interval="15m"]')));
   ok('источник события full_button',
      w.Portal.events().some(e => e.event === 'mode_switch' && e.source === 'full_button' && e.to === 'pro'));
 
   console.log('\n[4] Дорога назад ничем не заблокирована');
   click(w, d.querySelector('.mode-switch [data-mode="simple"]'));
   ok('вернулись в beginner', w.Portal.mode() === 'simple');
-  ok('инструментов снова 3', d.querySelectorAll('.toolrail .t:not(.locked)').length === 3);
-  ok('панель снова скрыта', d.getElementById('sidePanel').hidden);
-  ok('multi-pane снова скрыт', d.getElementById('proOverlay').style.opacity === '0');
+  ok('инструментов снова 3', d.querySelectorAll('.cw-tool:not(.locked)').length === 3);
+  ok('интрадей снова закрыт', !vis(d.querySelector('[data-interval="1h"]')));
 
   console.log('\n[5] Плотность');
   click(w, d.querySelector('#modePill [data-mode="standard"]'));
   const dens = d.getElementById('density');
   dens.value = '3';
   dens.dispatchEvent(new w.Event('input', { bubbles: true }));
-  ok('атрибут data-density на оболочке', d.getElementById('shell').dataset.density === '3');
+  ok('атрибут data-density на оболочке', d.getElementById('workspace').dataset.density === '3');
   ok('значение сохранено', w.Portal.density() === 3, String(w.Portal.density()));
   dens.dispatchEvent(new w.Event('change', { bubbles: true }));
   ok('событие density_changed', w.Portal.events().some(e => e.event === 'density_changed'));
@@ -119,7 +121,7 @@ const vis = el => el && !el.hidden && el.style.display !== 'none';
   console.log('\n[8] Режим переживает переход и виден Академии');
   ({ d, w, events } = await open('/charts'));
   ok('режим восстановлен из localStorage', w.Portal.mode() === 'standard', w.Portal.mode());
-  ok('плотность восстановлена', d.getElementById('shell').dataset.density === '3');
+  ok('плотность восстановлена', d.getElementById('workspace').dataset.density === '3');
   ({ d, w, events } = await open('/learn/academy'));
   ok('Академия и шапка видят один режим', w.Portal.mode() === 'standard', w.Academy.mode());
   ok('ui_mode хранится без кавычек', store.get('ui_mode') === 'standard', store.get('ui_mode'));
@@ -156,15 +158,23 @@ const vis = el => el && !el.hidden && el.style.display !== 'none';
   ok('research_journey остаётся массивом строк — Copilot читает его как есть',
      JSON.parse(store.get('research_journey')).every(x => typeof x === 'string'));
 
-  console.log('\n[10] Модуль «Chart → новости диапазона»');
-  ({ d, w, events } = await open('/charts'));
-  click(w, d.querySelector('#modePill [data-mode="standard"]'));
-  const rn = d.getElementById('rangeNews');
-  ok('модуль виден в standard', !rn.hidden);
-  ok('помечен как AI · SOURCED', /AI · SOURCED/.test(rn.textContent));
-  click(w, d.getElementById('explainMove'));
-  ok('клик даёт journey_step правила range_news',
+  /* Раньше правило «Chart → новости диапазона» висело на прибитом блоке с
+     датами 21–24 июля и двумя выдуманными новостями. Блок удалён; правило
+     осталось и теперь срабатывает на периоде, который выбрал сам человек. */
+  console.log('\n[10] Правило «Chart → новости выбранного периода»');
+  ({ d, w, events } = await open('/charts?symbol=NVDA'));
+  await new Promise(r => setTimeout(r, 1800));
+  const hitRects = [...d.querySelectorAll('.ch-hit')];
+  ok('свечи есть, есть что выбирать', hitRects.length > 20, String(hitRects.length));
+  hitRects[10].dispatchEvent(new w.MouseEvent('mousedown', { bubbles: true, shiftKey: true }));
+  hitRects[20].dispatchEvent(new w.MouseEvent('mouseup', { bubbles: true, shiftKey: true }));
+  await new Promise(r => setTimeout(r, 300));
+  ok('выбор периода даёт journey_step правила range_news',
      w.Portal.events().some(e => e.event === 'journey_step' && e.rule === 'range_news'));
+  ok('в правиле стоят реальные даты периода, а не прибитые',
+     !/21.24 Jul/.test(d.body.textContent)
+     && w.Portal.events().some(e => e.rule === 'range_news' && /\d{4}-\d{2}-\d{2}/.test(e.label || '')),
+     JSON.stringify(w.Portal.events().filter(e => e.rule === 'range_news')).slice(0, 160));
 
   console.log('\n[11] Трейл на главной');
   ({ d, w, events } = await open('/'));

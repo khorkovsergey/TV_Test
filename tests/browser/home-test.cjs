@@ -189,9 +189,17 @@ const navText = d => [...d.querySelectorAll('.portal-nav .menu a:not(.nav-panel 
   console.log('\n[8] Воркспейс: граница Portal/Chart');
   store.clear(); session.clear();
   const ch = await open('/charts?symbol=ETHUSD', 'home_variant=task; tv_seen=1');
-  ok('символ из пути подхвачен', ch.d.getElementById('symLink').textContent === 'ETHUSD');
-  ok('честно сказано, что это не движок графиков', /not a chart engine/i.test(ch.d.body.textContent));
-  ok('граница Portal/Chart объяснена', /the working surface/i.test(ch.d.body.textContent));
+  ok('символ из пути подхвачен', ch.d.getElementById('symbolBtn').textContent === 'ETHUSD',
+     ch.d.getElementById('symbolBtn').textContent);
+  /* «Это не движок графиков» было правдой, пока страница рисовала линию по
+     двадцати закрытиям. Теперь это настоящие свечи по OHLCV, и прежняя фраза
+     стала бы ложной скромностью. Ожидание переписано под то, что честно
+     сейчас: что именно живое, а что прототип. */
+  ok('честно разделено живое и прототипное',
+     /real delayed prices/i.test(ch.d.body.textContent)
+     && /prototype surfaces/i.test(ch.d.body.textContent));
+  ok('сказано, что задержанные данные — не лицензия на рыночные данные',
+     /not a market-data licence/i.test(ch.d.body.textContent));
   ok('событие chart_workspace_opened', ch.w.Portal.events().some(e => e.event === 'chart_workspace_opened'));
 
   console.log('\n[9] Контрольный вариант рабочий');

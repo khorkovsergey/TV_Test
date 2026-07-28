@@ -335,6 +335,159 @@ export async function one(sym) {
   return { ...quote, technicals, peers, asOf: snap.asOf, source: snap.source, note: snap.note };
 }
 
+/* ------------------------------------------------------------- history
+
+   The snapshot above answers "what is it worth now". This answers "what did
+   it do, bar by bar" — which is a different request with a different shape,
+   a different cache and a different failure mode, so it gets its own path
+   rather than a wider `series` on the snapshot.
+
+   The rule that matters here: a gap stays a gap. A chart that interpolates
+   across a halted session draws a candle that never traded, and somebody
+   will then ask the Copilot what happened on it. */
+
+export const INTERVALS = ['1d', '1h', '15m'];
+export const RANGES = ['1mo', '3mo', '6mo', '1y', '5y'];
+
+/* The provider refuses some pairs outright and silently clamps others. Asking
+   for five years of 15-minute bars returns sixty days without saying so, so
+   the ceiling is applied here and the response reports what was actually
+   requested upstream. */
+const MAX_RANGE_FOR = { '1d': '5y', '1h': '6mo', '15m': '1mo' };
+const RANGE_ORDER = { '1mo': 0, '3mo': 1, '6mo': 2, '1y': 3, '5y': 4 };
+
+export function normaliseHistoryQuery(interval, range) {
+  const i = INTERVALS.includes(String(interval)) ? String(interval) : '1d';
+  let r = RANGES.includes(String(range)) ? String(range) : '1mo';
+  const cap = MAX_RANGE_FOR[i];
+  let clamped = null;
+  if (RANGE_ORDER[r] > RANGE_ORDER[cap]) { clamped = r; r = cap; }
+  return { interval: i, range: r, clamped };
+}
+
+const HISTORY_TTL_MS = Number(process.env.MARKET_HISTORY_TTL_MS || 300_000);
+const HISTORY_MAX_KEYS = 60;
+const historyCache = new Map();     // key -> { at, data }
+
+/* A trading day is identified by its date in the exchange's own timezone. Doing
+   this in UTC puts a New York session on the wrong calendar day for anyone
+   east of London, and the Copilot would then search the wrong date. */
+function sessionDate(epochSeconds, timeZone) {
+  const d = new Date(epochSeconds * 1000);
+  try {
+    const p = new Intl.DateTimeFormat('en-CA', {
+      timeZone, year: 'numeric', month: '2-digit', day: '2-digit'
+    }).format(d);
+    return p;                        // en-CA formats as YYYY-MM-DD
+  } catch {
+    return d.toISOString().slice(0, 10);
+  }
+}
+
+async function fetchHistory(item, interval, range) {
+  const url = `${HOST}${encodeURIComponent(item.vendor)}?range=${range}&interval=${interval}`;
+  const res = await fetch(url, {
+    headers: { 'user-agent': UA, accept: 'application/json' },
+    signal: AbortSignal.timeout(TIMEOUT_MS)
+  });
+  if (!res.ok) throw new Error('source returned HTTP ' + res.status);
+
+  const body = await res.json();
+  const result = body?.chart?.result?.[0];
+  if (!result) throw new Error(body?.chart?.error?.description || 'source returned no data');
+
+  const meta = result.meta || {};
+  const tz = meta.exchangeTimezoneName || 'UTC';
+  const stamps = result.timestamp || [];
+  const q = result.indicators?.quote?.[0] || {};
+  const daily = interval === '1d';
+
+  const candles = [];
+  for (let i = 0; i < stamps.length; i++) {
+    const open = q.open?.[i], high = q.high?.[i], low = q.low?.[i], close = q.close?.[i];
+    /* Only a fully invalid bar is dropped. A bar with prices and a null volume
+       is a real bar that the free feed did not count — keeping it and leaving
+       volume undefined is honest; dropping it would put a hole in the price
+       series to hide a hole in the volume series. */
+    if (![open, high, low, close].every(Number.isFinite)) continue;
+    if (!Number.isFinite(stamps[i])) continue;
+    candles.push({
+      time: daily ? sessionDate(stamps[i], tz) : new Date(stamps[i] * 1000).toISOString(),
+      epoch: stamps[i],
+      open, high, low, close,
+      volume: Number.isFinite(q.volume?.[i]) ? q.volume[i] : undefined
+    });
+  }
+  candles.sort((a, b) => a.epoch - b.epoch);
+  if (!candles.length) throw new Error('source returned no usable candles');
+
+  return {
+    symbol: item.symbol,
+    name: item.name,
+    exchange: meta.fullExchangeName || meta.exchangeName || null,
+    currency: meta.currency || 'USD',
+    timezone: tz,
+    interval,
+    range,
+    source: 'Yahoo Finance (free, delayed)',
+    delayed: true,
+    isSample: false,
+    asOf: new Date().toISOString(),
+    candles
+  };
+}
+
+function pruneHistoryCache() {
+  if (historyCache.size <= HISTORY_MAX_KEYS) return;
+  /* Oldest first — a Map preserves insertion order and every write re-inserts. */
+  const excess = historyCache.size - HISTORY_MAX_KEYS;
+  let n = 0;
+  for (const k of historyCache.keys()) { historyCache.delete(k); if (++n >= excess) break; }
+}
+
+export async function history(sym, interval, range) {
+  const item = find(sym);
+  if (!item) return null;
+
+  const q = normaliseHistoryQuery(interval, range);
+  const key = `${item.symbol}|${q.interval}|${q.range}`;
+  const hit = historyCache.get(key);
+  if (hit && (Date.now() - hit.at) < HISTORY_TTL_MS) {
+    return { ...hit.data, cached: true, clampedFrom: q.clamped };
+  }
+
+  try {
+    /* One retry, and only one. At boot the snapshot warm-up fires 49 upstream
+       requests; a chart opened in that window competes with them and a free
+       endpoint answers by refusing. Blanking the chart because the very first
+       visitor after a deploy arrived during warm-up would be the wrong answer
+       to a problem that clears itself in under a second. Repeated failure is
+       still a failure — this does not loop. */
+    let data;
+    try {
+      data = await fetchHistory(item, q.interval, q.range);
+    } catch (first) {
+      await new Promise(r => setTimeout(r, 700));
+      data = await fetchHistory(item, q.interval, q.range);
+    }
+    historyCache.delete(key);
+    historyCache.set(key, { at: Date.now(), data });
+    pruneHistoryCache();
+    return { ...data, cached: false, clampedFrom: q.clamped };
+  } catch (err) {
+    /* Stale beats empty, and stale has to say so. */
+    if (hit) {
+      return {
+        ...hit.data, cached: true, stale: true,
+        staleReason: String(err?.message || err),
+        ageMs: Date.now() - hit.at,
+        clampedFrom: q.clamped
+      };
+    }
+    throw err;
+  }
+}
+
 /* ---------------------------------------------------------------- movers */
 
 /* Warm the cache at boot so the first visitor after a deploy is not the one who

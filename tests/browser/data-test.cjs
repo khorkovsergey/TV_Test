@@ -174,16 +174,25 @@ const click = (w, el) => el.dispatchEvent(new w.MouseEvent('click', { bubbles: t
   ok('навигация ведёт в Markets',
      Boolean(d.querySelector('.portal-nav .menu a[href="/markets"]')));
 
-  console.log('\n[10] Воркспейс рисует настоящую серию');
+  /* Раньше здесь проверялась линия по двадцати закрытиям, подпись #pxLabel и
+     RSI одной горизонтальной чертой. Всего этого больше нет: воркспейс рисует
+     свечи по настоящим OHLCV. Ожидания переписаны под новую модель, а не
+     сохранены — иначе тест защищал бы то, что мы намеренно убрали. */
+  console.log('\n[10] Воркспейс рисует настоящие свечи');
   store.clear(); session.clear();
   ({ d, w, events } = await open('/charts?symbol=SPX'));
   ok('без ошибок', !events.some(e => e.startsWith('ERR')), events.filter(e => e.startsWith('ERR'))[0]);
-  ok('линия цены построена', d.querySelectorAll('#priceLayer polyline').length === 1);
-  ok('подпись содержит символ и источник', /SPX.*Yahoo Finance/.test(d.getElementById('pxLabel').textContent),
-     d.getElementById('pxLabel').textContent);
-  ok('RSI подписан живым значением', /RSI\(14\) · \d/.test(d.getElementById('rsiLabel').textContent),
-     d.getElementById('rsiLabel').textContent);
-  ok('панель вотчлиста заполнена', d.querySelectorAll('#watchRows .wl-row').length >= 4);
+  ok('свечи построены', d.querySelectorAll('.ch-candle').length > 20,
+     'candles=' + d.querySelectorAll('.ch-candle').length);
+  ok('у каждой свечи есть тело и фитиль',
+     d.querySelectorAll('.ch-body').length === d.querySelectorAll('.ch-candle').length
+     && d.querySelectorAll('.ch-wick').length === d.querySelectorAll('.ch-candle').length);
+  ok('объём отрисован', d.querySelectorAll('.ch-volbar').length > 20);
+  ok('строка инструмента содержит символ и OHLC',
+     /SPX/.test(d.getElementById('ohlcRow').textContent)
+     && /O\s|H\s|L\s|C\s/.test(d.getElementById('ohlcRow').textContent),
+     d.getElementById('ohlcRow').textContent.slice(0, 90));
+  ok('панель вотчлиста заполнена', d.querySelectorAll('.cw-wl-row').length >= 4);
 
   console.log('\n[11] Источник котировок недоступен — страницы не выдумывают');
   {

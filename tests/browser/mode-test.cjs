@@ -173,7 +173,7 @@ async function switchTo(p, mode) {
     newPage[mode] = [...p.d.querySelectorAll('.fcard')].length;
   }
   ok('/new показывает один и тот же набор во всех режимах',
-     newPage.simple === 13 && newPage.standard === 13 && newPage.pro === 13, JSON.stringify(newPage));
+     newPage.simple === 14 && newPage.standard === 14 && newPage.pro === 14, JSON.stringify(newPage));
 
   /* ------------------------------------------- переключатель и его обещание */
 
@@ -263,14 +263,14 @@ async function switchTo(p, mode) {
   click(chart.w, chart.d.querySelector('#advDrawer button'));
   await new Promise(r => setTimeout(r, 200));
   ok('открытие ящика показывает продвинутые инструменты',
-     [...chart.d.querySelectorAll('.tb-item[data-min="pro"]')].every(b => !b.hidden));
+     [...chart.d.querySelectorAll('.cw-toolbar [data-min="pro"]')].every(b => !b.hidden));
   ok('глобальный режим при этом не изменился', chart.w.Portal.mode() === 'simple');
   ok('есть возврат к пресету', /Back to the simple preset/i.test(chart.d.querySelector('#advDrawer').textContent));
   ok('есть явное «сделать по умолчанию»', !!chart.d.querySelector('#makeDefault'));
   click(chart.w, chart.d.querySelector('#makeDefault'));
   await new Promise(r => setTimeout(r, 200));
   ok('«сделать по умолчанию» повышает режим явно', chart.w.Portal.mode() === 'standard');
-  ok('символ на графике сохранился', /SOLUSD/.test(chart.d.querySelector('#symLink')?.textContent || chart.html));
+  ok('символ на графике сохранился', /SOLUSD/.test(chart.d.querySelector('#symbolBtn')?.textContent || ''));
 
   console.log('\n[График] Слово Beginner больше не встречается');
   const chartSrc = await (await fetch(B + '/charts')).text();
@@ -358,7 +358,7 @@ async function switchTo(p, mode) {
     const vis = sel => [...main.querySelectorAll(sel)].filter(seen2).length;
     const words = [...main.querySelectorAll('p, .d, .prob, .sol, [data-explain-level], .tv-lead')]
       .filter(seen2).reduce((n, e) => n + e.textContent.trim().split(/\s+/).length, 0);
-    return [vis('.tv-card, .fcard, .next-step'), vis('.btn, .preset, .tb-item'),
+    return [vis('.tv-card, .fcard, .next-step'), vis('.btn, .preset, .tb-item, .cw-btn'),
             vis('[role="tab"]'), vis('.q-table thead th'), vis('[data-route]'),
             vis('input, select, textarea'), vis('[data-explain-level]'),
             [...main.querySelectorAll('details')].length, words,

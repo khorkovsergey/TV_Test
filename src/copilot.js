@@ -85,6 +85,31 @@ Hard limits:
 - If asked for a recommendation, say that you do not give one and offer the
   factual ground the user would need to decide for themselves.
 - Never claim to know the user's portfolio, balance or personal situation.
+
+When the user has selected a candle or a period on the chart:
+- The user may have selected a historical candle or range. Treat the selected
+  candle time as the primary temporal context.
+- Do not answer about the latest trading day unless the user asks for it.
+- When the question asks why a historical move happened, search for information
+  published around the selected session — not around today.
+- Distinguish facts published before or during the session from retrospective
+  analysis published later.
+- Never claim a single cause unless the evidence supports it.
+- Separate, and label, these classes of factor:
+  1. company-specific;
+  2. sector;
+  3. broad market;
+  4. macro;
+  5. technical or flow.
+- Correlation with the selected candle does not prove causation. Say
+  "the most likely factor was X, while the sector fell Y" rather than
+  "the shares fell because of X" when all you have is timing.
+- Do not use "technical" or "profit-taking" as a convenient explanation when no
+  news cause was found. If you did not find a credible catalyst, say so.
+- Mention the selected candle or period in the first sentence, so it is obvious
+  which session you are answering about.
+- When you have found dated events, call report_move_factors so they can be
+  classified and marked on the chart. Answer in words as well.
 `.trim();
 
 /* The live quote for whatever the user is looking at, so the model answers
@@ -111,6 +136,152 @@ async function quoteLine(symbol) {
   }
 }
 
+/* ------------------------------------------------------- chart selection */
+
+/* §11. Everything below arrives from a browser and is therefore untrusted.
+   The company name in particular is never taken as authoritative — it is a
+   display string the page happened to have, and the instrument universe is
+   the thing that decides what NVDA is. */
+
+const num = v => (typeof v === 'number' && Number.isFinite(v)) ? v : undefined;
+
+/* A trading date (YYYY-MM-DD) or an ISO instant, and nothing else. A free-text
+   "time" would go straight into a search query. */
+function safeTime(v) {
+  const s = String(v || '').trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  if (/^\d{4}-\d{2}-\d{2}T[\d:.]+(Z|[+-]\d{2}:\d{2})$/.test(s)) {
+    return Number.isNaN(new Date(s).getTime()) ? null : s;
+  }
+  return null;
+}
+
+const INTERVALS = new Set(['1d', '1h', '15m']);
+const MAX_SELECTION_CANDLES = 20_000;
+
+export function validateChartContext(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+
+  const sym = String(raw.symbol || '').toUpperCase().slice(0, 12);
+  const known = market.find(sym);
+  if (!known) return null;                     // reconciled with the universe
+
+  const sel = raw.selection && typeof raw.selection === 'object' ? raw.selection : { type: 'none' };
+  let selection = { type: 'none' };
+
+  if (sel.type === 'candle') {
+    const time = safeTime(sel.time);
+    const o = num(sel.open), hi = num(sel.high), lo = num(sel.low), c = num(sel.close);
+    /* A high below its own low is not a candle. Rejecting the impossible here
+       keeps a malformed payload from becoming a confidently wrong answer. */
+    if (time && [o, hi, lo, c].every(v => v !== undefined) && hi >= lo
+        && hi >= Math.max(o, c) - 1e-9 && lo <= Math.min(o, c) + 1e-9) {
+      selection = {
+        type: 'candle', time, open: o, high: hi, low: lo, close: c,
+        volume: num(sel.volume),
+        previousClose: num(sel.previousClose),
+        change: num(sel.change),
+        changePct: num(sel.changePct),
+        averageVolume: num(sel.averageVolume),
+        volumeRatio: num(sel.volumeRatio)
+      };
+    }
+  } else if (sel.type === 'range') {
+    const from = safeTime(sel.from), to = safeTime(sel.to);
+    const count = num(sel.candleCount);
+    if (from && to && from <= to && count && count > 0 && count <= MAX_SELECTION_CANDLES) {
+      selection = {
+        type: 'range', from, to, candleCount: Math.round(count),
+        open: num(sel.open), close: num(sel.close), changePct: num(sel.changePct),
+        high: num(sel.high), low: num(sel.low),
+        totalVolume: num(sel.totalVolume), averageVolume: num(sel.averageVolume)
+      };
+    }
+  }
+
+  const vr = raw.visibleRange && typeof raw.visibleRange === 'object' ? raw.visibleRange : null;
+  const vFrom = vr ? safeTime(vr.from) : null;
+  const vTo = vr ? safeTime(vr.to) : null;
+
+  return {
+    page: 'chart_workspace',
+    symbol: known.symbol,
+    /* The universe's name wins over whatever the page sent. */
+    companyName: known.name,
+    exchange: typeof raw.exchange === 'string' ? raw.exchange.slice(0, 60) : undefined,
+    currency: /^[A-Z]{3}$/.test(String(raw.currency || '')) ? raw.currency : 'USD',
+    timezone: typeof raw.timezone === 'string' && raw.timezone.length <= 64 ? raw.timezone : 'UTC',
+    interval: INTERVALS.has(raw.interval) ? raw.interval : '1d',
+    chartRange: String(raw.chartRange || '1mo').slice(0, 8),
+    visibleRange: (vFrom && vTo) ? { from: vFrom, to: vTo } : undefined,
+    selection
+  };
+}
+
+/* §13. The search window is derived from the selection, not from today. */
+function searchWindow(chart) {
+  const s = chart.selection;
+  if (s.type === 'candle') {
+    if (chart.interval === '1d') {
+      return 'Search the window from the previous market close through the next market session, '
+        + 'and also surface anything important published within 24 hours either side of '
+        + `${s.time}. Do not use today's date as the default.`;
+    }
+    return `Search within roughly two hours either side of ${s.time}, and include pre-market `
+      + 'and post-market news for that session.';
+  }
+  if (s.type === 'range') {
+    return `Search for events inside ${s.from} to ${s.to}, plus anything important published the `
+      + 'day before it starts. List retrospective articles separately from contemporaneous ones.';
+  }
+  return '';
+}
+
+function chartBlock(chart) {
+  if (!chart) return '';
+  const s = chart.selection;
+  const lines = [
+    'Selected chart context:',
+    `- Symbol: ${chart.symbol}`,
+    `- Company: ${chart.companyName}`,
+    `- Exchange timezone: ${chart.timezone}`,
+    `- Interval: ${chart.interval === '1d' ? '1 day' : chart.interval}`
+  ];
+
+  if (s.type === 'candle') {
+    lines.push(`- Selected session: ${s.time}`);
+    lines.push(`- Open: ${s.open}`);
+    lines.push(`- High: ${s.high}`);
+    lines.push(`- Low: ${s.low}`);
+    lines.push(`- Close: ${s.close}`);
+    if (s.changePct !== undefined) {
+      lines.push(`- Change vs previous close: ${s.changePct >= 0 ? '+' : ''}${s.changePct.toFixed(2)}%`);
+    }
+    if (s.volume !== undefined) lines.push(`- Volume: ${s.volume}`);
+    if (s.volumeRatio !== undefined) {
+      lines.push(`- Volume vs recent average: ${s.volumeRatio.toFixed(2)}x`);
+    }
+  } else if (s.type === 'range') {
+    lines.push(`- Selected period: ${s.from} to ${s.to} (${s.candleCount} candles)`);
+    if (s.changePct !== undefined) {
+      lines.push(`- Change over the period: ${s.changePct >= 0 ? '+' : ''}${s.changePct.toFixed(2)}%`);
+    }
+    if (s.high !== undefined) lines.push(`- High: ${s.high}`);
+    if (s.low !== undefined) lines.push(`- Low: ${s.low}`);
+  } else {
+    lines.push('- No candle or period is selected. If the question is about a specific move, '
+      + 'ask which day they mean rather than assuming today.');
+  }
+
+  const win = searchWindow(chart);
+  if (win) lines.push(`- Search window: ${win}`);
+  if (s.type !== 'none') {
+    lines.push('- The live quote below is TODAY and is NOT the selected session. '
+      + 'Do not quote it as the price on the selected date.');
+  }
+  return lines.join('\n');
+}
+
 function contextBlock(ctx = {}) {
   /* Three registers, not two. Pro used to be indistinguishable from Standard
      here, which made the mode a label rather than a difference. What never
@@ -131,6 +302,7 @@ function contextBlock(ctx = {}) {
     `- Active symbol: ${ctx.symbol || 'none'}`,
     `- Chart range: ${ctx.chartRange || 'none'}`,
     `- Recent research steps: ${journey}`,
+    ctx.chart ? chartBlock(ctx.chart) : '',
     ctx.quote || ''
   ].filter(Boolean).join('\n');
 }
@@ -164,7 +336,56 @@ export const TOOLS = [
 
   { name: 'pine_snippet',
     description: 'Return a short Pine Script v5 snippet with an explanation.',
-    input_schema: { type: 'object', properties: { goal: { type: 'string' } }, required: ['goal'] } }
+    input_schema: { type: 'object', properties: { goal: { type: 'string' } }, required: ['goal'] } },
+
+  /* §16/§17. These exist only when the user is looking at a chart selection.
+     They are what turns an answer back into something on the chart rather than
+     a paragraph the reader has to translate into a date themselves. */
+  { name: 'report_move_factors',
+    description: 'Classify what moved the selected candle or period. Call this after searching, '
+      + 'whenever you have identified one or more factors. Every factor must be one of the listed '
+      + 'categories, and "technical" must not be used as a fallback when no news was found.',
+    input_schema: { type: 'object', properties: {
+      factors: { type: 'array', items: { type: 'object', properties: {
+        category: { type: 'string', enum: ['company', 'earnings', 'regulation', 'sector', 'market', 'macro', 'technical', 'flow'] },
+        title: { type: 'string' },
+        description: { type: 'string' },
+        startedAt: { type: 'string', description: 'YYYY-MM-DD or ISO timestamp, when known' },
+        relevance: { type: 'string', enum: ['high', 'medium', 'low'] },
+        confidence: { type: 'number', description: '0 to 1' }
+      }, required: ['category', 'title', 'relevance'] } }
+    }, required: ['factors'] } },
+
+  { name: 'mark_chart_events',
+    description: 'Put dated events on the chart the user is looking at. Only use timestamps you '
+      + 'actually found in sources; never approximate a date to make a marker fit.',
+    input_schema: { type: 'object', properties: {
+      events: { type: 'array', items: { type: 'object', properties: {
+        time: { type: 'string', description: 'YYYY-MM-DD or ISO timestamp' },
+        title: { type: 'string' },
+        category: { type: 'string', enum: ['company', 'earnings', 'regulation', 'sector', 'market', 'macro', 'technical', 'flow'] },
+        url: { type: 'string' }
+      }, required: ['time', 'title'] } }
+    }, required: ['events'] } },
+
+  { name: 'compare_selected_period',
+    description: 'Add a comparison series over the selected period — an index, a sector proxy or a peer.',
+    input_schema: { type: 'object', properties: {
+      symbols: { type: 'array', items: { type: 'string' } }
+    }, required: ['symbols'] } },
+
+  { name: 'create_event_alert',
+    description: 'Propose an alert tied to an event or to a volume anomaly rather than to a price level.',
+    input_schema: { type: 'object', properties: {
+      symbol: { type: 'string' },
+      kind: { type: 'string', enum: ['event', 'volume'] },
+      description: { type: 'string' },
+      value: { type: 'number', description: 'for a volume alert, the multiple of average volume' }
+    }, required: ['symbol', 'kind', 'description'] } },
+
+  { name: 'save_research',
+    description: 'Offer to save this question, the answer and its sources against the selected candle.',
+    input_schema: { type: 'object', properties: { title: { type: 'string' } } } }
 ];
 
 /* Human-readable button labels. Anything not listed is unsupported in the pilot. */
@@ -190,9 +411,65 @@ function actionFor(name, input) {
       return { id: name, label: `Add ${input.symbol} to my watchlist`, payload: input };
     case 'pine_snippet':
       return null;   // answered as text, no button needed
+
+    /* Factors are not a button: they are rendered beside the answer. Returning
+       null here keeps them out of the action row while `factorsOf` picks them
+       up from the same tool call. */
+    case 'report_move_factors':
+      return null;
+
+    case 'mark_chart_events': {
+      const events = Array.isArray(input.events) ? input.events : [];
+      if (!events.length) return null;
+      return {
+        id: name,
+        label: `Show these ${events.length} event${events.length > 1 ? 's' : ''} on the chart`,
+        payload: { events }
+      };
+    }
+    case 'compare_selected_period': {
+      const syms = (input.symbols || []).filter(Boolean);
+      if (!syms.length) return null;
+      return { id: name, label: `Compare with ${syms.join(', ')}`, payload: { symbols: syms } };
+    }
+    case 'create_event_alert':
+      return {
+        id: name,
+        label: `Alert me: ${input.symbol} — ${input.description}`,
+        payload: input
+      };
+    case 'save_research':
+      return { id: name, label: input.title ? `Save: ${input.title}` : 'Save this research', payload: input };
+
     default:
       return null;
   }
+}
+
+/* §16. Pulled out of the same tool calls the buttons come from, so the panel
+   shows exactly what the model classified — not a second, re-derived list. */
+function factorsOf(messages) {
+  const out = [];
+  for (const msg of messages) {
+    for (const block of msg.content || []) {
+      if (block.type !== 'tool_use' || block.name !== 'report_move_factors') continue;
+      const list = Array.isArray(block.input?.factors) ? block.input.factors : [];
+      list.forEach((f, i) => {
+        if (!f || !f.title) return;
+        out.push({
+          id: `f${out.length + i}`,
+          category: f.category || 'company',
+          title: String(f.title).slice(0, 200),
+          description: String(f.description || '').slice(0, 400),
+          startedAt: f.startedAt || null,
+          relevance: ['high', 'medium', 'low'].includes(f.relevance) ? f.relevance : 'medium',
+          confidence: Number.isFinite(f.confidence) ? Math.max(0, Math.min(1, f.confidence)) : null
+        });
+      });
+    }
+  }
+  const order = { high: 0, medium: 1, low: 2 };
+  return out.sort((a, b) => order[a.relevance] - order[b.relevance]).slice(0, 8);
 }
 
 /* ------------------------------------------------------------ safety filter */
@@ -225,22 +502,91 @@ export function stripAdvice(text) {
 
 const textOf = msg => msg.content.filter(b => b.type === 'text').map(b => b.text).join('\n').trim();
 
-/* Pull real citations out of the web-search result blocks. */
-function sourcesOf(allMessages) {
-  const seen = new Map();
+/* §15. Sources used to be reduced to a list of hostnames, which threw away
+   the title, the link and the publication time — everything that lets a reader
+   check the answer instead of trusting it. Three hostnames is not a citation.
+
+   Deduping is by canonical URL, not by host: two different Reuters pieces are
+   two sources, and collapsing them to "reuters.com" hides the second one. */
+
+const PRIMARY_HOSTS = /(^|\.)(sec\.gov|investor\.|ir\.|federalreserve\.gov|ecb\.europa\.eu|bls\.gov)/i;
+const NEWS_HOSTS = /(^|\.)(reuters|bloomberg|ft|wsj|cnbc|apnews|barrons|marketwatch)\./i;
+
+function canonical(url) {
+  try {
+    const u = new URL(url);
+    u.hash = '';
+    /* Tracking parameters make the same article look like several. */
+    for (const p of [...u.searchParams.keys()]) {
+      if (/^(utm_|ref|src|fbclid|gclid|cmpid)/i.test(p)) u.searchParams.delete(p);
+    }
+    return u.toString();
+  } catch { return String(url || ''); }
+}
+
+function sourceType(host, url) {
+  if (PRIMARY_HOSTS.test(host) || /\/(sec|filing|8-k|10-q|10-k)\b/i.test(url)) return 'regulatory';
+  if (/investor|press-release|newsroom/i.test(url)) return 'company';
+  if (NEWS_HOSTS.test(host)) return 'news';
+  if (/finance\.yahoo|marketdata|tradingview/i.test(host)) return 'market-data';
+  return 'analysis';
+}
+
+/* Where a piece sits relative to the session being asked about. This is the
+   distinction the brief cares about most: an article written a month later
+   explaining a fall is a different kind of evidence from a wire story filed
+   during it, and presenting them as equals is how a retrospective narrative
+   becomes a "cause". */
+function relationTo(publishedAt, chart) {
+  if (!chart || chart.selection.type === 'none' || !publishedAt) return undefined;
+  const t = new Date(publishedAt).getTime();
+  if (Number.isNaN(t)) return undefined;
+
+  const s = chart.selection;
+  const dayStart = d => new Date(`${String(d).slice(0, 10)}T00:00:00Z`).getTime();
+  const start = s.type === 'candle' ? dayStart(s.time) : dayStart(s.from);
+  const end = (s.type === 'candle' ? dayStart(s.time) : dayStart(s.to)) + 24 * 3600 * 1000;
+
+  if (t < start) return 'before-session';
+  if (t <= end) return 'during-session';
+  /* More than a week later is no longer "the day after" — it is somebody
+     looking back. */
+  if (t <= end + 7 * 24 * 3600 * 1000) return 'after-session';
+  return 'retrospective';
+}
+
+function sourcesOf(allMessages, chart) {
+  const byUrl = new Map();
   for (const msg of allMessages) {
     for (const block of msg.content || []) {
       if (block.type !== 'web_search_tool_result') continue;
       const results = Array.isArray(block.content) ? block.content : [];
       for (const r of results) {
         if (!r?.url) continue;
-        let host = r.url;
-        try { host = new URL(r.url).hostname.replace(/^www\./, ''); } catch {}
-        if (!seen.has(host)) seen.set(host, r.title || host);
+        const url = canonical(r.url);
+        if (byUrl.has(url)) continue;
+        let host = url;
+        try { host = new URL(url).hostname.replace(/^www\./, ''); } catch {}
+        const publishedAt = r.page_age || r.published_date || r.published_at || null;
+        byUrl.set(url, {
+          title: r.title || host,
+          url,
+          domain: host,
+          publishedAt: publishedAt || undefined,
+          accessedAt: new Date().toISOString(),
+          sourceType: sourceType(host, url),
+          relation: relationTo(publishedAt, chart)
+        });
       }
     }
   }
-  return [...seen.keys()].slice(0, 5);
+
+  /* Primary and regulatory material ranks above secondary analysis: the filing
+     outranks the article about the filing. */
+  const rank = { regulatory: 0, company: 1, news: 2, 'market-data': 3, analysis: 4 };
+  return [...byUrl.values()]
+    .sort((a, b) => rank[a.sourceType] - rank[b.sourceType])
+    .slice(0, 8);
 }
 
 function usageOf(msg) {
@@ -268,9 +614,16 @@ export async function ask({ messages, context }) {
      it changes every minute. */
   const quote = await quoteLine(context?.symbol);
 
+  /* The chart context is validated before it can reach the prompt. Anything
+     that fails validation becomes absent rather than "unknown": a malformed
+     candle must not turn into a sentence the model then reasons about. */
+  const chart = context?.page === 'chart_workspace'
+    ? validateChartContext({ ...context, ...(context.chartSelection ? { selection: context.chartSelection } : {}) })
+    : null;
+
   const system = [
     { type: 'text', text: SYSTEM_STABLE, cache_control: { type: 'ephemeral' } },
-    { type: 'text', text: contextBlock({ ...context, quote }) }
+    { type: 'text', text: contextBlock({ ...context, quote, chart }) }
   ];
 
   const tools = [
@@ -373,7 +726,8 @@ export async function ask({ messages, context }) {
   await audit();
 
   const { text, filtered } = stripAdvice(raw || 'I could not produce an answer for that. Try rephrasing?');
-  const sources = sourcesOf(produced);
+  const sources = sourcesOf(produced, chart);
+  const factors = factorsOf(produced);
 
   // Dedupe actions by id+payload so a repeated tool call renders one button.
   const uniq = [];
@@ -383,7 +737,7 @@ export async function ask({ messages, context }) {
     if (!seen.has(k)) { seen.add(k); uniq.push(a); }
   }
 
-  return { text, sources, actions: uniq.slice(0, 4), filtered };
+  return { text, sources, factors, actions: uniq.slice(0, 5), filtered };
 }
 
 export { MODEL };

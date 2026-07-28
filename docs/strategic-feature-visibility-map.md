@@ -37,6 +37,7 @@ acceptance suite (`phase3-test.cjs`, 116 checks) — if a placement is removed, 
 | NEW-06 AI Private | CONCEPT · PREMIUM | whatsNew, showcase, assetHub, portfolio, copilot, commandPalette, search | 7 |
 | **NEW-07 Expert Marketplace** | **PROTOTYPE** | **home, megaMenu, commandPalette, search, assetHub, portfolio, wealthHub, academy, copilot, whatsNew, showcase** | **11** |
 | NEW-08 Community Rewards | CONCEPT | megaMenu, commandPalette, search, community, academy, whatsNew, showcase | 7 |
+| TUNE-10 Chart Research Copilot | BETA | chart, whatsNew, showcase, commandPalette, search, academy | 6 |
 | CORE-01…05 | IMPROVED | whatsNew, showcase (+ they *are* the site) | 2 |
 
 Before phase 3, NEW-07 was on 2 surfaces. The requirement was ≥8; it is on 11.

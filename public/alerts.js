@@ -27,13 +27,19 @@ window.Alerts = (function () {
     above:  'rises above',
     below:  'falls below',
     move:   'moves more than',
-    event:  'has a scheduled event'
+    event:  'has a scheduled event',
+    /* Added with the chart Copilot: the two things a person asks for after
+       reading why a candle moved are "tell me before the next one of those"
+       and "tell me if this volume happens again". Both are conditions about an
+       event rather than about a price level, so they belong in the same store
+       rather than in a second list somewhere. */
+    volume: 'trades at unusual volume'
   };
 
   const list = () => read();
   const forSymbol = symbol => read().filter(a => a.symbol === symbol);
 
-  function create({ symbol, condition, value, note }) {
+  function create({ symbol, condition, value, note, context }) {
     if (!symbol || !CONDITIONS[condition]) return null;
     const all = read();
     /* The same alert twice is a mistake, not an intention. */
@@ -44,6 +50,9 @@ window.Alerts = (function () {
       id: 'al_' + Math.random().toString(36).slice(2, 10),
       symbol, condition, value: value ?? null,
       note: note || '',
+      /* Which candle or period the alert came out of. Six weeks later "why did
+         I set this?" is the question, and the answer is worth one string. */
+      context: context || null,
       createdAt: new Date().toISOString(),
       /* Honest by construction: nothing polls the market for this, so the
          alert is armed in the prototype's sense only. */

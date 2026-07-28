@@ -37,10 +37,10 @@ const text = d => d.body.textContent.replace(/\s+/g, ' ');
   const home = await open('/', { wait: 2400 });
   const Fx = home.w.Features;
   ok('Features подключён на главной', !!Fx);
-  ok('тринадцать записей', Fx.ALL.length === 13, String(Fx.ALL.length));
-  ok('восемь стратегических', Fx.strategic().length === 8, String(Fx.strategic().length));
+  ok('четырнадцать записей', Fx.ALL.length === 14, String(Fx.ALL.length));
+  ok('девять стратегических', Fx.strategic().length === 9, String(Fx.strategic().length));
   ok('пять переработанных сценариев', Fx.core().length === 5, String(Fx.core().length));
-  ok('id уникальны', new Set(Fx.ALL.map(f => f.id)).size === 13);
+  ok('id уникальны', new Set(Fx.ALL.map(f => f.id)).size === 14);
   ok('у каждой фичи есть проблема пользователя', Fx.ALL.every(f => f.problem && f.problem.length > 25));
   ok('у каждой есть решение', Fx.ALL.every(f => f.solution && f.solution.length > 25));
   ok('у каждой есть метрика', Fx.ALL.every(f => f.metric && f.metric.length > 5));
@@ -94,7 +94,7 @@ const text = d => d.body.textContent.replace(/\s+/g, ' ');
   const nw = await open('/new', { wait: 2000 });
   ok('страница открывается', nw.res.status === 200);
   const nwCards = [...nw.d.querySelectorAll('.fcard')];
-  ok('все тринадцать фич отрисованы', nwCards.length === 13, String(nwCards.length));
+  ok('все четырнадцать фич отрисованы', nwCards.length === 14, String(nwCards.length));
   ok('работающее отделено от концептов',
      nw.d.querySelector('#workingCards .fcard') && nw.d.querySelector('#conceptCards .fcard'));
   /* В Simple проблема идёт первой строкой без подписи «Problem:» — подача
@@ -110,7 +110,7 @@ const text = d => d.body.textContent.replace(/\s+/g, ' ');
   const sc = await open('/showcase', { wait: 1800 });
   ok('страница открывается', sc.res.status === 200);
   const rows = [...sc.d.querySelectorAll('#mapNew tbody tr, #mapCore tbody tr')];
-  ok('каждая фича имеет строку', rows.length === 13, String(rows.length));
+  ok('каждая фича имеет строку', rows.length === 14, String(rows.length));
   ok('в строке есть статус, проблема, метрика и маршрут',
      rows.every(r => r.querySelector('.fbadge') && r.querySelector('a[href^="/"]') && r.children.length === 6));
   ok('нет ошибок исполнения', sc.events.length === 0, sc.events.join(' | '));

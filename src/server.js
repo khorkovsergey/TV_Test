@@ -653,6 +653,33 @@ app.get('/api/symbol/:symbol', wrap(async (req, res) => {
   res.json(data);
 }));
 
+/* Historical bars. Separate from the snapshot because it is a different
+   question with a different cost: the snapshot is one shared object refreshed
+   every minute, this is per symbol/interval/range and is what the chart draws
+   candles from. */
+app.get('/api/market/history/:symbol', wrap(async (req, res) => {
+  const asked = market.normaliseHistoryQuery(req.query.interval, req.query.range);
+  let data;
+  try {
+    data = await market.history(req.params.symbol, asked.interval, asked.range);
+  } catch (err) {
+    /* No invented candles. The chart shows its "historical candles are
+       unavailable" state and offers a retry — that is the honest outcome. */
+    return res.status(502).json({
+      ok: false, symbol: String(req.params.symbol || '').toUpperCase(),
+      interval: asked.interval, range: asked.range,
+      error: String(err?.message || err)
+    });
+  }
+  if (!data) {
+    return res.status(404).json({
+      ok: false, error: 'Unknown symbol', universe: market.UNIVERSE.map(i => i.symbol)
+    });
+  }
+  res.set('Cache-Control', 'public, max-age=60');
+  res.json({ ok: true, ...data, count: data.candles.length });
+}));
+
 /* ----------------------------------------------------------------- copilot */
 
 /* Simple per-IP window. The Copilot is open to anyone who loads a page, so it
@@ -672,13 +699,85 @@ app.post('/api/copilot', limitAI, wrap(async (req, res) => {
 /* Actions are confirmed by the user in the widget; the client owns the pilot
    storage (watchlist, alerts). This endpoint validates and acknowledges, so the
    UI has one place to talk to and the server can count what was confirmed. */
-const ACTION_IDS = new Set(['create_alert', 'open_chart', 'compare', 'add_watchlist']);
+const ACTION_IDS = new Set([
+  'create_alert', 'open_chart', 'compare', 'add_watchlist',
+  /* §17 — the actions that lead back to the chart. They are applied by the
+     page, but they are validated here: the page draws what this endpoint has
+     agreed is drawable, so a malformed marker never reaches the chart. */
+  'mark_chart_events', 'compare_selected_period', 'expand_selected_range',
+  'create_event_alert', 'save_research', 'clear_chart_selection'
+]);
+
+const MAX_EVENTS = 12;
+const MAX_COMPARE = 3;
+const isTime = v => /^\d{4}-\d{2}-\d{2}(T[\d:.]+(Z|[+-]\d{2}:\d{2}))?$/.test(String(v || ''));
 
 app.post('/api/copilot/action', wrap(async (req, res) => {
   const { id, payload } = req.body || {};
   if (!ACTION_IDS.has(id)) return res.status(400).json({ error: 'Unknown action' });
 
   const p = payload || {};
+  switch (id) {
+    case 'mark_chart_events': {
+      const raw = Array.isArray(p.events) ? p.events : [];
+      /* A marker with an unparseable date would land on the wrong session or
+         on none at all, and a marker in the wrong place is worse than an
+         absent one — so the bad ones are dropped and counted, not guessed at. */
+      const events = raw
+        .filter(e => e && isTime(e.time) && typeof e.title === 'string' && e.title.trim())
+        .slice(0, MAX_EVENTS)
+        .map(e => ({
+          time: e.time,
+          title: String(e.title).slice(0, 180),
+          category: ['company', 'earnings', 'regulation', 'sector', 'market', 'macro', 'technical', 'flow']
+            .includes(e.category) ? e.category : 'company',
+          url: typeof e.url === 'string' && /^https?:\/\//.test(e.url) ? e.url.slice(0, 500) : null
+        }));
+      if (!events.length) return res.status(400).json({ error: 'No event carried a usable date' });
+      return res.json({
+        ok: true, events,
+        dropped: raw.length - events.length,
+        confirm: `${events.length} event${events.length > 1 ? 's' : ''} marked`
+      });
+    }
+
+    case 'compare_selected_period': {
+      const asked = (Array.isArray(p.symbols) ? p.symbols : []).map(s => String(s || '').toUpperCase());
+      const known = asked.filter(s => market.find(s)).slice(0, MAX_COMPARE);
+      if (!known.length) {
+        return res.status(400).json({
+          error: 'None of those instruments are in this pilot universe',
+          universe: market.UNIVERSE.map(i => i.symbol)
+        });
+      }
+      return res.json({ ok: true, symbols: known, confirm: `Comparing with ${known.join(', ')}` });
+    }
+
+    case 'create_event_alert': {
+      if (!p.symbol || !market.find(p.symbol)) return res.status(400).json({ error: 'Unknown symbol' });
+      if (!['event', 'volume'].includes(p.kind)) return res.status(400).json({ error: 'kind must be event or volume' });
+      if (!p.description) return res.status(400).json({ error: 'description is required' });
+      return res.json({
+        ok: true,
+        symbol: String(p.symbol).toUpperCase(),
+        kind: p.kind,
+        description: String(p.description).slice(0, 180),
+        value: Number.isFinite(p.value) ? p.value : null,
+        confirm: 'Alert saved on this device'
+      });
+    }
+
+    case 'expand_selected_range':
+      if (!isTime(p.from) || !isTime(p.to)) return res.status(400).json({ error: 'from and to are required' });
+      return res.json({ ok: true, from: p.from, to: p.to, confirm: 'Range widened' });
+
+    case 'save_research':
+      return res.json({ ok: true, confirm: 'Saved to your research' });
+
+    case 'clear_chart_selection':
+      return res.json({ ok: true, confirm: 'Selection cleared' });
+  }
+
   switch (id) {
     case 'create_alert':
       if (!p.symbol || !p.condition) return res.status(400).json({ error: 'symbol and condition are required' });

@@ -15,9 +15,9 @@ every screen says so.
 |---|---|
 | Architecture | Six sections — Overview · Research · Capital · Trade · Learn · Community. 98 destinations, none of them lost in any mode. |
 | Experience presets | Simple / Standard / Pro change density, explanation depth, default panels and how many actions lead. Never access, never the plan. |
-| Market layer | 49 instruments, delayed quotes from a public provider, 60-second cache, honest degradation — the last good snapshot survives a provider outage. |
-| AI | Research Copilot on every page; brief, matching and summary in the Expert Marketplace flow. Claude Opus 5. |
-| Strategic features | Eight bets, labelled by maturity rather than by novelty — see [`docs/feature-maturity.md`](docs/feature-maturity.md). |
+| Market layer | 49 instruments, delayed quotes from a public provider, 60-second cache, honest degradation — the last good snapshot survives a provider outage. Historical OHLCV per symbol/interval/range behind its own cache. |
+| AI | Research Copilot on every page; on `/charts` it sees the candle you selected and searches around that session rather than today. Brief, matching and summary in the Expert Marketplace flow. Claude Opus 5. |
+| Strategic features | Nine bets, labelled by maturity rather than by novelty — see [`docs/feature-maturity.md`](docs/feature-maturity.md). |
 | Stack | Node 20, Express 4 (ESM), Postgres with an in-memory fallback, static HTML and vanilla JS. **No build step.** |
 
 Two front doors for a reviewer: **`/new`** (what is new, and what is only an idea) and
@@ -132,6 +132,13 @@ Engineering decisions, not decoration:
 | [`docs/current-state-audit.md`](docs/current-state-audit.md) | What the stand contained before the architecture work |
 | [`docs/implementation-summary.md`](docs/implementation-summary.md) | The architecture release |
 | [`docs/expert-marketplace.md`](docs/expert-marketplace.md) | The original concierge-MVP rationale for hypothesis 07 |
+| [`docs/chart-workspace-architecture.md`](docs/chart-workspace-architecture.md) | The chart modules, and why the renderer is SVG rather than canvas |
+| [`docs/chart-context-contract.md`](docs/chart-context-contract.md) | What the browser sends about a selected candle, and what the server refuses |
+| [`docs/historical-market-data.md`](docs/historical-market-data.md) | The OHLCV endpoint, its clamps, its cache and its failure modes |
+| [`docs/chart-copilot-research-method.md`](docs/chart-copilot-research-method.md) | How "why did it move" is answered without inventing a cause |
+| [`docs/chart-copilot-current-state-audit.md`](docs/chart-copilot-current-state-audit.md) | What `/charts` actually was before the rebuild |
+| [`docs/chart-copilot-implementation-summary.md`](docs/chart-copilot-implementation-summary.md) | The chart Copilot release |
+| [`docs/chart-copilot-remaining-backlog.md`](docs/chart-copilot-remaining-backlog.md) | What it deliberately did not do |
 
 ## Design
 
@@ -149,5 +156,7 @@ disclaimers appear on every screen.
 - Consultant rosters and licences are demonstration data.
 - Retention is a written policy, not yet an automated job.
 - No CSP yet — the inline scripts have to come out first, and a policy with `unsafe-inline` would
-  permit exactly what it exists to prevent.
+  permit exactly what it exists to prevent. `/charts` and `/money` are out; six pages remain.
+- The chart's drawing tools take the click so selection is not hijacked, and draw nothing. The
+  indicator library and replay are prototype controls, marked as such before they are pressed.
 - Not investment advice.

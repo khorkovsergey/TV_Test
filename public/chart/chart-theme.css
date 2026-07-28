@@ -1,0 +1,240 @@
+/* =========================================================================
+   Chart workspace — light reference theme (§4.2).
+
+   The rest of the portal is dark. This screen is not, and that is deliberate:
+   the reference workspace this case study models is a white working surface,
+   and a chart is the one place where the ink should be the data rather than
+   the chrome. The switch is scoped to `.chart-workspace`, so nothing else on
+   the site changes and a dark variant is a second block rather than a rewrite.
+   ========================================================================= */
+
+.chart-workspace {
+  --cw-bg: #FFFFFF;
+  --cw-panel: #F8F9FB;
+  --cw-line: #E1E6EC;
+  --cw-line-soft: #EDF0F3;
+  --cw-text: #131722;
+  --cw-muted: #5A6069;
+  --cw-faint: #8A9099;
+  --cw-accent: #2962FF;
+  --cw-up: #089981;
+  --cw-down: #F23645;
+
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 96px);
+  min-height: 520px;
+  background: var(--cw-bg);
+  color: var(--cw-text);
+  border-top: 1px solid var(--cw-line);
+  border-bottom: 1px solid var(--cw-line);
+  font-family: 'Trebuchet MS', Tahoma, sans-serif;
+}
+
+/* ------------------------------------------------------------- top toolbar */
+
+.cw-toolbar {
+  display: flex; align-items: center; gap: 6px;
+  height: 48px; flex: 0 0 48px;
+  padding: 0 10px;
+  border-bottom: 1px solid var(--cw-line);
+  background: var(--cw-bg);
+  overflow-x: auto;
+}
+.cw-toolbar .sep { width: 1px; height: 22px; background: var(--cw-line); margin: 0 4px; flex: none; }
+
+.cw-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: none; border: 1px solid transparent; border-radius: 5px;
+  padding: 6px 9px; font: inherit; font-size: 13px; color: var(--cw-text);
+  cursor: pointer; white-space: nowrap;
+}
+.cw-btn:hover { background: var(--cw-panel); }
+.cw-btn.on { background: #E8EFFF; border-color: #C4D7FF; color: var(--cw-accent); }
+.cw-btn.symbol { font-weight: 700; font-size: 14.5px; }
+
+/* Maturity is visible, not implied (§4.3). A control that cannot work says so
+   before it is pressed rather than after. */
+.ch-tb-prototype { color: var(--cw-muted); }
+.ch-tb-prototype::after {
+  content: "·"; color: #FF9800; font-weight: 700; font-size: 15px; line-height: 1;
+}
+.ch-tb-disabled { color: #B4BAC2; cursor: not-allowed; }
+.ch-tb-disabled:hover { background: none; }
+
+.cw-maturity-note {
+  padding: 6px 12px; font-size: 12px; color: #8A5A00;
+  background: #FFF6E5; border-bottom: 1px solid #FFE2AC;
+}
+
+/* --------------------------------------------------------- instrument row */
+
+.cw-ohlc {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  height: 34px; flex: 0 0 34px; padding: 0 12px;
+  border-bottom: 1px solid var(--cw-line-soft);
+  font-size: 12.5px; color: var(--cw-muted);
+  font-family: Consolas, 'Courier New', monospace;
+  overflow-x: auto;
+}
+.cw-ohlc .name { color: var(--cw-text); font-weight: 700; font-family: 'Trebuchet MS', Tahoma, sans-serif; }
+.cw-ohlc b { color: var(--cw-text); font-weight: 600; }
+.cw-ohlc .up { color: var(--cw-up); }
+.cw-ohlc .down { color: var(--cw-down); }
+.cw-ohlc .src { color: var(--cw-faint); font-size: 11px; }
+.cw-ohlc .sample { color: #B26A00; }
+
+/* ------------------------------------------------------------ main region */
+
+.cw-main { display: flex; flex: 1; min-height: 0; }
+
+.cw-rail {
+  flex: 0 0 48px; width: 48px;
+  border-right: 1px solid var(--cw-line);
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding-top: 6px; background: var(--cw-bg);
+}
+.cw-tool {
+  width: 34px; height: 34px; border: 1px solid transparent; border-radius: 5px;
+  background: none; cursor: pointer; color: var(--cw-muted);
+  display: flex; align-items: center; justify-content: center; font-size: 15px;
+}
+.cw-tool:hover { background: var(--cw-panel); }
+.cw-tool.on { background: #E8EFFF; border-color: #C4D7FF; color: var(--cw-accent); }
+.cw-tool.locked { opacity: .38; }
+.cw-rail .cap {
+  margin-top: auto; margin-bottom: 8px; font-size: 9px; color: var(--cw-faint);
+  font-family: Consolas, monospace; writing-mode: vertical-rl; transform: rotate(180deg);
+}
+
+.cw-plot { flex: 1; min-width: 0; position: relative; background: var(--cw-bg); }
+.ch-svg { display: block; width: 100%; height: 100%; cursor: crosshair; outline: none; }
+.ch-svg:focus-visible { outline: 2px solid var(--cw-accent); outline-offset: -2px; }
+.ch-candle, .ch-hit { cursor: pointer; }
+.ch-marker { cursor: pointer; }
+
+.cw-tooltip {
+  position: absolute; top: 10px; left: 12px; z-index: 5;
+  background: rgba(255,255,255,.96); border: 1px solid var(--cw-line);
+  border-radius: 6px; padding: 8px 10px; pointer-events: none;
+  font-family: Consolas, monospace; font-size: 11.5px; color: var(--cw-text);
+  box-shadow: 0 2px 10px rgba(19,23,34,.10); line-height: 1.55;
+}
+
+.cw-state {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 12px; text-align: center;
+  background: var(--cw-bg); padding: 24px;
+}
+.cw-state .t { font-size: 15px; color: var(--cw-text); }
+.cw-state .s { font-size: 13px; color: var(--cw-muted); max-width: 440px; line-height: 1.6; }
+.cw-state .row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+/* A skeleton grid, not a blank white screen (§22). */
+.cw-skeleton {
+  width: min(620px, 80%); height: 190px; border-radius: 6px;
+  background: repeating-linear-gradient(90deg, #F1F3F6 0 14px, transparent 14px 26px);
+  opacity: .8;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cw-skeleton { animation: cwPulse 1.4s ease-in-out infinite; }
+  @keyframes cwPulse { 0%,100% { opacity: .45 } 50% { opacity: .85 } }
+}
+
+.cw-sel-label {
+  position: absolute; z-index: 6; background: var(--cw-accent); color: #fff;
+  border-radius: 4px; padding: 3px 8px; font-family: Consolas, monospace;
+  font-size: 11px; display: flex; align-items: center; gap: 8px;
+}
+.cw-sel-label button {
+  background: none; border: none; color: #fff; cursor: pointer; font-size: 12px; padding: 0;
+}
+
+/* ------------------------------------------------------------ right panel */
+
+.cw-side {
+  flex: 0 0 340px; width: 340px; min-width: 0;
+  border-left: 1px solid var(--cw-line);
+  display: flex; flex-direction: column; background: var(--cw-panel);
+}
+.cw-tabs { display: flex; border-bottom: 1px solid var(--cw-line); background: var(--cw-bg); }
+.cw-tabs button {
+  flex: 1; background: none; border: none; border-bottom: 2px solid transparent;
+  padding: 10px 6px; font: inherit; font-size: 12.5px; color: var(--cw-muted); cursor: pointer;
+}
+.cw-tabs button.on { color: var(--cw-accent); border-bottom-color: var(--cw-accent); font-weight: 700; }
+.cw-tabpane { flex: 1; min-height: 0; overflow-y: auto; }
+.cw-tabpane[data-tab-panel="copilot"] { overflow: hidden; display: flex; }
+.cw-tabpane[data-tab-panel="copilot"][hidden] { display: none; }
+
+.cw-wl-row {
+  display: flex; justify-content: space-between; gap: 8px;
+  padding: 8px 12px; border-bottom: 1px solid var(--cw-line-soft); font-size: 13px;
+}
+.cw-wl-row a { color: var(--cw-text); text-decoration: none; }
+.cw-wl-row .up { color: var(--cw-up); } .cw-wl-row .down { color: var(--cw-down); }
+
+.cw-details { padding: 12px; font-size: 13px; color: var(--cw-muted); line-height: 1.65; }
+.cw-details dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 10px 0 0; }
+.cw-details dt { color: var(--cw-faint); font-family: Consolas, monospace; font-size: 11.5px; }
+.cw-details dd { margin: 0; color: var(--cw-text); font-family: Consolas, monospace; font-size: 11.5px; }
+
+.cw-util {
+  width: 34px; height: 34px; border: 1px solid transparent; border-radius: 5px;
+  background: none; cursor: pointer; color: var(--cw-muted);
+  display: flex; align-items: center; justify-content: center; font-size: 15px;
+}
+.cw-util:hover { background: var(--cw-panel); }
+
+.cw-far-rail {
+  flex: 0 0 44px; width: 44px; border-left: 1px solid var(--cw-line);
+  display: flex; flex-direction: column; align-items: center; gap: 3px; padding-top: 6px;
+  background: var(--cw-bg);
+}
+
+/* ------------------------------------------------------------ bottom bar */
+
+.cw-ranges {
+  display: flex; align-items: center; gap: 4px; flex-wrap: wrap;
+  height: 34px; flex: 0 0 34px; padding: 0 10px;
+  border-top: 1px solid var(--cw-line); background: var(--cw-bg);
+  font-size: 12px; overflow-x: auto;
+}
+.cw-ranges .grow { flex: 1; }
+.cw-ranges .note { color: var(--cw-faint); font-family: Consolas, monospace; font-size: 11px; }
+
+/* --------------------------------------------------------------- mobile */
+
+/* §18.2. A 340px column beside a chart on a phone is a covered chart with
+   extra steps, so the same panel becomes a sheet instead. */
+@media (max-width: 860px) {
+  .chart-workspace { height: auto; }
+  .cw-main { flex-direction: column; }
+  .cw-rail { flex-direction: row; width: auto; flex: 0 0 44px; height: 44px; border-right: none; border-bottom: 1px solid var(--cw-line); overflow-x: auto; }
+  .cw-rail .cap { display: none; }
+  .cw-plot { height: 58vh; min-height: 320px; }
+  .cw-util {
+  width: 34px; height: 34px; border: 1px solid transparent; border-radius: 5px;
+  background: none; cursor: pointer; color: var(--cw-muted);
+  display: flex; align-items: center; justify-content: center; font-size: 15px;
+}
+.cw-util:hover { background: var(--cw-panel); }
+
+.cw-far-rail { display: none; }
+  .cw-side.ch-sheet {
+    position: fixed; left: 0; right: 0; bottom: 0; top: auto;
+    width: auto; flex: none; height: 55vh; max-height: 88vh; z-index: 9002;
+    border-left: none; border-top: 1px solid var(--cw-line);
+    border-radius: 12px 12px 0 0; box-shadow: 0 -6px 26px rgba(19,23,34,.18);
+  }
+  .cw-side.ch-sheet.tall { height: 92vh; }
+  .cw-sheet-grip {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: 8px 12px; border-bottom: 1px solid var(--cw-line); background: var(--cw-bg);
+    font-family: Consolas, monospace; font-size: 11px; color: var(--cw-accent);
+  }
+}
+@media (min-width: 861px) { .cw-sheet-grip { display: none; } }
+
+/* The docked Copilot inherits the panel column; its own dark surface is kept,
+   because it is the same assistant as everywhere else on the site. */
+.cw-tabpane[data-tab-panel="copilot"] .cp-panel { height: 100%; }

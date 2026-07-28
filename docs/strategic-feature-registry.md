@@ -49,11 +49,15 @@ A stand that dresses an idea up as a working feature is worse than one with fewe
 reviewer stops trusting everything else on it. Hence `CONCEPT` and `PREMIUM` are as loud as `NEW`,
 and the concept pages repeat the disclosure in their own body copy rather than relying on the badge.
 
-## The thirteen entries
+## The fourteen entries
 
 **Strategic bets** — NEW-01 Guided Academy · NEW-02 Research Copilot · NEW-03 TradingView
 Everywhere · NEW-04 GEO/AEO · NEW-05 Personal Wealth Hub · NEW-06 AI Private · NEW-07 Expert
-Marketplace · NEW-08 Community Rewards.
+Marketplace · NEW-08 Community Rewards · TUNE-10 Chart Research Copilot.
+
+TUNE-10 arrived with the chart rebuild. It is registered as a strategic bet rather than a
+reworked journey because the thing it adds is not a better chart: it is the ability to point at a
+moment and be answered about that moment, which the product could not do at all before.
 
 **Reworked journeys** — CORE-01 Task-based Home · CORE-02 Progressive Complexity · CORE-03
 Contextual Research Journey · CORE-04 Trust-first labelling · CORE-05 Value-first conversion.
