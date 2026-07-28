@@ -75,48 +75,56 @@
     </div>
     <!-- The three filters a first screen actually needs. The rest are a
          disclosure, not a deletion: every input below exists in every mode. -->
-    <div class="filters mt-16">
-      <div class="f">
-        <label for="fCls">Asset class</label>
-        <select id="fCls"><option value="all">All classes</option></select>
+    <!-- §27 — one filter set, one disclosure. The numeric filters used to live
+         in a hand-rolled <details> beside a form renderer that no page called;
+         they are now the renderer's own advanced fold, so "how much is asked at
+         once" is decided in one place. `showAdvancedByDefault` still decides
+         whether Professional opens it on arrival. -->
+    <div data-form-surface="screener">
+    <div class="ff-form filters mt-16" data-ff-stepped="false">
+      <div class="ff-steps" data-ff="steps"></div>
+      <div data-ff="main">
+        <div class="f" data-field-id="fCls">
+          <label for="fCls">Asset class</label>
+          <select id="fCls"><option value="all">All classes</option></select>
+        </div>
+        <div class="f" data-field-id="fText">
+          <label for="fText">Symbol or name contains</label>
+          <input type="text" id="fText" placeholder="e.g. gold, BTC, tech">
+        </div>
+        <div class="f" data-field-id="fChgMin" data-advanced="true">
+          <label for="fChgMin">Today's change, from %</label>
+          <input type="number" id="fChgMin" step="0.5" placeholder="any">
+        </div>
+        <div class="f" data-field-id="fChgMax" data-advanced="true">
+          <label for="fChgMax">Today's change, to %</label>
+          <input type="number" id="fChgMax" step="0.5" placeholder="any">
+        </div>
+        <div class="f" data-field-id="fMonth" data-advanced="true">
+          <label for="fMonth">1-month performance, from %</label>
+          <input type="number" id="fMonth" step="1" placeholder="any">
+        </div>
+        <div class="f" data-field-id="fRangeMin" data-advanced="true">
+          <label for="fRangeMin">52-week position, from %</label>
+          <input type="number" id="fRangeMin" step="5" min="0" max="100" placeholder="0">
+        </div>
+        <div class="f" data-field-id="fRangeMax" data-advanced="true">
+          <label for="fRangeMax">52-week position, to %</label>
+          <input type="number" id="fRangeMax" step="5" min="0" max="100" placeholder="100">
+        </div>
       </div>
-      <div class="f">
-        <label for="fText">Symbol or name contains</label>
-        <input type="text" id="fText" placeholder="e.g. gold, BTC, tech">
-      </div>
-      <div class="f">
+      <details class="ff-fold advanced" data-ff="foldOptional" hidden>
+        <summary>More filters</summary><div data-ff="optional"></div></details>
+      <details class="ff-fold advanced" data-ff="foldAdvanced" id="moreFilters">
+        <summary>Numeric filters — <span id="moreFiltersN">5</span> more</summary>
+        <div class="body" data-ff="advanced"></div>
+      </details>
+      <div class="f" style="align-self:end">
         <label>&nbsp;</label>
         <button type="button" class="btn btn-primary" id="saveScreen">Save this screen</button>
       </div>
     </div>
-
-    <details class="advanced mt-16" id="moreFilters">
-      <summary>Numeric filters — <span id="moreFiltersN">5</span> more</summary>
-      <div class="body">
-        <div class="filters">
-          <div class="f">
-            <label for="fChgMin">Today's change, from %</label>
-            <input type="number" id="fChgMin" step="0.5" placeholder="any">
-          </div>
-          <div class="f">
-            <label for="fChgMax">Today's change, to %</label>
-            <input type="number" id="fChgMax" step="0.5" placeholder="any">
-          </div>
-          <div class="f">
-            <label for="fMonth">1-month performance, from %</label>
-            <input type="number" id="fMonth" step="1" placeholder="any">
-          </div>
-          <div class="f">
-            <label for="fRangeMin">52-week position, from %</label>
-            <input type="number" id="fRangeMin" step="5" min="0" max="100" placeholder="0">
-          </div>
-          <div class="f">
-            <label for="fRangeMax">52-week position, to %</label>
-            <input type="number" id="fRangeMax" step="5" min="0" max="100" placeholder="100">
-          </div>
-        </div>
-      </div>
-    </details>
+    </div>
   </div>
 
   <div id="savedBox" class="mt-16" hidden>
@@ -284,8 +292,13 @@ function applyScreenerMode() {
   }
   if (!COLUMNS.some(c => c.k === sortKey)) sortKey = 'changePct';
 
+  /* The renderer moves the numeric filters in or out of the fold; in `dense`
+     it folds nothing, and the disclosure below then has nothing to disclose. */
+  const filters = document.querySelector('[data-form-surface="screener"]');
+  if (filters && window.FormRenderer) window.FormRenderer.apply(filters, 'screener');
+
   const more = document.getElementById('moreFilters');
-  if (more) {
+  if (more && !more.hidden) {
     const openByDefault = M ? M.policy(mode).showAdvancedByDefault : mode === 'pro';
     if (!more.dataset.touched) more.open = openByDefault;
     more.addEventListener('toggle', () => { more.dataset.touched = '1'; }, { once: true });

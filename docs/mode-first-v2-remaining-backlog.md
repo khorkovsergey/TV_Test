@@ -13,8 +13,10 @@ old model.
 
 ## P0 items not completed
 
-**State adapters: four of eight.** Home, Chart, Money and Screener register one. Asset Hub,
-Academy, Expert Marketplace and Copilot do not.
+**State adapters: eight of eight** — closed. Asset Hub, Academy, Expert Marketplace and Copilot
+were added in the closing P1 slice. The suite now counts registrations per surface, which is how
+it caught the chart registering its adapter three times: two copies had been pasted inside the
+interval and range click handlers and re-registered on every toolbar press.
 
 **`/money/*` is a real router now (§19.4).** Eight addresses, one page, one store: the route
 decides which module leads and folds the rest, and `investing` and `scenarios` — which have no
@@ -75,9 +77,15 @@ The rest still compose themselves the way they did before, which means:
   material and gets no new behaviour.
 
 
-- Asset Hub still has one tab policy (§17 open).
+- Asset Hub reads the matrix (§17 closed). The row is composed by `ModeSurfaces`: Simple leads
+  with five tabs, Professional leads with the chart and folds nothing. The `min` levels survive as
+  the no-matrix fallback, and the overflow is computed as "everything not led with" so a tab the
+  matrix forgets stays reachable.
 
-- Academy still adds a class and folds `[data-advanced]` (GAP-10 open).
+- Academy (GAP-10 closed) — and it was hiding lessons. The comment promised "six lessons in every
+  mode" while the code rendered three, four and five *different* ones, so a Simple learner could
+  not see that the Pine Script lesson existed at all. All twelve are present in every mode now,
+  with the ones a mode does not lead with named under the row.
 - The register changes the answer, but no page yet renders it differently — the panel shows the
   same layout for all three. That is presentation, and it is P1 work that is not done.
 
@@ -87,8 +95,17 @@ puts labels inline. Applying a profile MOVES fields between containers rather th
 them, so a value being typed survives a mode switch — the state invariant in §27 is the reason the
 renderer exists at all.
 
-What is not done: only the Screener declares its profile on `body`. My Money's Quick Add and the
-Expert Marketplace intake still build their own markup and do not go through the renderer.
+**Three pages use it now** — closed. The Expert Marketplace intake, My Money's Quick Add and the
+Screener's filters. In each case the existing markup was annotated rather than re-authored, and
+the two consents stay outside the form: never folded, never stepped past, never preselected.
+
+The Screener had grown its own `<details>` doing exactly what the advanced fold does; there is one
+disclosure now instead of two.
+
+Stepping became refusable, because a screener's filters and a Quick Add dialog are control panels
+rather than intakes — they are compared against each other while being set, and one-at-a-time
+would hide the comparison. `data-ff-stepped="false"` refuses the stepping and leaves density and
+folding to the mode. It sits in the markup rather than as a profile hardcoded in two pages.
 
 ## P2
 
@@ -98,7 +115,13 @@ lesson · persistent chart markers · analytics dashboards.
 
 ## Tests from §32 not yet written
 
-§32 lists 112 checks; 68 exist. The missing ones are the ones that need P1 surfaces to test
+§32 lists 112 checks; the suite now runs 151, of which the §32 set covers Markets columns,
+Screener composition, Asset Hub tabs, My Money's three compositions and the form profiles. Still
+missing: the chart's mode compositions (62–67), Learn (78–82), Community/Practice (83–91), the
+Copilot's register rendered in a real answer (95–99), and the responsive/accessibility set
+(107–112).
+
+The original count, for the record: 68 existed when this file first said so. The missing ones are the ones that need P1 surfaces to test
 against: Markets columns (34–38), Research and Screener composition (39–46), Asset Hub tabs
 (47–53), the chart's mode compositions (62–67), My Money's three compositions (71–77), Learn
 (78–82), Community/Practice/Experts (83–91), the Copilot's register in a real answer (95–99), and

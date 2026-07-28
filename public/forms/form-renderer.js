@@ -137,7 +137,15 @@ window.FormRenderer = (function () {
     const fields = [...form.querySelectorAll('[data-ff="main"] > [data-field-id]')];
     const bar = form.querySelector('[data-ff="steps"]');
 
-    if (!rules.stepped || fields.length < 2) {
+    /* A form may refuse stepping and keep everything else the profile decides.
+       Some surfaces are control panels rather than intakes — a screener's
+       filters and a Quick Add dialog are compared against each other while
+       being set, and showing one at a time would hide the comparison. The
+       refusal is per form and explicit; the density and the folds still follow
+       the mode. */
+    const stepped = rules.stepped && form.dataset.ffStepped !== 'false';
+
+    if (!stepped || fields.length < 2) {
       fields.forEach(f => { f.hidden = false; f.style.display = ''; });
       if (bar) { bar.hidden = true; bar.style.display = 'none'; }
       form.dataset.step = '';

@@ -179,16 +179,24 @@ window.ModeSurfaces = (function () {
         ['summary', 'why', 'chart', 'events', 'more'],
         { summary: 'lead', why: 'primary', chart: 'primary', events: 'secondary', more: 'overflow' },
         ['add_watchlist', 'create_alert', 'open_chart'],
-        { primaryTabs: ['overview', 'why', 'chart', 'events'], overflowTabs: ['metrics', 'technicals', 'news', 'ideas'] }),
+        /* Tab ids are symbol.html's own nine. Simple names the four it does
+           not lead with rather than deleting them (§17.4). */
+        { primaryTabs: ['overview', 'why', 'chart', 'events', 'ideas'],
+          overflowTabs: ['metrics', 'news', 'discussion', 'trade'] }),
       standard: c('The full asset page.',
         ['summary', 'chart', 'metrics', 'technicals', 'events', 'news', 'ideas'],
         { summary: 'lead', chart: 'primary', metrics: 'primary', technicals: 'primary', events: 'secondary', news: 'secondary', ideas: 'secondary' },
         ['add_watchlist', 'create_alert', 'open_chart', 'compare', 'open_screener'],
-        { primaryTabs: ['overview', 'chart', 'metrics', 'technicals', 'events', 'news', 'ideas'] }),
+        { primaryTabs: ['overview', 'chart', 'why', 'metrics', 'events', 'news', 'ideas'],
+          overflowTabs: ['discussion', 'trade'] }),
       pro: c('Dense, with every reading in reach.',
         ['chart', 'metrics', 'technicals', 'summary', 'events', 'news', 'ideas'],
         { chart: 'lead', metrics: 'primary', technicals: 'primary', summary: 'primary', events: 'primary', news: 'secondary', ideas: 'secondary' },
-        ['open_chart', 'compare', 'open_screener', 'create_alert', 'add_watchlist', 'practice', 'ask_copilot'])
+        ['open_chart', 'compare', 'open_screener', 'create_alert', 'add_watchlist', 'practice', 'ask_copilot'],
+        /* Professional leads with the chart and folds nothing: at this level
+           the row is a workspace, not a curriculum. */
+        { primaryTabs: ['chart', 'metrics', 'overview', 'why', 'events', 'news', 'ideas', 'discussion', 'trade'],
+          overflowTabs: [] })
     },
 
     /* ------------------------------------------------------------ chart */

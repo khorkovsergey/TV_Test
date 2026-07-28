@@ -451,20 +451,27 @@
         <button type="button" class="opt ${type === 'expense' ? 'selected' : ''}" data-type="expense">Expense</button>
         <button type="button" class="opt" data-type="transfer">Transfer</button>
       </div>
-      <div class="filters mt-16">
-        <div class="f"><label for="txAmount">Amount</label>
+      <div class="ff-form filters mt-16" data-ff-stepped="false">
+        <div class="ff-steps" data-ff="steps"></div>
+        <div data-ff="main">
+        <div class="f" data-field-id="txAmount"><label for="txAmount">Amount</label>
           <input type="number" id="txAmount" step="any" min="0" inputmode="decimal" placeholder="0"></div>
-        <div class="f"><label for="txDate">Date</label>
+        <div class="f" data-field-id="txDate"><label for="txDate">Date</label>
           <input type="date" id="txDate" value="${new Date().toISOString().slice(0, 10)}"></div>
-        <div class="f"><label for="txCat">Category</label>
+        <div class="f" data-field-id="txCat"><label for="txCat">Category</label>
           <select id="txCat">
             <optgroup label="Income" id="grpIncome">${cats('income')}</optgroup>
             <optgroup label="Essential">${cats('essential')}</optgroup>
             <optgroup label="Flexible">${cats('flexible')}</optgroup>
             <optgroup label="Saving">${cats('saving')}</optgroup>
           </select></div>
-        <div class="f"><label for="txNote">Note (optional)</label>
+        <div class="f" data-field-id="txNote" data-optional="true"><label for="txNote">Note (optional)</label>
           <input type="text" id="txNote" maxlength="140" placeholder="e.g. personal session"></div>
+        </div>
+        <details class="ff-fold" data-ff="foldOptional"><summary>Add a note</summary>
+          <div data-ff="optional"></div></details>
+        <details class="ff-fold" data-ff="foldAdvanced" hidden><summary>Advanced</summary>
+          <div data-ff="advanced"></div></details>
       </div>
       <div class="row mt-16" style="gap:8px;flex-wrap:wrap">
         <button type="button" class="btn btn-primary" id="txSave">Save</button>
@@ -475,6 +482,15 @@
         stays in this browser · never sent anywhere</div>
     </div>`;
     document.body.appendChild(back);
+
+    /* §27 — the shared renderer lays this dialog out on the mode's own money
+       profile: the density and the folds follow the mode. Stepping does not —
+       `data-ff-stepped="false"` above refuses it, because a four-field Quick
+       Add split across four screens would be slower than the thing it
+       replaced. The refusal is in the markup rather than in a hardcoded
+       profile, so the mode still decides everything else. */
+    back.dataset.formSurface = 'money';
+    window.FormRenderer?.apply(back, 'money');
 
     let current = type;
     const pickDefault = () => {

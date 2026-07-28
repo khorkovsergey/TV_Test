@@ -736,6 +736,108 @@ const topMenu = d => [...d.querySelectorAll('.portal-nav .menu > a, .portal-nav 
     && !chart.events.some(e => e.startsWith('ERR')),
     [].concat(nav.pro.events, chart.events).filter(e => e.startsWith('ERR'))[0]);
 
+  /* ------------------------------------- P1 замыкание: формы и адаптеры */
+
+  console.log('\n[P1] Рендерер форм действительно применён');
+
+  for (const m of ['simple', 'standard', 'pro']) {
+    const ex = await open('/capital/experts', { mode: m, wait: 900 });
+    const form = ex.d.querySelector('#leadForm .ff-form');
+    ok(`115${m[0]}. интейк экспертов проходит через рендерер (${m})`,
+      !!form && !!form.dataset.profile, form && form.dataset.profile);
+    const consent = ex.d.getElementById('fConsent');
+    const consentAi = ex.d.getElementById('fConsentAi');
+    ok(`116${m[0]}. оба согласия вне формы, видимы и не отмечены (${m})`,
+      consent && consentAi && !consent.checked && !consentAi.checked
+      && !form.contains(consent) && !form.contains(consentAi));
+    ok(`117${m[0]}. все шесть полей интейка присутствуют (${m})`,
+      ex.d.querySelectorAll('#leadForm [data-field-id]').length === 6,
+      String(ex.d.querySelectorAll('#leadForm [data-field-id]').length));
+  }
+
+  const exS = await open('/capital/experts', { mode: 'simple', wait: 900 });
+  const formS = exS.d.querySelector('#leadForm .ff-form');
+  const visibleS = [...formS.querySelectorAll('[data-ff="main"] > [data-field-id]')]
+    .filter(f => !f.hidden);
+  ok('118. Simple ведёт по одному вопросу',
+    formS.dataset.profile === 'wizard' && visibleS.length === 1,
+    `${formS.dataset.profile}/${visibleS.length}`);
+  ok('119. шаг подписан числом',
+    /Step 1 of \d/.test(formS.querySelector('[data-ff="steps"]').textContent),
+    formS.querySelector('[data-ff="steps"]').textContent.trim());
+
+  const exP = await open('/capital/experts', { mode: 'pro', wait: 900 });
+  ok('120. Professional не прячет ничего за шагами',
+    [...exP.d.querySelectorAll('#leadForm [data-ff="main"] > [data-field-id]')]
+      .every(f => !f.hidden));
+
+  console.log('\n[P1] Панели управления отказываются от шагов');
+
+  const scrS = await open('/screeners', { mode: 'simple', wait: 1400 });
+  const scrForm = scrS.d.querySelector('[data-form-surface="screener"] .ff-form');
+  ok('121. фильтры скринера — форма рендерера', !!scrForm && !!scrForm.dataset.profile,
+    scrForm && scrForm.dataset.profile);
+  ok('122. скринер не разбит на шаги даже в Simple',
+    [...scrForm.querySelectorAll('[data-ff="main"] > [data-field-id]')].every(f => !f.hidden));
+  ok('123. числовые фильтры свёрнуты, а не удалены (Simple)',
+    scrS.d.querySelectorAll('#moreFilters [data-field-id]').length === 5,
+    String(scrS.d.querySelectorAll('#moreFilters [data-field-id]').length));
+
+  const scrP = await open('/screeners', { mode: 'pro', wait: 1400 });
+  ok('124. Professional ничего не сворачивает',
+    scrP.d.querySelectorAll('[data-form-surface="screener"] [data-ff="main"] > [data-field-id]').length === 7,
+    String(scrP.d.querySelectorAll('[data-form-surface="screener"] [data-ff="main"] > [data-field-id]').length));
+
+  console.log('\n[P1] Восемь адаптеров состояния, а не четыре');
+
+  /* Пути от файла теста, а не от рабочего каталога: раннер запускает сюиты
+     из другого места, и относительный путь молча превращался в ENOENT. */
+  const fs = require('fs');
+  const path = require('path');
+  const readSrc = f => fs.readFileSync(path.join(__dirname, '..', '..', f), 'utf8');
+  const ADAPTERS = [
+    ['home', 'public/index.html'], ['chart', 'public/chart/chart-page.js'],
+    ['money', 'public/money/page.js'], ['screener', 'public/screener.html'],
+    ['asset-hub', 'public/symbol.html'], ['academy', 'public/academy.html'],
+    ['expert-marketplace', 'public/experts.html'], ['copilot', 'public/copilot.js']
+  ];
+  for (const [id, file] of ADAPTERS) {
+    const src = readSrc(file);
+    const n = (src.match(new RegExp(`registerStateAdapter\\('${id}'`, 'g')) || []).length;
+    ok(`125-${id}. адаптер зарегистрирован ровно один раз`, n === 1, String(n));
+  }
+
+  console.log('\n[P1] Вкладки Asset Hub читаются из матрицы');
+
+  const hubS = await open('/symbols/NVDA', { mode: 'simple', wait: 1600 });
+  const hubP = await open('/symbols/NVDA', { mode: 'pro', wait: 1600 });
+  const tabIds = doc => [...doc.querySelectorAll('#hubTabs [data-tab]')].map(b => b.dataset.tab);
+  ok('127. Simple ведёт пятью вкладками',
+    [...hubS.d.querySelectorAll('#hubTabs > [data-tab]')].length === 5,
+    String([...hubS.d.querySelectorAll('#hubTabs > [data-tab]')].length));
+  ok('128. все девять вкладок достижимы в Simple',
+    new Set(tabIds(hubS.d)).size === 9, String(new Set(tabIds(hubS.d)).size));
+  ok('129. Professional ведёт графиком',
+    hubP.d.querySelector('#hubTabs [data-tab]')?.dataset.tab === 'chart',
+    hubP.d.querySelector('#hubTabs [data-tab]')?.dataset.tab);
+  ok('130. порядок вкладок отличается между режимами',
+    tabIds(hubS.d).join(',') !== tabIds(hubP.d).join(','));
+
+  console.log('\n[P1] Учебный план ничего не прячет');
+
+  const acS = await open('/learn/academy', { mode: 'simple', wait: 1300 });
+  const acP = await open('/learn/academy', { mode: 'pro', wait: 1300 });
+  const cards = doc => doc.querySelectorAll('#curCards .tv-card').length;
+  ok('131. в Simple доступны все двенадцать уроков', cards(acS.d) === 12, String(cards(acS.d)));
+  ok('132. остальные уроки названы, а не удалены',
+    /more lessons/.test(acS.d.getElementById('curCards').textContent));
+  ok('133. Professional больше не подписан "PRO"',
+    acP.d.getElementById('curTag').textContent === 'PROFESSIONAL CURRICULUM',
+    acP.d.getElementById('curTag').textContent);
+  ok('134. ведущие уроки различаются по режимам',
+    acS.d.querySelector('#curCards .tv-card .title').textContent
+      !== acP.d.querySelector('#curCards .tv-card .title').textContent);
+
   console.log(`\n${pass} ok, ${fail} fail`);
   process.exit(fail ? 1 : 0);
 })().catch(e => { console.error(e); process.exit(1); });

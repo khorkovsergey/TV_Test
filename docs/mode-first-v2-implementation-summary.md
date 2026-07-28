@@ -142,21 +142,55 @@ was called by nobody.
 Screener columns and form profile from the matrix, with "why this matched" in Simple — read off
 the filters that are actually set, never invented.
 
-## Known limitations
+## P1 closing slice
 
-State adapters cover Home, Chart, Money and Screener. Asset Hub, Academy, Expert Marketplace and
-Copilot have none.
+**The form renderer now runs three real forms.** The Expert Marketplace intake, My Money's Quick
+Add and the Screener's filters all go through it. In each case the existing markup was kept and
+annotated — the renderer *moves* fields between the body and the folds, so a half-typed enquiry
+survives a mode switch. Nothing was re-authored, and the two consents were deliberately left
+outside the form: they are never folded, never stepped past and never preselected, in any mode.
+
+The Screener had grown its own hand-rolled `<details>` doing exactly what the renderer's advanced
+fold does. There is now one disclosure instead of two, and `showAdvancedByDefault` still decides
+whether Professional opens it on arrival.
+
+**Stepping is now refusable.** A screener's filters and a Quick Add dialog are control panels, not
+intakes: they are compared against each other while being set, so showing one at a time would hide
+the comparison. `data-ff-stepped="false"` refuses the stepping and keeps everything else the mode
+decides. The refusal is per form and in the markup, rather than a profile hardcoded in two pages.
+
+**Eight state adapters, and each registered exactly once.** Asset Hub, Academy, Expert Marketplace
+and Copilot were added. The Copilot's is the one that matters most: a thread in progress, a
+half-written question and the scroll position all cross the switch.
+
+**Asset Hub reads the matrix (§17).** The tab row is composed by `ModeSurfaces`, not by the page.
+Simple leads with five, Professional leads with the chart and folds nothing; the `min` levels
+remain the no-matrix fallback. The overflow is computed as "everything not led with" rather than
+read off the config, so a tab the matrix forgets is still reachable.
+
+**Academy stopped hiding lessons.** The comment claimed "six lessons stay six lessons in every
+mode" while the code rendered three, four and five *different* ones — a Simple learner could not
+see that the Pine Script lesson existed. All twelve are now present in every mode, with the ones a
+mode does not lead with named under the row. `PRO CURRICULUM` also still read `PRO`; it reads
+`PROFESSIONAL` now.
+
+## Bugs found in this slice
+
+**The chart's state adapter was registered three times.** Two copies had been pasted *inside* the
+interval and range click handlers, so it re-registered on every click of the toolbar. The suite
+now asserts one registration per surface, by counting rather than by reading.
+
+**`apply()` looks for `.ff-form` among descendants,** and the first version of the Screener markup
+put `data-form-surface` on the form element itself — so it could never find itself. Caught by
+writing the check.
+
+## Known limitations
 
 Scroll is restored to the same pixel offset rather than to the same element; after a
 recomposition that offset can be a different place on the page.
 
-Surfaces that still compose themselves the old way: Overview, Asset Hub, Learn, Academy,
-Community, Practice, Expert Marketplace. `hub.js` accepts a composition but only `/research`
-passes one.
-
-The form renderer is used by no page yet — the Screener declares its profile on `body` but still
-draws its own filter markup, and My Money's Quick Add and the Expert Marketplace intake build
-theirs by hand.
+Surfaces that still compose themselves the old way: Overview, Learn, Community, Practice.
+`hub.js` accepts a composition but only `/research` passes one.
 
 `/money/*` still serves one shell for eight routes.
 

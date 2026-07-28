@@ -743,6 +743,30 @@
          without duplicating the wording. */
       CANDLE_PROMPTS, RANGE_PROMPTS, NO_SELECTION_HINT
     };
+    /* §29 — the Copilot's state adapter, and the last of the eight. A thread
+       in progress is the most expensive thing on the page to lose: the
+       messages live in the panel's own DOM, so they survive by not being
+       re-rendered, but whether the panel was open, what was half-typed and
+       where the scroll sat are all ours to carry across. */
+    window.ModeOrchestrator?.registerStateAdapter('copilot', {
+      capture: () => ({
+        open: panel.classList.contains('open'),
+        docked,
+        draft: input.value,
+        scroll: body ? body.scrollTop : 0,
+        focused: document.activeElement === input
+      }),
+      restore(own) {
+        if (!own) return;
+        if (own.open && !panel.classList.contains('open')) open({ reason: 'reflow' });
+        else if (!own.open && !own.docked && panel.classList.contains('open')) close();
+        /* A half-written question is restored verbatim and never resent. */
+        if (own.draft && input.value !== own.draft) input.value = own.draft;
+        if (body && typeof own.scroll === 'number') body.scrollTop = own.scroll;
+        if (own.focused) { try { input.focus(); } catch {} }
+      }
+    });
+
     document.dispatchEvent(new CustomEvent('copilot-ready'));
   }
 

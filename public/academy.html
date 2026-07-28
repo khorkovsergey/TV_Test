@@ -355,8 +355,12 @@ render();
 })();
 </script>
 <script>
-/* The curriculum by preset. Six lessons stay six lessons in every mode — the
-   emphasis moves, the product does not (§7.12). */
+/* The curriculum by preset. Every mode leads with a different set — but the
+   twelve lessons are the same twelve, and the ones a mode does not lead with
+   are named under the row rather than removed (§7.12, §4.2). An earlier
+   version of this comment claimed "six lessons in every mode" while the code
+   rendered three, four and five different ones; the claim is corrected here
+   and the disappearance is fixed rather than re-described. */
 (function () {
   const CUR = {
     simple: { tag: 'SIMPLE CURRICULUM', title: 'What this track covers',
@@ -372,7 +376,7 @@ render();
         ['Events and what they touch', 'From a calendar entry to the instruments it historically moved, and to an alert you set yourself.'],
         ['Screeners as questions', 'Turning "which stable dividend payers report next month" into a filter set you can save.']
       ] },
-    pro: { tag: 'PRO CURRICULUM', title: 'Professional workflows',
+    pro: { tag: 'PROFESSIONAL CURRICULUM', title: 'Professional workflows',
       cards: [
         ['Strategy testing end to end', 'Replay, tester, journal — building evidence for a rule instead of an opinion about it.'],
         ['Pine Script', 'Syntax, debugging, publication and the errors that eat an afternoon the first time.'],
@@ -381,6 +385,20 @@ render();
         ['Expert-led tracks', 'Courses written by the licensed advisers in the marketplace, with their record attached.']
       ] }
   };
+
+  /* The whole curriculum, in one list, deduplicated by title. */
+  const ALL = [];
+  for (const m of ['simple', 'standard', 'pro'])
+    for (const card of CUR[m].cards)
+      if (!ALL.some(x => x[0] === card[0])) ALL.push(card);
+
+  const card = ([t, w]) => `<div class="tv-card">
+      <p class="title" style="margin:0">${t}</p>
+      <div data-explain-level="context" style="font-size:13px;color:var(--tv-muted);margin-top:6px;line-height:1.5">${w}</div>
+    </div>`;
+
+  /* Which lesson is open is page state, not mode state. */
+  let restOpen = false;
 
   function paintCurriculum() {
     const mode = (window.Portal?.mode?.() || 'simple');
@@ -391,15 +409,42 @@ render();
     if (!box) return;
     tag.textContent = c.tag;
     title.textContent = c.title;
-    box.innerHTML = c.cards.map(([t, w]) => `<div class="tv-card">
-      <p class="title" style="margin:0">${t}</p>
-      <div data-explain-level="context" style="font-size:13px;color:var(--tv-muted);margin-top:6px;line-height:1.5">${w}</div>
-    </div>`).join('');
+
+    const leadTitles = c.cards.map(x => x[0]);
+    const rest = ALL.filter(x => !leadTitles.includes(x[0]));
+
+    box.innerHTML = c.cards.map(card).join('')
+      + (rest.length ? `<details class="cur-rest"${restOpen ? ' open' : ''} style="grid-column:1/-1">
+          <summary style="cursor:pointer;font-size:12.5px;color:#5B8DFF;padding:6px 0">
+            ${rest.length} more lessons in this Academy</summary>
+          <div style="display:grid;gap:12px;padding-top:10px">${rest.map(card).join('')}</div>
+        </details>` : '');
+
+    box.querySelector('.cur-rest')?.addEventListener('toggle', e => {
+      restOpen = e.target.open;
+      window.Portal?.track?.(restOpen ? 'temporary_advanced_opened' : 'temporary_advanced_closed',
+        { surface: 'academy_curriculum', mode });
+    });
+
     window.Portal?.applyExplain?.(window.Modes?.policy(mode).explanationDepth);
   }
 
   paintCurriculum();
   document.addEventListener('ui-mode-changed', paintCurriculum);
+
+  /* §29 — Academy's state adapter. The fold and the scroll position are the
+     only things here a recomposition could throw away; progress itself lives
+     in localStorage and was never at risk. */
+  window.ModeOrchestrator?.registerStateAdapter('academy', {
+    capture: () => ({ restOpen, scroll: window.scrollY }),
+    restore(own) {
+      if (!own) return;
+      restOpen = !!own.restOpen;
+      const box = document.getElementById('curCards')?.querySelector('.cur-rest');
+      if (box) box.open = restOpen;
+      if (typeof own.scroll === 'number') window.scrollTo({ top: own.scroll });
+    }
+  });
 })();
 </script>
 </body>

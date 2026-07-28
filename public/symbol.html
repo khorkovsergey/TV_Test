@@ -219,11 +219,34 @@ const TABS = [
    visitor back to Overview (§5.3). It is remembered here and restored. */
 let activeTab = 'overview';
 
+/* §17 — the row is composed by the surface matrix, not by this page. The
+   matrix decides which tabs lead and in what order; the `min` levels above
+   remain the fallback for a page loaded without it. Either way the rule holds:
+   what a mode does not lead with goes under More, and nothing disappears. */
+function tabPlan(mode) {
+  const comp = window.ModeSurfaces?.get?.('asset-hub', mode);
+  const primary = comp?.primaryTabs;
+  if (!Array.isArray(primary) || !primary.length) {
+    const order = window.IA?.ORDER || { simple: 0, standard: 1, pro: 2 };
+    return {
+      shown: TABS.filter(t => order[t.min] <= order[mode]),
+      later: TABS.filter(t => order[t.min] > order[mode])
+    };
+  }
+  const known = new Set(TABS.map(t => t.id));
+  const lead = primary.filter(id => known.has(id));
+  const byId = id => TABS.find(t => t.id === id);
+  /* A tab the matrix forgot still has to be reachable, so the overflow is
+     computed as "everything not led with" rather than read off the config. */
+  return {
+    shown: lead.map(byId),
+    later: TABS.filter(t => !lead.includes(t.id))
+  };
+}
+
 function renderTabs() {
   const mode = P.mode();
-  const order = window.IA?.ORDER || { simple: 0, standard: 1, pro: 2 };
-  const shown = TABS.filter(t => order[t.min] <= order[mode]);
-  const later = TABS.filter(t => order[t.min] > order[mode]);
+  const { shown, later } = tabPlan(mode);
 
   /* Tabs above the level are not deleted — they move into "More", so they can
      be opened without changing the mode at all (§4.2, more-menu). */
@@ -239,7 +262,7 @@ function renderTabs() {
 
   $('tabNote').textContent = later.length
     ? `${later.map(t => t.label).join(', ')} — open from More here, or make ${later[0].min} your default in the header. Nothing is locked either way.`
-    : 'All nine tabs are shown.';
+    : `All ${TABS.length} tabs are shown.`;
 
   $('hubTabs').querySelector('.tab-more')?.addEventListener('toggle', e => {
     if (e.target.open) P.track('temporary_advanced_opened', { surface: 'asset_tabs', mode, symbol });
@@ -342,6 +365,32 @@ document.addEventListener('ui-mode-changed', () => {
   renderTabs();
   renderActionBar(current);
   P.track('mode_state_preserved', { route: location.pathname, symbol, tab: activeTab, mode: P.mode() });
+});
+
+/* §29 — the Asset Hub's state adapter. The open tab is page state, and a tab
+   that Simple does not lead with still has to be the open one after the
+   switch: it moves under More, it does not close. */
+window.ModeOrchestrator?.registerStateAdapter('asset-hub', {
+  capture() {
+    return {
+      symbol,
+      tab: activeTab,
+      moreOpen: !!$('hubTabs')?.querySelector('.tab-more')?.open,
+      scroll: window.scrollY
+    };
+  },
+  restore(own) {
+    if (!own || own.symbol !== symbol) return;
+    if (own.tab && TABS.some(t => t.id === own.tab)) {
+      activeTab = own.tab;
+      renderTabs();
+      /* If the restored tab landed in the overflow, open the door so the
+         person can see where their tab went. */
+      const box = $('hubTabs')?.querySelector('.tab-more');
+      if (box && (own.moreOpen || box.querySelector(`[data-tab="${own.tab}"]`))) box.open = true;
+    }
+    if (typeof own.scroll === 'number') window.scrollTo({ top: own.scroll });
+  }
 });
 
 /* ------------------------------------------------------------- the trail */

@@ -63,19 +63,28 @@
   <div class="grid-2 mt-24" style="grid-template-columns:1.4fr 1fr; align-items:start;">
 
     <!-- ============================================ LEFT: request form -->
-    <div class="tv-card" id="leadForm">
+    <div class="tv-card" id="leadForm" data-form-surface="expert-marketplace">
       <!-- §7.14 — Simple is guided ("what this service is, and what it is not"),
            Pro leads with the compliance facts. The flow is identical. -->
       <div id="expertIntro" class="mt-16" style="margin-top:0"></div>
-      <div class="field">
+
+      <!-- §23/§27 — the intake goes through the shared form renderer. The
+           markup, the segmented controls and the two consent answers are
+           unchanged: the renderer MOVES these fields between the body and the
+           folds and, in Simple, shows one at a time. Nothing is re-created, so
+           a half-filled enquiry survives a mode switch. -->
+      <div class="ff-form" data-profile="grouped">
+      <div class="ff-steps" data-ff="steps"></div>
+      <div data-ff="main">
+      <div class="field" data-field-id="fName" data-optional="false" data-advanced="false">
         <label for="fName">What should we call you</label>
         <input type="text" id="fName" maxlength="120" placeholder="Alex">
       </div>
-      <div class="field">
+      <div class="field" data-field-id="fMail" data-optional="false" data-advanced="false">
         <label for="fMail">Email</label>
         <input type="email" id="fMail" placeholder="you@example.com">
       </div>
-      <div class="field">
+      <div class="field" data-field-id="country" data-optional="false" data-advanced="false">
         <label>Country <span class="hint">determines the consultant's jurisdiction</span></label>
         <div class="seg" data-name="country">
           <span class="opt selected" data-v="US">United States</span>
@@ -84,7 +93,7 @@
           <span class="opt" data-v="IN">India</span>
         </div>
       </div>
-      <div class="field">
+      <div class="field" data-field-id="language" data-optional="true" data-advanced="false">
         <label>Language for the consultation</label>
         <div class="seg" data-name="language">
           <span class="opt selected" data-v="en">English</span>
@@ -92,7 +101,7 @@
           <span class="opt" data-v="hi">हिन्दी</span>
         </div>
       </div>
-      <div class="field">
+      <div class="field" data-field-id="capital_band" data-optional="true" data-advanced="false">
         <label>Approximate capital</label>
         <div class="seg" data-name="capital_band">
           <span class="opt selected" data-v="under $50k">under $50k</span>
@@ -102,13 +111,21 @@
           <span class="opt" data-v="prefer not to say">prefer not to say</span>
         </div>
       </div>
-      <div class="field">
+      <div class="field" data-field-id="fGoal" data-optional="false" data-advanced="false">
         <label for="fGoal">What do you need help with?
           <span class="hint" id="cnt">in your own words · 40 characters minimum</span></label>
         <textarea id="fGoal" maxlength="6000"
           placeholder="For example: my savings have sat in a deposit account for years and the rate keeps dropping. I want to understand whether to move some of it, but I'm not ready to risk the whole amount and I don't know where to start."></textarea>
       </div>
-      <!-- §SEC-004 — two purposes, two answers. Neither is preselected. -->
+      </div>
+      <details class="ff-fold" data-ff="foldOptional"><summary>Optional details</summary>
+        <div data-ff="optional"></div></details>
+      <details class="ff-fold" data-ff="foldAdvanced"><summary>Advanced</summary>
+        <div data-ff="advanced"></div></details>
+      </div>
+
+      <!-- §SEC-004 — consent is never folded and never stepped past. Two
+           purposes, two answers, neither preselected, in every mode. -->
       <div class="checkbox-row">
         <input type="checkbox" id="fConsentAi">
         <label for="fConsentAi">I agree that an AI model may read what I write here to structure it
@@ -453,9 +470,59 @@ async function book(consultantId, slot) {
     const mode = window.Portal?.mode?.() || 'simple';
     el.innerHTML = INTRO[mode] || INTRO.simple;
     window.Portal?.applyExplain?.(window.Modes?.policy(mode).explanationDepth);
+
+    /* §23 — the intake layout follows the form profile: one question at a time
+       in Simple, grouped in Standard, dense in Professional. The renderer moves
+       the existing fields; it does not rebuild them, so an answer already typed
+       stays typed. */
+    const host = document.getElementById('leadForm');
+    if (host && window.FormRenderer) window.FormRenderer.apply(host, 'expert-marketplace');
+    document.body.dataset.formProfile = window.FormPolicy
+      ? window.FormPolicy.rules('expert-marketplace').id : 'grouped';
   }
   paintIntro();
   document.addEventListener('ui-mode-changed', paintIntro);
+
+  /* §29.6 — the intake's state adapter. A wizard step and six answers are
+     exactly the kind of thing a reflow can quietly discard. */
+  window.ModeOrchestrator?.registerStateAdapter('expert-marketplace', {
+    capture() {
+      const host = document.getElementById('leadForm');
+      if (!host) return null;
+      const form = host.querySelector('.ff-form');
+      return {
+        step: form ? form.dataset.step : null,
+        values: window.FormRenderer ? window.FormRenderer.values(host) : {},
+        segments: [...host.querySelectorAll('.seg')].map(sg => ({
+          name: sg.dataset.name,
+          value: sg.querySelector('.opt.selected')?.dataset.v || null
+        })),
+        consentAi: document.getElementById('fConsentAi')?.checked || false,
+        consent: document.getElementById('fConsent')?.checked || false
+      };
+    },
+    restore(own) {
+      if (!own) return;
+      const host = document.getElementById('leadForm');
+      if (!host) return;
+      for (const [id, v] of Object.entries(own.values || {})) {
+        const el = host.querySelector('#' + id);
+        if (el && el.value !== v) el.value = v;
+      }
+      for (const sg of own.segments || []) {
+        if (!sg.value) continue;
+        const box = host.querySelector(`.seg[data-name="${sg.name}"]`);
+        if (!box) continue;
+        box.querySelectorAll('.opt').forEach(o =>
+          o.classList.toggle('selected', o.dataset.v === sg.value));
+      }
+      /* Consent is restored as it was and never defaulted to true. */
+      const ai = document.getElementById('fConsentAi');
+      const c = document.getElementById('fConsent');
+      if (ai) ai.checked = own.consentAi;
+      if (c) c.checked = own.consent;
+    }
+  });
 })();
 </script>
 </body>
