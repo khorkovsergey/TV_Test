@@ -49,7 +49,10 @@ window.Navigation = (function () {
       primary: [
         E('Find an asset',      '/symbols/BTCUSD', 'one page per instrument'),
         E('Screener',           '/screeners',      'ask the market a question'),
-        E('Chart',              '/charts',         'Simple, Standard and Pro presets'),
+        /* The entry used to describe the mode presets, which is a setting, not
+           a reason to go there. What the page is now for is the one question a
+           chart could never answer: what happened on that particular day. */
+        E('Chart',              '/charts',         'click any candle and ask what happened that day'),
         E('Compare',            '/markets',        'side by side', 'standard'),
         E('Saved research',     '/money#saved',    'screens, journey, Copilot history', 'standard'),
         E('Ask Copilot',        '/research#search','explains the page you are on')
