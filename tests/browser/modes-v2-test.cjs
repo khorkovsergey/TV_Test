@@ -349,6 +349,63 @@ const topMenu = d => [...d.querySelectorAll('.portal-nav .menu > a, .portal-nav 
     && home.standard.w.Modes.policy('standard').maxPrimaryActions === 5
     && home.pro.w.Modes.policy('pro').maxPrimaryActions === 8);
 
+  /* ---------------------------------------------------- P1: поверхности */
+
+  console.log('\n[P1] Copilot, график и Research читают политику');
+
+  /* §GAP-11 — регистр перестал быть числом подсказок. */
+  ok('95a. клиент отправляет профиль Copilot в контекст',
+    ['teacher', 'researcher', 'analyst'].includes(home.standard.w.ResearchCopilot.context().copilotProfile),
+    home.standard.w.ResearchCopilot.context().copilotProfile);
+
+  ok('95b. профиль меняется вместе с режимом',
+    home.simple.w.ResearchCopilot.context().copilotProfile === 'teacher'
+    && home.pro.w.ResearchCopilot.context().copilotProfile === 'analyst',
+    [home.simple.w.ResearchCopilot.context().copilotProfile,
+     home.pro.w.ResearchCopilot.context().copilotProfile].join('/'));
+
+  /* §GAP-12 — один глобальный переключатель. */
+  const chartModes = await open('/charts?symbol=NVDA', { mode: 'standard', wait: 2200 });
+  ok('66. второго глобального переключателя на графике нет',
+    !chartModes.d.getElementById('modePill')
+    && chartModes.d.querySelectorAll('.mode-switch').length === 1);
+  ok('66b. страница говорит, за каким режимом следует',
+    /View follows: Standard/.test(chartModes.d.getElementById('modeFollows').textContent),
+    chartModes.d.getElementById('modeFollows').textContent);
+  ok('65. локальный «Advanced tools» остался и не меняет глобальный режим', (() => {
+    const before = chartModes.w.Portal.mode();
+    const drawer = chartModes.d.getElementById('advDrawer');
+    if (drawer && !drawer.hidden) click(chartModes.w, drawer.querySelector('button'));
+    return chartModes.w.Portal.mode() === before;
+  })());
+  ok('65b. «сделать по умолчанию» осталось',
+    Boolean(chartModes.d.getElementById('makeDefault')));
+
+  /* §GAP-07 — Hub принимает композицию. */
+  const research = {};
+  for (const m of ['simple', 'standard', 'pro']) {
+    research[m] = await open('/research', { mode: m, wait: 1600 });
+  }
+  const leadOf = r => [...r.d.querySelectorAll('.hub-lead .title')].map(t => t.textContent).join();
+
+  ok('41a. у секции есть ведущий модуль, а не ровная лента',
+    ['simple', 'standard', 'pro'].every(m => leadOf(research[m]).length > 0),
+    ['simple', 'standard', 'pro'].map(m => m + ':' + leadOf(research[m])).join(' | '));
+
+  ok('41b. Professional ведёт другим модулем, чем Simple',
+    leadOf(research.pro) !== leadOf(research.simple),
+    leadOf(research.simple) + ' vs ' + leadOf(research.pro));
+
+  ok('41c. ни один модуль Research не потерян ни в одном режиме', (() => {
+    const titles = r => [...r.d.querySelectorAll('#fundamentals ~ div .title, .hub-lead .title')]
+      .map(t => t.textContent);
+    const union = new Set(['simple', 'standard', 'pro'].flatMap(m => titles(research[m])));
+    return ['simple', 'standard', 'pro'].every(m => {
+      const have = new Set(titles(research[m]));
+      return [...union].every(t => have.has(t));
+    });
+  })());
+
   /* ------------------------------------------------------- обещания */
 
   console.log('\n[Обещания] Переключатель говорит правду');

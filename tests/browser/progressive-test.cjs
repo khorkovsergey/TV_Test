@@ -37,7 +37,14 @@ const vis = el => el && !el.hidden && el.style.display !== 'none';
   let { d, w, events } = await open('/charts');
   ok('без ошибок исполнения', !events.some(e => e.startsWith('ERR')), events.filter(e => e.startsWith('ERR'))[0]);
   ok('режим по умолчанию beginner', w.Portal.mode() === 'simple', w.Portal.mode());
-  ok('активна кнопка Beginner', d.querySelector('#modePill .on').dataset.mode === 'simple');
+  /* Локального переключателя на графике больше нет — активный режим виден в
+     общем переключателе шапки, и страница подписывает, за чем она следует. */
+  ok('активен Simple в общем переключателе',
+     d.querySelector('.mode-switch .on')?.dataset.mode === 'simple',
+     d.querySelector('.mode-switch .on')?.dataset.mode);
+  ok('страница говорит, за каким режимом следует',
+     /View follows: Simple/.test(d.getElementById('modeFollows').textContent),
+     d.getElementById('modeFollows').textContent);
   ok('открыто 3 инструмента из 9', d.querySelectorAll('.cw-tool:not(.locked)').length === 3,
      String(d.querySelectorAll('.cw-tool:not(.locked)').length));
   /* Рельс считает то, что на нём действительно есть: девять рисовалок.
@@ -62,7 +69,7 @@ const vis = el => el && !el.hidden && el.style.display !== 'none';
      w.Portal.events().some(e => e.event === 'mode_switch' && e.source === 'default'));
 
   console.log('\n[2] Standard включается без перезагрузки');
-  click(w, d.querySelector('#modePill [data-mode="standard"]'));
+  click(w, d.querySelector('.mode-switch [data-mode="standard"]'));
   ok('режим standard', w.Portal.mode() === 'standard');
   ok('открыто 6 инструментов', d.querySelectorAll('.cw-tool:not(.locked)').length === 6,
      String(d.querySelectorAll('.cw-tool:not(.locked)').length));
@@ -73,8 +80,10 @@ const vis = el => el && !el.hidden && el.style.display !== 'none';
      [...d.querySelectorAll('.cw-toolbar [data-min="pro"]')].every(el => !vis(el)));
   ok('pro-инструменты остаются закрытыми', d.querySelectorAll('.cw-tool.locked').length === 3);
   ok('подсказка Simple убрана', !vis(d.getElementById('simpleHint')));
-  ok('событие mode_switch source=pill',
-     w.Portal.events().some(e => e.event === 'mode_switch' && e.source === 'pill' && e.to === 'standard'));
+  /* Источник теперь `switch`: переключатель один, и он в шапке. */
+  ok('событие mode_switch из общего переключателя',
+     w.Portal.events().some(e => e.event === 'mode_switch' && e.source === 'switch' && e.to === 'standard'),
+     JSON.stringify(w.Portal.events().filter(e => e.event === 'mode_switch').slice(-2)));
 
   console.log('\n[3] «Full interface →» даёт pro мгновенно');
   click(w, d.getElementById('fullBtn'));
@@ -94,7 +103,7 @@ const vis = el => el && !el.hidden && el.style.display !== 'none';
   ok('интрадей снова закрыт', !vis(d.querySelector('[data-interval="1h"]')));
 
   console.log('\n[5] Плотность');
-  click(w, d.querySelector('#modePill [data-mode="standard"]'));
+  click(w, d.querySelector('.mode-switch [data-mode="standard"]'));
   const dens = d.getElementById('density');
   dens.value = '3';
   dens.dispatchEvent(new w.Event('input', { bubbles: true }));

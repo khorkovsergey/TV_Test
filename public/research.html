@@ -152,15 +152,18 @@ Hub.mount('research', mode => `
   </div>
 
   <h2 class="mt-32" id="fundamentals" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">Study</h2>
+  <!-- §GAP-07 — страница отдаёт модулям идентификаторы и называет поверхность,
+       поэтому порядок и размещение берутся из центральной матрицы, а не из
+       того, в каком порядке карточки написаны в разметке. -->
   <div class="mt-16">${H.modules(mode, [
-    { complexity: 2, html: H.pilotCard({ title: 'Fundamentals', what: 'Reporting, multiples, dividends, seasonality and company comparison. In Simple mode each figure says what it means, what is good or bad, what to compare it with and when it was updated.', actions: [{ label: 'See a live instrument first', url: '/symbols/AAPL', primary: true }], note: 'no fundamentals vendor is connected to this stand' }) },
-    { complexity: 2, html: H.pilotCard({ title: 'Macro & rates', what: 'Countries, inflation, employment, GDP, rates, bonds, yield curves and macro maps — wired as event → affected markets → affected assets → chart → alert.', actions: [{ label: 'Rates and volatility now', url: '/markets?cls=rates' }] }) },
-    { complexity: 3, html: H.pilotCard({ title: 'Options & derivatives', what: 'Chains, implied volatility, open interest, strikes, expirations and strategies, with the risks stated in plain words. Hidden from Simple by default, reachable always.', actions: [{ label: 'Where it lives', url: '/sitemap#research' }] }) }
+    { id: 'fundamentals', complexity: 2, html: H.pilotCard({ title: 'Fundamentals', what: 'Reporting, multiples, dividends, seasonality and company comparison. In Simple mode each figure says what it means, what is good or bad, what to compare it with and when it was updated.', actions: [{ label: 'See a live instrument first', url: '/symbols/AAPL', primary: true }], note: 'no fundamentals vendor is connected to this stand' }) },
+    { id: 'macro', complexity: 2, html: H.pilotCard({ title: 'Macro & rates', what: 'Countries, inflation, employment, GDP, rates, bonds, yield curves and macro maps — wired as event → affected markets → affected assets → chart → alert.', actions: [{ label: 'Rates and volatility now', url: '/markets?cls=rates' }] }) },
+    { id: 'options', complexity: 3, html: H.pilotCard({ title: 'Options & derivatives', what: 'Chains, implied volatility, open interest, strikes, expirations and strategies, with the risks stated in plain words. Hidden from Simple by default, reachable always.', actions: [{ label: 'Where it lives', url: '/sitemap#research' }] }) }
 ,
-    { complexity: 3, html: H.pilotCard({ title: "Options & derivatives desk", what: "Chains, implied volatility, open interest, skew and expirations in one compact panel, with the risk of each structure stated in words rather than Greek letters.", actions: [{ label: "Where it lives", url: "/sitemap#research" }], note: 'a professional default: open in Pro, folded at other levels — never removed' }) },
-    { complexity: 3, html: H.pilotCard({ title: "Correlation & factor view", what: "What actually moves together, over the period you chose — the check that turns \"diversified\" from a feeling into a number.", actions: [{ label: "Market map", url: "/markets#heatmap" }], note: 'a professional default: open in Pro, folded at other levels — never removed' }) },
-    { complexity: 3, html: H.pilotCard({ title: "Seasonality & regime", what: "How this instrument behaved in this month, this quarter and this rate regime historically. A fact about the past, labelled as one.", actions: [{ label: "See an instrument", url: "/symbols/BTCUSD" }], note: 'a professional default: open in Pro, folded at other levels — never removed' }) }
-  ])}</div>
+    { id: 'options-desk', complexity: 3, html: H.pilotCard({ title: "Options & derivatives desk", what: "Chains, implied volatility, open interest, skew and expirations in one compact panel, with the risk of each structure stated in words rather than Greek letters.", actions: [{ label: "Where it lives", url: "/sitemap#research" }], note: 'a professional default: open in Pro, folded at other levels — never removed' }) },
+    { id: 'correlation', complexity: 3, html: H.pilotCard({ title: "Correlation & factor view", what: "What actually moves together, over the period you chose — the check that turns \"diversified\" from a feeling into a number.", actions: [{ label: "Market map", url: "/markets#heatmap" }], note: 'a professional default: open in Pro, folded at other levels — never removed' }) },
+    { id: 'seasonality', complexity: 3, html: H.pilotCard({ title: "Seasonality & regime", what: "How this instrument behaved in this month, this quarter and this rate regime historically. A fact about the past, labelled as one.", actions: [{ label: "See an instrument", url: "/symbols/BTCUSD" }], note: 'a professional default: open in Pro, folded at other levels — never removed' }) }
+  ], 'research')}</div>
 
   <h2 class="mt-32" id="strategies" style="font-size:24px;font-weight:700;color:var(--tv-white);margin:0">Check</h2>
   <div class="stubs mt-16">

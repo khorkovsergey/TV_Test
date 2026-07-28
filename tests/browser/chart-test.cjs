@@ -213,7 +213,9 @@ const hits = d => [...d.querySelectorAll('.ch-hit')];
   click(p.w, hits(D)[20]);
   await new Promise(r => setTimeout(r, 150));
   const beforeMode = p.w.ChartContext.get().selection.candle.time;
-  click(p.w, D.querySelector('#modePill [data-mode="pro"]'));
+  /* §GAP-12 — на графике больше нет второго глобального переключателя;
+     режим меняется общим, из шапки. */
+  click(p.w, D.querySelector('.mode-switch [data-mode="pro"]'));
   await new Promise(r => setTimeout(r, 200));
   ok('21. выбор переживает смену режима',
     p.w.ChartContext.get().selection.candle?.time === beforeMode);
@@ -484,7 +486,7 @@ const hits = d => [...d.querySelectorAll('.ch-hit')];
 
   ok('каждая кнопка тулбара объявляет зрелость',
     [...p.d.querySelectorAll('#chartToolbar .cw-btn')]
-      .filter(b => !b.id || !/modePill/.test(b.id))
+      .filter(b => !b.id || !/modeFollows/.test(b.id))
       .every(b => b.dataset.maturity || b.dataset.interval || b.dataset.mode || b.dataset.range),
     [...p.d.querySelectorAll('#chartToolbar .cw-btn')].filter(b => !b.dataset.maturity && !b.dataset.interval && !b.dataset.mode).map(b => b.textContent).join(','));
 

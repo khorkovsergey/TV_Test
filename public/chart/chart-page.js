@@ -499,8 +499,14 @@
 
   function applyMode(m, source) {
     const mode = P.setMode(m, source);
-    document.querySelectorAll('#modePill button').forEach(b =>
-      b.classList.toggle('on', b.dataset.mode === mode));
+    /* The page follows the global switcher and says so, rather than offering a
+       second one beside it. */
+    const follows = $('modeFollows');
+    if (follows) {
+      const label = window.Modes ? window.Modes.policy(mode).label : mode;
+      follows.textContent = 'View follows: ' + label;
+      follows.title = 'Change it in the header — it applies everywhere.';
+    }
 
     let below = 0;
     document.querySelectorAll('[data-min]').forEach(el => {
@@ -598,11 +604,6 @@
     $('askCopilot')?.addEventListener('click', () => {
       panel.show('copilot', 'header');
       window.ResearchCopilot?.open({ contextPatch: copilotPatch(), reason: 'header' });
-    });
-
-    $('modePill').addEventListener('click', e => {
-      const b = e.target.closest('[data-mode]');
-      if (b) { drawerOpen = false; applyMode(b.dataset.mode, 'pill'); }
     });
 
     $('advDrawer')?.addEventListener('click', e => {

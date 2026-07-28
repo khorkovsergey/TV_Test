@@ -52,6 +52,12 @@
       mode: window.Portal?.mode ? window.Portal.mode() : (ls('ui_mode') || 'beginner').replace(/^"|"$/g, ''),
       symbol: ls('active_symbol') || 'BTCUSD',
       chartRange: ls('chart_range') || '1D',
+      /* §24 — the register is a central policy, not a per-page guess. The
+         server shapes the answer from it; the panel caps its actions by it. */
+      copilotProfile: window.ModeOrchestrator
+        ? window.ModeOrchestrator.copilotProfile('copilot')
+        : (window.Modes ? window.Modes.policy(
+            window.Portal?.mode ? window.Portal.mode() : 'simple').copilotProfile : 'teacher'),
       journey: jsonLs('research_journey', []).slice(-5)
     };
   }
@@ -303,8 +309,8 @@
       }
 
       /* How many openers are offered is a policy number: three in Simple, five
-         in Standard, eight in Pro (§8.1). The rest are still askable — the
-         input has never been limited by the mode. */
+         in Standard, eight in Professional (§8.1). The rest are still askable —
+         the input has never been limited by the mode. */
       const cap = window.Modes ? window.Modes.policy(c.mode).maxPrimaryActions : 3;
       list.slice(0, cap).forEach(s => {
         const b = h('<button type="button" class="cp-suggest">' + esc(s) + '</button>');
@@ -404,8 +410,14 @@
       });
       if (!fx.children.length) fx.remove();
 
+      /* §24/§98 — the action cap is the same policy number the openers use.
+         Hardcoding four here meant Professional and Simple got the same row of
+         buttons no matter what the register was supposed to be. Nothing is
+         removed: the server already ranked them, and the rest stay askable. */
       const acts = msg.querySelector('.cp-actions');
-      (data.actions || []).forEach(a => {
+      const actionCap = window.Modes
+        ? window.Modes.policy(context().mode).maxPrimaryActions : 4;
+      (data.actions || []).slice(0, actionCap).forEach(a => {
         const b = h('<button type="button" class="cp-action">' + esc(a.label) + '</button>');
         b.addEventListener('click', () => runAction(a, b));
         acts.appendChild(b);

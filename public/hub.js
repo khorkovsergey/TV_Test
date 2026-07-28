@@ -97,27 +97,59 @@ window.Hub = (function () {
        complexity 2  Simple folds it, Standard and Pro open with it
        complexity 3  Simple puts it behind More, Standard folds it, Pro opens it
   */
-  function modules(mode, list) {
+  /* §GAP-07. Buckets by complexity were all this could do: every page got the
+     same card ribbon with a different number of blocks open, and nothing
+     decided which module should LEAD or in what order the rest followed.
+
+     A page that passes a `surface` and gives its items an `id` now gets the
+     central composition instead — order and placement from the matrix. A page
+     that does not is unchanged, which is how this lands one page at a time
+     rather than in one release where every section moves at once. */
+  function modules(mode, list, surface) {
     const M = window.Modes;
+    const comp = (surface && window.ModeSurfaces)
+      ? window.ModeSurfaces.get(surface, mode) : null;
+
     const place = m => {
+      if (comp && m.id && comp.modulePlacement[m.id]) return comp.modulePlacement[m.id];
       if (!M) return 'default';
       return M.visibility(m.present || { complexity: m.complexity || 1 }, mode);
     };
-    const open = [], folded = [], more = [];
-    for (const m of list) {
-      if (!m || !m.html) continue;
-      const v = place(m);
-      (v === 'always' || v === 'default' ? open : v === 'collapsed' ? folded : more).push(m);
+
+    let items = list.filter(m => m && m.html);
+
+    /* Order first: the matrix names the sequence, and a module it does not
+       mention keeps its position relative to the ones it does. */
+    if (comp) {
+      const rank = m => {
+        const i = m.id ? comp.moduleOrder.indexOf(m.id) : -1;
+        return i === -1 ? comp.moduleOrder.length : i;
+      };
+      items = items.map((m, i) => ({ m, i })).sort((a, b) =>
+        (rank(a.m) - rank(b.m)) || (a.i - b.i)).map(x => x.m);
     }
 
-    const fold = (items, summary, cls) => items.length ? `
+    const lead = [], open = [], folded = [], more = [];
+    for (const m of items) {
+      const v = place(m);
+      if (v === 'lead') lead.push(m);
+      else if (v === 'always' || v === 'default' || v === 'primary') open.push(m);
+      else if (v === 'secondary') open.push(m);
+      else if (v === 'collapsed') folded.push(m);
+      else more.push(m);
+    }
+
+    const fold = (items2, summary, cls) => items2.length ? `
       <details class="advanced ${cls}">
-        <summary>${esc(summary(items))}</summary>
-        <div class="body"><div class="stubs">${items.map(i => i.html).join('')}</div></div>
+        <summary>${esc(summary(items2))}</summary>
+        <div class="body"><div class="stubs">${items2.map(i => i.html).join('')}</div></div>
       </details>` : '';
 
-    return `<div class="stubs">${open.map(m => m.html).join('')}</div>
-      ${fold(folded, i => `Deeper analysis — ${i.length} more ${i.length === 1 ? 'module' : 'modules'}, open by default in Pro`, 'fold-deep')}
+    /* The lead module is rendered on its own so a page can style it as the
+       thing it opens with, rather than as the first of an even ribbon. */
+    return `${lead.length ? `<div class="stubs hub-lead">${lead.map(m => m.html).join('')}</div>` : ''}
+      <div class="stubs">${open.map(m => m.html).join('')}</div>
+      ${fold(folded, i => `Deeper analysis — ${i.length} more ${i.length === 1 ? 'module' : 'modules'}, open by default in Professional`, 'fold-deep')}
       ${fold(more, i => `More in this section — ${i.length} advanced ${i.length === 1 ? 'module' : 'modules'}`, 'fold-more')}`;
   }
 

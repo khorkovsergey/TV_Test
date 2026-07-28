@@ -119,17 +119,24 @@ window.ModeSurfaces = (function () {
 
     research: {
       surface: 'research',
+      /* Ids match what `research.html` labels its modules. Professional leads
+         with the options desk because that is the module a professional opens
+         the page for; Simple leads with fundamentals because it is the one a
+         beginner can read. */
       simple: c('Find something, understand it, keep it.',
-        ['find', 'copilot', 'chart', 'compare', 'saved', 'advanced'],
-        { find: 'lead', copilot: 'primary', chart: 'primary', compare: 'secondary', saved: 'secondary', advanced: 'advanced' },
+        ['fundamentals', 'macro', 'options', 'options-desk', 'correlation', 'seasonality'],
+        { fundamentals: 'lead', macro: 'primary', options: 'more',
+          'options-desk': 'more', correlation: 'more', seasonality: 'more' },
         ['find_asset', 'ask_copilot', 'open_chart']),
       standard: c('The everyday research desk.',
-        ['assethub', 'screener', 'chart', 'fundamentals', 'macro', 'saved', 'advanced'],
-        { assethub: 'lead', screener: 'primary', chart: 'primary', fundamentals: 'primary', macro: 'secondary', saved: 'secondary', advanced: 'collapsed' },
+        ['fundamentals', 'macro', 'correlation', 'seasonality', 'options', 'options-desk'],
+        { fundamentals: 'lead', macro: 'primary', correlation: 'collapsed',
+          seasonality: 'collapsed', options: 'collapsed', 'options-desk': 'more' },
         ['open_screener', 'open_chart', 'find_asset', 'ask_copilot', 'compare']),
       pro: c('Straight to the tool.',
-        ['screener', 'chart', 'options', 'strategies', 'pine', 'fundamentals', 'macro', 'saved'],
-        { screener: 'lead', chart: 'primary', options: 'primary', strategies: 'primary', pine: 'primary', fundamentals: 'secondary', macro: 'secondary', saved: 'secondary' },
+        ['options-desk', 'correlation', 'seasonality', 'options', 'fundamentals', 'macro'],
+        { 'options-desk': 'lead', correlation: 'primary', seasonality: 'primary',
+          options: 'primary', fundamentals: 'secondary', macro: 'secondary' },
         ['open_screener', 'open_chart', 'open_pine', 'open_strategies', 'compare', 'saved_work'])
     },
 

@@ -282,22 +282,68 @@ function chartBlock(chart) {
   return lines.join('\n');
 }
 
+/* §24 — one Copilot, three registers. The mode used to change only how many
+   suggested prompts the widget offered; the answer itself was identical. That
+   made the register a label rather than a difference, which is the same defect
+   the navigation had.
+
+   `copilotProfile` is the central name for it, and it decides the SHAPE of the
+   answer — its length, whether terms are defined, how many actions follow.
+   What it must never change: the sources, the facts, the disclaimers, the
+   causal guardrails or the consent rules. A beginner and a professional get
+   the same evidence, described differently. */
+const REGISTERS = {
+  teacher: {
+    name: 'teacher',
+    voice: 'Beginner: plain language, define any term the moment you use it, no jargon at all.',
+    shape: 'Answer in one or two sentences first. Then, if it helps, three short lines of '
+      + 'explanation. Separate company, sector and market plainly — say "the company itself", '
+      + '"other companies like it", "the whole market" rather than naming the categories. '
+      + 'End with exactly one clear next step.',
+    actions: 'Offer at most three actions, and only ones the reader could sensibly take today.'
+  },
+  researcher: {
+    name: 'researcher',
+    voice: 'Experienced: concise professional language is fine, no hand-holding, but define '
+      + 'anything unusual.',
+    shape: 'Lead with the answer. Then group the factors — company, sector, broad market, macro, '
+      + 'technical — and say which mattered most and why. Give the timeline where it clarifies '
+      + 'causality.',
+    actions: 'Offer up to five actions: comparisons, alerts, chart actions, saved research.'
+  },
+  analyst: {
+    name: 'analyst',
+    voice: 'Professional: assume fluency. Exact terms, quantified where possible, no '
+      + 'encouragement and no preamble.',
+    shape: 'Compact and structured. Evidence before narrative. Quantify: percentages, ratios, '
+      + 'volume against average. State confidence and what would change it. Give the chronology '
+      + 'of sources when the sequence is the argument.',
+    actions: 'Offer up to eight compact actions, including multi-step workflows.'
+  }
+};
+
+/* The client sends `copilotProfile` from the central policy. The mode is kept
+   as a fallback so an older page, or one that has not adopted the profiles
+   yet, still gets a sensible register rather than the beginner one by default. */
+function registerFor(ctx = {}) {
+  if (REGISTERS[ctx.copilotProfile]) return REGISTERS[ctx.copilotProfile];
+  if (ctx.mode === 'pro') return REGISTERS.analyst;
+  if (ctx.mode === 'standard') return REGISTERS.researcher;
+  return REGISTERS.teacher;
+}
+
 function contextBlock(ctx = {}) {
-  /* Three registers, not two. Pro used to be indistinguishable from Standard
-     here, which made the mode a label rather than a difference. What never
-     changes with the register: the sources, the AI label and the disclaimer. */
-  const level = ctx.mode === 'pro'
-    ? 'Professional: assume fluency. Lead with the answer, use exact terms, quantify where you can, '
-      + 'offer a multi-step workflow rather than a single tip, and skip encouragement entirely.'
-    : ctx.mode === 'standard'
-    ? 'Experienced: concise professional language is fine, no hand-holding, but define anything unusual.'
-    : 'Beginner: plain language, define any term you use, no jargon, and end with one clear next step.';
+  const reg = registerFor(ctx);
   const journey = Array.isArray(ctx.journey) && ctx.journey.length
     ? ctx.journey.slice(-5).join(' → ')
     : 'nothing yet';
   return [
     'Current context for this user:',
-    `- Reader level: ${level}`,
+    `- Reader level: ${reg.voice}`,
+    `- Answer shape: ${reg.shape}`,
+    `- Actions: ${reg.actions}`,
+    '- The register changes how you say it. It never changes the facts, the sources, the '
+      + 'disclaimers or what you are allowed to claim.',
     `- Page they are on: ${ctx.page || 'unknown'} (${ctx.url || '/'})`,
     `- Active symbol: ${ctx.symbol || 'none'}`,
     `- Chart range: ${ctx.chartRange || 'none'}`,
@@ -737,7 +783,13 @@ export async function ask({ messages, context }) {
     if (!seen.has(k)) { seen.add(k); uniq.push(a); }
   }
 
-  return { text, sources, factors, actions: uniq.slice(0, 5), filtered };
+  /* §98 — how many actions come back is the register's number, not a constant.
+     Five for everyone meant a beginner got the same wall of buttons as an
+     analyst, which is the shape of answer the register exists to change. */
+  const ACTION_CAP = { teacher: 3, researcher: 5, analyst: 8 };
+  const cap = ACTION_CAP[registerFor(context || {}).name] || 5;
+
+  return { text, sources, factors, actions: uniq.slice(0, cap), register: registerFor(context || {}).name, filtered };
 }
 
 export { MODEL };

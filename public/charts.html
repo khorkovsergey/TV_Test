@@ -99,11 +99,11 @@
 
     <span style="flex:1"></span>
 
-    <div class="mode-pill" id="modePill">
-      <button type="button" data-mode="simple">Simple</button>
-      <button type="button" data-mode="standard">Standard</button>
-      <button type="button" data-mode="pro">Pro</button>
-    </div>
+    <!-- §GAP-12 — one global switcher, in the header. This used to be a second
+         three-button pill, and two equal controls read as two settings. What
+         stays here is what is genuinely page-local: the advanced drawer, the
+         explicit promotion, and a line saying which view the page is following. -->
+    <span id="modeFollows" style="font-size:11px;color:var(--cw-faint);font-family:Consolas,monospace"></span>
     <span id="modeCaption" style="font-size:11px;color:var(--cw-faint);font-family:Consolas,monospace"></span>
 
     <!-- §7.5 — nothing is locked. Everything above the preset is reachable
