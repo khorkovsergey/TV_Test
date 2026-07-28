@@ -7,6 +7,7 @@
 <title>Platform — what do you want to do today?</title>
 <link rel="stylesheet" href="/tv-theme.css">
 <link rel="stylesheet" href="/portal.css">
+<link rel="stylesheet" href="/forms/form.css">
 <link rel="stylesheet" href="/backgrounds.css">
 <script src="/ia.js"></script>
 <script src="/navigation.js"></script>
@@ -14,6 +15,8 @@
 <script src="/modes.js"></script>
 <script src="/mode-surfaces.js"></script>
 <script src="/mode-orchestrator.js"></script>
+<script src="/forms/form-policy.js"></script>
+<script src="/forms/form-renderer.js"></script>
 <script src="/alerts.js"></script>
 <script src="/home.js"></script>
 <script src="/quotes.js"></script>
@@ -705,6 +708,30 @@ $('moreRoutes').addEventListener('click', () => {
   const label = $('homeGroupLabel');
   label.hidden = false; label.style.display = '';
   P.track('home_more_routes_opened', { mode: P.mode(), opened: routes.length });
+});
+
+/* §29.2 — the state adapter. `registerStateAdapter` existed and nothing used
+   it, which meant the orchestrator's whole reason for being was untested in
+   practice. Home is the first real one: it remembers whether the visitor had
+   opened the folded tasks, so a mode switch does not re-fold what they chose
+   to see. */
+window.ModeOrchestrator?.registerStateAdapter('home', {
+  capture() {
+    const routes = [...document.querySelectorAll('.routes [data-route]')];
+    return {
+      expanded: $('moreRoutes').hidden && routes.length > 0,
+      scrollTo: document.querySelector('.routes')?.offsetTop || 0
+    };
+  },
+  restore(own) {
+    if (own && own.expanded) {
+      document.querySelectorAll('.routes [data-route]').forEach(r => {
+        r.hidden = false; r.style.display = '';
+      });
+      $('moreRoutes').hidden = true;
+      $('moreRoutes').style.display = 'none';
+    }
+  }
 });
 
 document.addEventListener('ui-mode-changed', applyMode);

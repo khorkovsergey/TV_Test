@@ -630,14 +630,56 @@
       if (!b) return;
       interval = b.dataset.interval;
       range = D.normalise(interval, range).range;
-      paintRangeBar();
+      /* §29.3 — the chart's own state adapter. Symbol, interval, range, the
+       visible window, the selection, the markers, the comparisons and the
+       panel tab all have to survive a mode switch: this is the surface where
+       losing any of them would be most obviously wrong. */
+    window.ModeOrchestrator?.registerStateAdapter('chart', {
+      capture: () => ({
+        visible: renderer ? renderer.visible() : null,
+        selected: renderer ? renderer.selected() : null,
+        selection: C.get().selection,
+        markers: window.ChartMarkers.list().length,
+        compare: renderer ? renderer.compareSeries().map(s2 => s2.symbol) : [],
+        tab: panel ? panel.active() : null
+      }),
+      restore(own) {
+        if (!own || !renderer) return;
+        if (own.visible) renderer.setVisible(own.visible.from, own.visible.to);
+        if (own.selected != null && candles[own.selected]) renderer.select(own.selected);
+        if (own.tab) panel.show(own.tab, 'reflow');
+      }
+    });
+
+    paintRangeBar();
       load();
     });
     $('rangeBar').addEventListener('click', e => {
       const b = e.target.closest('[data-range]');
       if (!b) return;
       range = b.dataset.range;
-      paintRangeBar();
+      /* §29.3 — the chart's own state adapter. Symbol, interval, range, the
+       visible window, the selection, the markers, the comparisons and the
+       panel tab all have to survive a mode switch: this is the surface where
+       losing any of them would be most obviously wrong. */
+    window.ModeOrchestrator?.registerStateAdapter('chart', {
+      capture: () => ({
+        visible: renderer ? renderer.visible() : null,
+        selected: renderer ? renderer.selected() : null,
+        selection: C.get().selection,
+        markers: window.ChartMarkers.list().length,
+        compare: renderer ? renderer.compareSeries().map(s2 => s2.symbol) : [],
+        tab: panel ? panel.active() : null
+      }),
+      restore(own) {
+        if (!own || !renderer) return;
+        if (own.visible) renderer.setVisible(own.visible.from, own.visible.to);
+        if (own.selected != null && candles[own.selected]) renderer.select(own.selected);
+        if (own.tab) panel.show(own.tab, 'reflow');
+      }
+    });
+
+    paintRangeBar();
       load();
     });
 
@@ -670,6 +712,27 @@
       $('sidePanel').classList.toggle('tall'));
 
     window.addEventListener('resize', () => renderer.draw());
+
+    /* §29.3 — the chart's own state adapter. Symbol, interval, range, the
+       visible window, the selection, the markers, the comparisons and the
+       panel tab all have to survive a mode switch: this is the surface where
+       losing any of them would be most obviously wrong. */
+    window.ModeOrchestrator?.registerStateAdapter('chart', {
+      capture: () => ({
+        visible: renderer ? renderer.visible() : null,
+        selected: renderer ? renderer.selected() : null,
+        selection: C.get().selection,
+        markers: window.ChartMarkers.list().length,
+        compare: renderer ? renderer.compareSeries().map(s2 => s2.symbol) : [],
+        tab: panel ? panel.active() : null
+      }),
+      restore(own) {
+        if (!own || !renderer) return;
+        if (own.visible) renderer.setVisible(own.visible.from, own.visible.to);
+        if (own.selected != null && candles[own.selected]) renderer.select(own.selected);
+        if (own.tab) panel.show(own.tab, 'reflow');
+      }
+    });
 
     paintRangeBar();
 

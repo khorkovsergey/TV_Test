@@ -13,10 +13,12 @@ old model.
 
 ## P0 items not completed
 
-**State adapters for the other seven surfaces.** Only Home is registered. Screener, Asset Hub,
-Chart, Money, Academy, Expert Marketplace and Copilot get their composition object, and `apply()`
-is a deliberate no-op on pages that have not declared `data-module-id` containers. Nothing is
-broken by this — but §29.2 asks for eight adapters and there is one.
+**State adapters: four of eight.** Home, Chart, Money and Screener register one. Asset Hub,
+Academy, Expert Marketplace and Copilot do not.
+
+An earlier version of this file said "only Home is registered". That was wrong: at the time
+`registerStateAdapter` was called by nobody at all — the method existed, the suite checked that
+the *function* existed, and no page used it. Corrected here rather than quietly fixed.
 
 **Scroll anchoring.** Restored to the same pixel offset, not to the same element. After a
 recomposition that offset can be a different place on the page.
@@ -74,8 +76,14 @@ The rest still compose themselves the way they did before, which means:
 - The register changes the answer, but no page yet renders it differently — the panel shows the
   same layout for all three. That is presentation, and it is P1 work that is not done.
 
-**The shared form system** (`public/forms/`) does not exist. `formProfile` is declared per mode
-and per surface and nothing consumes it.
+**The shared form system exists** (`public/forms/{form-policy,form-renderer}.js`, `form.css`) and
+consumes `formProfile`: wizard steps one field at a time, grouped folds the advanced block, dense
+puts labels inline. Applying a profile MOVES fields between containers rather than re-rendering
+them, so a value being typed survives a mode switch — the state invariant in §27 is the reason the
+renderer exists at all.
+
+What is not done: only the Screener declares its profile on `body`. My Money's Quick Add and the
+Expert Marketplace intake still build their own markup and do not go through the renderer.
 
 ## P2
 

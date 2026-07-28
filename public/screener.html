@@ -7,12 +7,15 @@
 <title>Screener — filter the market</title>
 <link rel="stylesheet" href="/tv-theme.css">
 <link rel="stylesheet" href="/portal.css">
+<link rel="stylesheet" href="/forms/form.css">
 <script src="/ia.js"></script>
 <script src="/navigation.js"></script>
 <script src="/features.js"></script>
 <script src="/modes.js"></script>
 <script src="/mode-surfaces.js"></script>
 <script src="/mode-orchestrator.js"></script>
+<script src="/forms/form-policy.js"></script>
+<script src="/forms/form-renderer.js"></script>
 <script src="/alerts.js"></script>
 <script src="/home.js"></script>
 <script src="/quotes.js"></script>
@@ -225,9 +228,43 @@ const ALL_COLUMNS = [
   { k: 'm1',        label: '1M',        num: true,  min: 'standard' },
   { k: 'range',     label: '52w pos',   num: true,  min: 'pro' },
   { k: 'spark',     label: '1 month',   num: false, min: 'pro' },
+  { k: 'why',       label: 'Why matched', num: false, min: 'simple' },
   { k: 'act',       label: '',          num: false, min: 'simple' }
 ];
 let COLUMNS = ALL_COLUMNS.slice();
+
+/* One renderer per column key, so the header and the body cannot drift. */
+const CELL = {
+  symbol:    i => `<td><a class="sym" href="/symbols/${encodeURIComponent(i.symbol)}">${Q.esc(i.symbol)}</a></td>`,
+  name:      i => `<td class="nm">${Q.esc(i.name)}</td>`,
+  cls:       i => `<td style="color:var(--tv-faint);font-size:12px">${Q.esc((snap.classes.find(c => c.id === i.cls) || {}).label || i.cls)}</td>`,
+  price:     i => `<td class="num">${Q.price(i.price, i)}</td>`,
+  changePct: i => `<td class="num ${Q.cls(i.changePct)}">${Q.pct(i.changePct)}</td>`,
+  w1:        i => `<td class="num ${Q.cls(i.perf?.w1)}">${Q.pct(i.perf?.w1)}</td>`,
+  m1:        i => `<td class="num ${Q.cls(i.perf?.m1)}">${Q.pct(i.perf?.m1)}</td>`,
+  range:     (i, x) => `<td class="num">${Number.isFinite(x.rp) ? x.rp.toFixed(0) + '%' : '—'}</td>`,
+  spark:     i => `<td>${Q.spark(i.series)}</td>`,
+  /* §16 — Simple gets "why this matched" rather than a sparkline: a beginner
+     needs the reason the row is here, not another chart. */
+  why:       i => `<td style="font-size:12px;color:var(--tv-faint)">${Q.esc(matchReason(i))}</td>`,
+  act:       (i, x) => `<td><button type="button" class="preset" data-add="${Q.esc(i.symbol)}" ${x.saved ? 'disabled' : ''}>${x.saved ? '✓ saved' : '+ watchlist'}</button></td>`
+};
+
+/* Why this row is in the result — read off the filters that are actually set,
+   never invented. */
+function matchReason(i) {
+  const f = readFilters();
+  const bits = [];
+  if (f.chgMin != null && Number.isFinite(i.changePct)) bits.push(`today ${i.changePct.toFixed(1)}%`);
+  if (f.month != null && Number.isFinite(i.perf?.m1)) bits.push(`month ${i.perf.m1.toFixed(1)}%`);
+  if (f.rangeMin != null || f.rangeMax != null) {
+    const rp = rangePos(i);
+    if (Number.isFinite(rp)) bits.push(`${rp.toFixed(0)}% of 52w range`);
+  }
+  if (f.cls && f.cls !== 'all') bits.push((snap.classes.find(c => c.id === f.cls) || {}).label || f.cls);
+  if (f.text) bits.push(`name matches “${f.text}”`);
+  return bits.length ? bits.join(' · ') : 'no filter set — the whole universe';
+}
 
 /* §7.6 — the preset decides what the screener opens with, not what it can do.
    Simple leads with the goal presets and three filters, Pro opens the numeric
@@ -236,7 +273,16 @@ function applyScreenerMode() {
   const P = window.Portal, M = window.Modes;
   const mode = P?.mode?.() || 'simple';
   const order = M ? M.ORDER : { simple: 0, standard: 1, pro: 2 };
-  COLUMNS = ALL_COLUMNS.filter(c => (order[c.min] ?? 0) <= (order[mode] ?? 0));
+
+  /* §16 — the column set comes from the central policy. The `min` fields stay
+     as the fallback for a build where the matrix has not loaded. */
+  const comp = window.ModeSurfaces ? window.ModeSurfaces.get('screener', mode) : null;
+  if (comp && comp.visibleColumns) {
+    COLUMNS = comp.visibleColumns.map(k => ALL_COLUMNS.find(c => c.k === k)).filter(Boolean);
+  } else {
+    COLUMNS = ALL_COLUMNS.filter(c => (order[c.min] ?? 0) <= (order[mode] ?? 0) && c.k !== 'why');
+  }
+  if (!COLUMNS.some(c => c.k === sortKey)) sortKey = 'changePct';
 
   const more = document.getElementById('moreFilters');
   if (more) {
@@ -246,8 +292,33 @@ function applyScreenerMode() {
   }
   const hint = document.getElementById('presetHint');
   if (hint) hint.hidden = (M ? M.policy(mode).explanationDepth : 'guided') === 'minimal';
+  document.body.dataset.formProfile = window.FormPolicy
+    ? window.FormPolicy.rules('screener').id : 'grouped';
   return mode;
 }
+
+/* §29.4 — the screener's state adapter. Filters, sort, the saved-screen draft
+   and the row the visitor was about to act on all have to survive a mode
+   switch; losing a filter set somebody spent a minute building is exactly the
+   kind of quiet damage a reflow can do. */
+window.ModeOrchestrator?.registerStateAdapter('screener', {
+  capture: () => ({
+    filters: readFilters(),
+    sortKey, sortDir,
+    activePreset: document.querySelector('[data-preset].on')?.dataset.preset || null,
+    text: document.getElementById('fText')?.value || ''
+  }),
+  restore(own) {
+    if (!own) return;
+    sortKey = own.sortKey || sortKey;
+    sortDir = own.sortDir || sortDir;
+    const f = own.filters || {};
+    const set = (id, v) => { const el = document.getElementById(id); if (el && v != null) el.value = v; };
+    set('fChgMin', f.chgMin); set('fChgMax', f.chgMax); set('fMonth', f.month);
+    set('fRangeMin', f.rangeMin); set('fRangeMax', f.rangeMax); set('fText', own.text);
+    renderHead(); render();
+  }
+});
 
 const rangePos = i => (Number.isFinite(i.price) && Number.isFinite(i.wk52High) && Number.isFinite(i.wk52Low) && i.wk52High > i.wk52Low)
   ? ((i.price - i.wk52Low) / (i.wk52High - i.wk52Low)) * 100 : null;
@@ -327,19 +398,11 @@ function render() {
   $('rows').innerHTML = rows.map(i => {
     const rp = rangePos(i);
     const saved = watch.includes(i.symbol);
-    return `<tr>
-      <td><a class="sym" href="/symbols/${encodeURIComponent(i.symbol)}">${Q.esc(i.symbol)}</a></td>
-      <td class="nm">${Q.esc(i.name)}</td>
-      <td style="color:var(--tv-faint);font-size:12px">${Q.esc((snap.classes.find(c => c.id === i.cls) || {}).label || i.cls)}</td>
-      <td class="num">${Q.price(i.price, i)}</td>
-      <td class="num ${Q.cls(i.changePct)}">${Q.pct(i.changePct)}</td>
-      <td class="num ${Q.cls(i.perf?.w1)}">${Q.pct(i.perf?.w1)}</td>
-      <td class="num ${Q.cls(i.perf?.m1)}">${Q.pct(i.perf?.m1)}</td>
-      <td class="num">${Number.isFinite(rp) ? rp.toFixed(0) + '%' : '—'}</td>
-      <td>${Q.spark(i.series)}</td>
-      <td><button type="button" class="preset" data-add="${Q.esc(i.symbol)}" ${saved ? 'disabled' : ''}>${saved ? '✓ saved' : '+ watchlist'}</button></td>
-    </tr>`;
-  }).join('') || `<tr><td colspan="10" style="padding:22px;color:var(--tv-faint)">
+    /* Same defect as §BUG-MKT-001 and the same fix: the header was filtered by
+       mode while every row emitted all ten cells, so in Simple the values sat
+       under the wrong headings. One list drives both. */
+    return '<tr>' + COLUMNS.map(c => CELL[c.k](i, { rp, saved })).join('') + '</tr>';
+  }).join('') || `<tr><td colspan="${COLUMNS.length}" style="padding:22px;color:var(--tv-faint)">
       Nothing matches. That is an answer too — try widening one filter.</td></tr>`;
 }
 

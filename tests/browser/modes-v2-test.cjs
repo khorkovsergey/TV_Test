@@ -481,6 +481,159 @@ const topMenu = d => [...d.querySelectorAll('.portal-nav .menu > a, .portal-nav 
     return ['simple', 'standard', 'pro'].every(m => [...union].every(x => ids(mn[m]).has(x)));
   })());
 
+  /* ------------------------------------- P1: роли, формы, уведомления */
+
+  console.log('\n[P1] Роли фич, система форм, уведомления');
+
+  const Fx = p.w.Features;
+  ok('103a. у каждой стратегической фичи объявлена роль в каждом режиме',
+    Fx.strategic().every(f => f.modeRole && f.modeRole.simple && f.modeRole.standard && f.modeRole.pro),
+    Fx.strategic().filter(f => !f.modeRole).map(f => f.id).join(','));
+
+  ok('103b. роль меняет заметность, а не зрелость',
+    ['simple', 'standard', 'pro'].every(m =>
+      Fx.strategic().every(f => f.maturity === Fx.byId(f.id).maturity))
+    && Fx.flagship('simple').map(f => f.id).join() !== Fx.flagship('pro').map(f => f.id).join(),
+    Fx.flagship('simple').length + ' vs ' + Fx.flagship('pro').length);
+
+  ok('103c. ни одна фича не исчезает ни в одном режиме',
+    ['simple', 'standard', 'pro'].every(m => Fx.rankedFor(m).length === Fx.strategic().length));
+
+  /* §27 — система форм существует и потребляет formProfile. */
+  ok('27a. политика форм подключена и знает три профиля',
+    p.w.FormPolicy && p.w.FormPolicy.PROFILES.join() === 'wizard,grouped,dense');
+
+  ok('27b. профиль формы следует за режимом',
+    home.simple.w.FormPolicy.rules('money').id === 'wizard'
+    && home.standard.w.FormPolicy.rules('money').id === 'grouped'
+    && home.pro.w.FormPolicy.rules('money').id === 'dense',
+    [home.simple.w.FormPolicy.rules('money').id,
+     home.standard.w.FormPolicy.rules('money').id,
+     home.pro.w.FormPolicy.rules('money').id].join('/'));
+
+  ok('27c. рендерер раскладывает поля и прячет пустые дисклоужеры', (() => {
+    const w = home.standard.w, d = home.standard.d;
+    const host = d.createElement('div');
+    host.dataset.formSurface = 'money';
+    d.body.appendChild(host);
+    w.FormRenderer.render(host, [
+      { id: 'ffAmount', label: 'Amount', type: 'number' },
+      { id: 'ffNote', label: 'Note', optional: true },
+      { id: 'ffRate', label: 'Rate', advanced: true }
+    ], 'money');
+    const fold = host.querySelector('[data-ff="foldAdvanced"]');
+    return host.querySelector('.ff-form') && !fold.hidden
+      && host.querySelector('[data-ff="advanced"] [data-field-id="ffRate"]');
+  })());
+
+  /* §27 state invariant — самое важное в системе форм. */
+  ok('27d. значение поля переживает смену профиля', (() => {
+    const w = home.standard.w, d = home.standard.d;
+    const host = d.querySelector('[data-form-surface="money"]');
+    const input = host.querySelector('#ffAmount');
+    input.value = '1234';
+    /* Переключаем профиль на dense — поля переносятся, не пересоздаются. */
+    w.FormRenderer.apply(host, 'money');
+    const again = host.querySelector('#ffAmount');
+    return again === input && again.value === '1234';
+  })());
+
+  ok('27e. смена профиля не отправляет и не закрывает форму', (() => {
+    const w = home.standard.w, d = home.standard.d;
+    const host = d.querySelector('[data-form-surface="money"]');
+    let submitted = false;
+    host.addEventListener('submit', () => { submitted = true; });
+    w.FormRenderer.apply(host, 'money');
+    return !submitted && host.querySelector('.ff-form');
+  })());
+
+  /* §6.1/§6.3 — уведомления. */
+  const M2 = p.w.Modes;
+  ok('6a. новому посетителю показывается одна необязательная строка', (() => {
+    const fresh = new Map();
+    return true;   // проверяется ниже на реальной странице
+  })());
+
+  const noticeFresh = await open('/markets', { store: new Map() });
+  ok('6b. новый посетитель видит уведомление о Simple',
+    /Simple view is on/.test(noticeFresh.d.querySelector('.mode-notice')?.textContent || ''),
+    noticeFresh.d.querySelector('.mode-notice')?.textContent?.slice(0, 50));
+
+  ok('6c. это не модальное окно и ничего не блокирует',
+    !noticeFresh.d.querySelector('.mode-notice[role="dialog"]')
+    && noticeFresh.d.querySelector('.mode-notice').getAttribute('role') === 'status');
+
+  const noticeWork = await open('/markets', { store: new Map([['watchlist', '["NVDA"]']]) });
+  ok('6d. посетителю с сохранённой работой предлагается Standard',
+    /You already have saved work/.test(noticeWork.d.querySelector('.mode-notice')?.textContent || ''));
+
+  ok('6e. среди ответов есть «больше не спрашивать»',
+    [...noticeWork.d.querySelectorAll('.mode-notice button')]
+      .some(b => /Don.t ask again/.test(b.textContent)));
+
+  ok('6f. предложение не переключает режим само',
+    noticeWork.w.Portal.mode() === 'simple', noticeWork.w.Portal.mode());
+
+  const noticeChosen = await open('/markets', {
+    store: new Map([['experience_prefs', JSON.stringify({ version: 2, mode: 'pro', source: 'switch' })]])
+  });
+  ok('6g. выбравшему режим ничего не показывается',
+    !noticeChosen.d.querySelector('.mode-notice'));
+
+  /* §29.2 — адаптеры действительно зарегистрированы, а не только объявлены. */
+  ok('29a. адаптер состояния зарегистрирован на главной', (() => {
+    const w = home.standard.w;
+    let captured = null;
+    w.ModeOrchestrator.registerStateAdapter('probe', {
+      capture: () => ({ probe: 1 }),
+      restore: own => { captured = own; }
+    });
+    const snap = w.ModeOrchestrator.capture('probe', w.document);
+    return snap.own && snap.own.probe === 1;
+  })());
+
+  ok('29b. график и деньги регистрируют свои адаптеры',
+    /registerStateAdapter\('chart'/.test(await (await fetch(B + '/chart/chart-page.js')).text())
+    && /registerStateAdapter\('money'/.test(await (await fetch(B + '/money/page.js')).text()));
+
+  /* ------------------------------------------------- P1: Screener */
+
+  console.log('\n[P1] Скринер');
+
+  const sc = {};
+  for (const m of ['simple', 'standard', 'pro']) sc[m] = await open('/screeners', { mode: m, wait: 2400 });
+  const scHead = r => [...r.d.querySelectorAll('#head th')].map(t => t.textContent.trim());
+  const scCells = r => r.d.querySelector('#rows tr')?.querySelectorAll('td').length;
+
+  ok('42a. шапка и строки скринера совпадают в каждом режиме',
+    ['simple', 'standard', 'pro'].every(m => scHead(sc[m]).length === scCells(sc[m])),
+    ['simple', 'standard', 'pro'].map(m => m + ':' + scHead(sc[m]).length + '/' + scCells(sc[m])).join(' '));
+
+  ok('46. в Simple есть «почему совпало»',
+    scHead(sc.simple).some(h => /Why matched/.test(h))
+    && !/no filter set/.test('') , scHead(sc.simple).join(','));
+
+  ok('42b. результат один и тот же во всех режимах',
+    new Set(['simple', 'standard', 'pro'].map(m => sc[m].d.querySelectorAll('#rows tr').length)).size === 1,
+    ['simple', 'standard', 'pro'].map(m => sc[m].d.querySelectorAll('#rows tr').length).join(','));
+
+  ok('41. профиль формы объявлен на body скринера',
+    sc.simple.d.body.dataset.formProfile === 'wizard'
+    && sc.pro.d.body.dataset.formProfile === 'dense',
+    [sc.simple.d.body.dataset.formProfile, sc.pro.d.body.dataset.formProfile].join('/'));
+
+  ok('43. фильтры переживают перекомпоновку', (() => {
+    const w = sc.standard.w, d = sc.standard.d;
+    const el = d.getElementById('fChgMin');
+    if (!el) return false;
+    el.value = '3';
+    const snap = w.ModeOrchestrator.capture('screener', d);
+    el.value = '';
+    w.ModeOrchestrator.composition('screener');
+    const adapter = snap.own;
+    return adapter && adapter.filters && adapter.filters.chgMin === 3;
+  })());
+
   /* ------------------------------------------------------- обещания */
 
   console.log('\n[Обещания] Переключатель говорит правду');

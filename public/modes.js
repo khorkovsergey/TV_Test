@@ -240,6 +240,71 @@ window.Modes = (function () {
     'every strategic feature: Academy, Copilot, Wealth Hub, AI Private, Expert Marketplace, Rewards'
   ];
 
+  /* §6.1/§6.3 — what a visitor is told, and when.
+
+     Two notices, each shown once, neither blocking. The first says which view
+     is on and that switching is free. The second appears only for somebody who
+     has saved work but never chose a mode: continuing in Standard is probably
+     easier for them, and that is an offer, not a migration. "Don't ask again"
+     is one of the answers, because an offer you cannot decline is not an offer.
+
+     Nothing here ever switches the mode by itself. */
+  const K_NOTICES = 'experience_notices';
+
+  function noticesSeen() {
+    try { return JSON.parse(read(K_NOTICES) || '{}') || {}; } catch { return {}; }
+  }
+  function markNoticeSeen(id) {
+    const n = noticesSeen();
+    n[id] = new Date().toISOString();
+    write(K_NOTICES, JSON.stringify(n));
+  }
+
+  /* Keys that mean "this person has done something here". */
+  const WORK_KEYS = ['watchlist', 'alerts', 'saved_screens', 'screener_saved',
+                     'money_store_v1', 'saved_chart_research', 'academy_done'];
+
+  function hasSavedWork() {
+    for (const k of WORK_KEYS) {
+      const v = read(k);
+      if (!v) continue;
+      try {
+        const parsed = JSON.parse(v);
+        if (Array.isArray(parsed) ? parsed.length : parsed && Object.keys(parsed).length) return true;
+      } catch { if (String(v).length > 2) return true; }
+    }
+    return false;
+  }
+
+  /* Which notice, if any, this visit should show. Returns null far more often
+     than not — that is the point. */
+  function pendingNotice() {
+    const seen = noticesSeen();
+    const p = prefs();
+    const chosen = p.source && p.source !== 'default';
+
+    if (!chosen && hasSavedWork() && p.mode === 'simple' && !seen.savedWork) {
+      return {
+        id: 'savedWork',
+        text: 'You already have saved work. Standard view may make it easier to continue.',
+        actions: [
+          { id: 'keep', label: 'Keep Simple' },
+          { id: 'try', label: 'Try Standard', to: 'standard' },
+          { id: 'never', label: 'Don’t ask again' }
+        ]
+      };
+    }
+
+    if (!chosen && !seen.firstRun) {
+      return {
+        id: 'firstRun',
+        text: 'Simple view is on. Switch at any time — your data and tools stay the same.',
+        actions: [{ id: 'ok', label: 'Got it' }]
+      };
+    }
+    return null;
+  }
+
   /* Onboarding recommendation. A recommendation, never a forced choice. */
   function recommend(answer) {
     if (answer === 'professional' || answer === 'develop' || answer === 'trade') return 'pro';
@@ -263,6 +328,7 @@ window.Modes = (function () {
   return {
     LIST, ORDER, POLICIES, VISIBILITY, CHANGES, KEEPS,
     migrate, isMode, policy, atLeast, presentation, visibility, isVisibleByDefault,
+    pendingNotice, markNoticeSeen, noticesSeen, hasSavedWork,
     prefs, savePrefs, current, dismissPrompt, isDismissed, recommend,
     K_MODE, K_PREFS
   };

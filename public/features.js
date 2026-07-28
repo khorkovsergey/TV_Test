@@ -24,6 +24,8 @@ window.Features = (function () {
   const F = [
     {
       id: 'NEW-01', name: 'Simple Mode + Guided Academy', shortName: 'Guided Academy',
+      /* §25 — the mode changes prominence, never maturity and never access. */
+      modeRole: { simple: 'flagship', standard: 'contextual', pro: 'advanced' },
       prominence: 'flagship', maturity: 'beta', releaseMarker: 'new', commercialTier: 'included', priority: 'strategic', icon: '◔',
       problem: 'A first-time visitor is handed a professional terminal and no idea what to do with it.',
       solution: 'A simplified mode plus six guided steps that happen inside the product, on live data, each ending in a real action.',
@@ -36,6 +38,8 @@ window.Features = (function () {
     },
     {
       id: 'NEW-02', name: 'Personal Research Copilot', shortName: 'Research Copilot',
+      /* §25 — the mode changes prominence, never maturity and never access. */
+      modeRole: { simple: 'flagship', standard: 'contextual', pro: 'contextual' },
       prominence: 'flagship', maturity: 'beta', releaseMarker: 'new', commercialTier: 'included', priority: 'strategic', icon: '✦',
       problem: 'Research means opening eight tabs and holding the thread in your head.',
       solution: 'One AI research surface on every page: it knows your level, the page, the symbol, the period and where you have been, answers in words, cites sources and proposes actions you confirm.',
@@ -48,6 +52,8 @@ window.Features = (function () {
     },
     {
       id: 'NEW-03', name: 'TradingView Everywhere', shortName: 'Everywhere',
+      /* §25 — the mode changes prominence, never maturity and never access. */
+      modeRole: { simple: 'concept', standard: 'concept', pro: 'advanced' },
       prominence: 'concept', maturity: 'concept', releaseMarker: 'new', commercialTier: null, priority: 'strategic', icon: '⇥',
       problem: 'Research starts in a Telegram card, an article or an embedded chart, and every entry throws the context away at the door.',
       solution: 'A deep link carries the symbol, the timeframe, the event and the original question, so the portal opens where the reading left off.',
@@ -60,6 +66,8 @@ window.Features = (function () {
     },
     {
       id: 'NEW-04', name: 'GEO / AEO — answerable pages', shortName: 'GEO / AEO',
+      /* §25 — the mode changes prominence, never maturity and never access. */
+      modeRole: { simple: 'concept', standard: 'concept', pro: 'concept' },
       prominence: 'concept', maturity: 'prototype', releaseMarker: 'improved', commercialTier: null, priority: 'strategic', icon: '⌖',
       problem: 'Generative search answers financial questions from pages that were written for crawlers, not for people.',
       solution: 'Public pages answer one question directly: short answer, explanation, source, update time, and a link into a real research action.',
@@ -72,6 +80,8 @@ window.Features = (function () {
     },
     {
       id: 'NEW-05', name: 'Personal Wealth Hub', shortName: 'My Money', userFacingName: 'My Money',
+      /* §25 — the mode changes prominence, never maturity and never access. */
+      modeRole: { simple: 'flagship', standard: 'flagship', pro: 'advanced' },
       prominence: 'flagship', maturity: 'beta', releaseMarker: 'new', commercialTier: 'included', priority: 'strategic', icon: '◈',
       problem: 'Most people need to understand everyday money long before they need a portfolio terminal — and the platform only ever asked about instruments.',
       solution: 'A personal-finance workspace: income, expenses, cash flow, categories, goals, a reserve and net worth — which opens education, then practice, then market research, only as each becomes relevant.',
@@ -84,6 +94,8 @@ window.Features = (function () {
     },
     {
       id: 'NEW-06', name: 'AI Private', shortName: 'AI Private',
+      /* §25 — the mode changes prominence, never maturity and never access. */
+      modeRole: { simple: 'advanced', standard: 'contextual', pro: 'flagship' },
       prominence: 'concept', maturity: 'concept', releaseMarker: 'new', commercialTier: 'premium', priority: 'strategic', icon: '◆',
       problem: 'Deep research — statements, scenarios, portfolio risk — takes an analyst, and most private investors do not have one.',
       solution: 'A premium research tier: multi-step company analysis, scenario work, portfolio risk review and hypotheses that update themselves when the facts change.',
@@ -96,6 +108,8 @@ window.Features = (function () {
     },
     {
       id: 'NEW-07', name: 'Expert Marketplace', shortName: 'Expert Marketplace',
+      /* §25 — the mode changes prominence, never maturity and never access. */
+      modeRole: { simple: 'flagship', standard: 'contextual', pro: 'advanced' },
       prominence: 'flagship', maturity: 'prototype', releaseMarker: 'new', commercialTier: null, priority: 'strategic', icon: '◉',
       problem: 'At some point a person needs a human — and the internet offers them an unlicensed one with a course to sell.',
       solution: 'Advisers matched to country, capital and question, with explicit control over what context is shared and a standardised written result. Licence and jurisdiction are shown on every profile — and in this prototype they are demo records, checked against no registry.',
@@ -108,6 +122,8 @@ window.Features = (function () {
     },
     {
       id: 'NEW-08', name: 'Community Rewards', shortName: 'Community Rewards',
+      /* §25 — the mode changes prominence, never maturity and never access. */
+      modeRole: { simple: 'contextual', standard: 'contextual', pro: 'advanced' },
       prominence: 'concept', maturity: 'concept', releaseMarker: 'new', commercialTier: null, priority: 'strategic', icon: '◇',
       problem: 'Store, gifts, referrals and the education programme are four disconnected links that add up to no loop at all.',
       solution: 'One reward system with clear earning rules, history and progress — for ideas, teaching, referrals and Pine work.',
@@ -121,6 +137,8 @@ window.Features = (function () {
 
     {
       id: 'TUNE-10', name: 'Chart Research Copilot', shortName: 'Chart Copilot',
+      /* §25 — the mode changes prominence, never maturity and never access. */
+      modeRole: { simple: 'contextual', standard: 'flagship', pro: 'flagship' },
       prominence: 'flagship', maturity: 'beta', releaseMarker: 'new', commercialTier: 'included',
       priority: 'strategic', icon: '◫',
       problem: 'A chart shows what the price did and never what happened. To find out, a person leaves the chart, opens a search engine and tries to remember which day they were looking at.',
@@ -186,7 +204,28 @@ window.Features = (function () {
   /* §15.2 — prominence is a fourth dimension: four journeys carry the case
      and get a large card, the other four are compact concepts. Eight equally
      weighted cards made every one of them forgettable. */
-  const flagship = () => F.filter(f => f.prominence === 'flagship');
+  /* §25 — the role a feature plays in a given mode. `prominence` stays the
+     feature's own, mode-independent standing; `roleIn` is how loudly a given
+     mode should say it. A mode changes prominence and nothing else: maturity,
+     route and availability are identical in all three, which is why this
+     function cannot return "hidden". */
+  const ROLE_ORDER = { flagship: 0, contextual: 1, advanced: 2, concept: 3 };
+
+  const roleIn = (f, mode) =>
+    (f && f.modeRole && f.modeRole[mode]) ||
+    (f && f.prominence === 'flagship' ? 'flagship' : 'concept');
+
+  /* What a surface should lead with in this mode, most prominent first. */
+  const byRole = (mode, role) =>
+    F.filter(f => f.priority === 'strategic' && roleIn(f, mode) === role);
+
+  const rankedFor = mode => F.filter(f => f.priority === 'strategic')
+    .slice()
+    .sort((a, b) => ROLE_ORDER[roleIn(a, mode)] - ROLE_ORDER[roleIn(b, mode)]);
+
+  const flagship = mode => mode
+    ? F.filter(f => roleIn(f, mode) === 'flagship')
+    : F.filter(f => f.prominence === 'flagship');
   const concepts2 = () => F.filter(f => f.priority === 'strategic' && f.prominence !== 'flagship');
   const core = () => F.filter(f => f.priority === 'core');
   const working = () => F.filter(f => f.maturity === 'live' || f.maturity === 'beta');
@@ -254,5 +293,5 @@ window.Features = (function () {
       <span class="go">→</span></a>`;
   }
 
-  return { ALL: F, BADGE, MARKER, TIER, flagship, secondary: concepts2, byId, onSurface, promo, strategic, core, working, concepts, badge, track, isShowcase, setShowcase };
+  return { ALL: F, BADGE, MARKER, TIER, flagship, roleIn, byRole, rankedFor, ROLE_ORDER, secondary: concepts2, byId, onSurface, promo, strategic, core, working, concepts, badge, track, isShowcase, setShowcase };
 })();

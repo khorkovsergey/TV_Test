@@ -1,7 +1,6 @@
-# Mode-first v2 — Implementation Result (P0)
+# Mode-first v2 — Implementation Result (P0 + P1 so far)
 
-P0 of §33. P1 (the remaining surfaces) and P2 (depth) are separate releases; what is not built is
-in [`mode-first-v2-remaining-backlog.md`](mode-first-v2-remaining-backlog.md).
+P0 of §33 in full, and part of P1. What is not built is stated at the end and in [`mode-first-v2-remaining-backlog.md`](mode-first-v2-remaining-backlog.md).
 
 ## Central mode architecture
 
@@ -122,10 +121,44 @@ same press. Anchors are now rebuilt and focus restored by label.
 meant `'\\$1'` — a replacement of each character with itself. Caught by writing the check rather
 than by reading the line.
 
+## P1 additions
+
+`modeRole` in the feature registry (§25) with `roleIn`, `byRole` and `rankedFor` reading it —
+`Features.flagship(mode)` now returns a different set per mode, and `flagship()` without an
+argument still behaves as before. The registry's own `prominence` stays mode-independent, so a
+mode changes how loudly a feature is said and nothing else.
+
+The shared form system (§27). Three profiles that decide how much a person is asked at once, and
+one rule that outranks them: applying a profile moves fields between containers instead of
+re-rendering them, so a half-typed value survives the switch.
+
+Mode notices (§6.1, §6.3). One line under the header, shown once, never a modal, and never
+switching the mode by itself. A visitor with saved work and no stated preference is offered
+Standard with "Don't ask again" among the answers.
+
+State adapters for Home, Chart, Money and Screener (§29). Before this, `registerStateAdapter`
+was called by nobody.
+
+Screener columns and form profile from the matrix, with "why this matched" in Simple — read off
+the filters that are actually set, never invented.
+
 ## Known limitations
 
-Only Home has a state adapter; the other seven surfaces get their composition object and nothing
-moves until P1. Scroll is restored to the same pixel offset rather than to the same element.
-`hub.js` still buckets by complexity and has not yet been given the composition. The remaining
-surfaces — Overview, Markets, Research, Screener, Asset Hub, Money, Learn, Community, Practice,
-Experts — read their profiles but do not yet recompose.
+State adapters cover Home, Chart, Money and Screener. Asset Hub, Academy, Expert Marketplace and
+Copilot have none.
+
+Scroll is restored to the same pixel offset rather than to the same element; after a
+recomposition that offset can be a different place on the page.
+
+Surfaces that still compose themselves the old way: Overview, Asset Hub, Learn, Academy,
+Community, Practice, Expert Marketplace. `hub.js` accepts a composition but only `/research`
+passes one.
+
+The form renderer is used by no page yet — the Screener declares its profile on `body` but still
+draws its own filter markup, and My Money's Quick Add and the Expert Marketplace intake build
+theirs by hand.
+
+`/money/*` still serves one shell for eight routes.
+
+An earlier version of this document claimed a Home state adapter existed when
+`registerStateAdapter` was called by nobody at all. It is corrected here, not quietly.

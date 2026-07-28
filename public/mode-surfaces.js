@@ -150,17 +150,19 @@ window.ModeSurfaces = (function () {
         ['presets', 'results', 'filters', 'saved'],
         { presets: 'lead', results: 'primary', filters: 'collapsed', saved: 'overflow' },
         ['run_preset', 'explain_match'],
-        { formProfile: 'wizard', visibleColumns: ['symbol', 'price', 'changePct', 'why', 'actions'] }),
+        { formProfile: 'wizard', visibleColumns: ['symbol', 'name', 'changePct', 'why', 'act'] }),
       standard: c('Filter, sort, save.',
         ['filters', 'results', 'presets', 'saved'],
         { filters: 'lead', results: 'primary', presets: 'primary', saved: 'secondary' },
         ['apply_filters', 'save_screen', 'compare_selected'],
-        { formProfile: 'grouped' }),
+        { formProfile: 'grouped',
+          visibleColumns: ['symbol', 'name', 'cls', 'price', 'changePct', 'w1', 'm1', 'act'] }),
       pro: c('Everything open, keyboard first.',
         ['filters', 'results', 'saved', 'presets'],
         { filters: 'lead', results: 'primary', saved: 'primary', presets: 'secondary' },
         ['apply_filters', 'save_screen', 'compare_selected', 'bulk_select', 'export'],
-        { formProfile: 'dense' })
+        { formProfile: 'dense',
+          visibleColumns: ['symbol', 'name', 'cls', 'price', 'changePct', 'w1', 'm1', 'range', 'spark', 'act'] })
     },
 
     /* -------------------------------------------------------- asset hub */

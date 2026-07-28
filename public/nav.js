@@ -57,6 +57,25 @@
   .nav-door.open > a{background:var(--tv-ink-2);color:#fff}
   /* The caret is decoration, so it lives in CSS: it must not end up inside the
      link's text for a screen reader or a test to read back. */
+  /* A direct route is a bare <a> in the same flex row as the wrapped section
+     doors. Without the same box it sat on a different baseline with different
+     spacing — in Professional, Screeners and Charts visibly floated out of the
+     row. Same padding, same radius, same alignment; no caret, because it has
+     no panel to open. */
+  /* §6 — one line, never a modal. It sits under the header, it is dismissable
+     and it never blocks anything behind it. */
+  .mode-notice{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    padding:9px 18px;background:rgba(41,98,255,.08);border-bottom:1px solid var(--tv-line);
+    font-size:13px;color:var(--tv-text)}
+  .mode-notice b{color:var(--tv-white);font-weight:600}
+  .mode-notice .sp{flex:1}
+  .mode-notice button{background:none;border:1px solid var(--tv-line);border-radius:6px;
+    padding:5px 12px;color:var(--tv-text);font:inherit;font-size:12px;cursor:pointer}
+  .mode-notice button:hover{border-color:#2962FF;color:#fff}
+  .mode-notice button.primary{border-color:#2962FF;color:#5B8DFF}
+  .portal-nav .menu > a.nav-direct{display:inline-flex;align-items:center;padding:6px 10px;border-radius:8px}
+  .portal-nav .menu > a.nav-direct:hover{background:var(--tv-ink-2);color:#fff}
+  .portal-nav .menu > a.nav-direct.active{background:var(--tv-ink-2);color:#fff}
   .nav-door > a::after{content:"▾";font-size:9px;line-height:1;color:var(--tv-faint);transition:transform .15s ease;display:inline-block}
   .nav-door.open > a::after{transform:rotate(180deg);color:#fff}
   .nav-panel{position:absolute;top:calc(100% + 10px);left:-10px;min-width:340px;background:var(--tv-ink);border:1px solid var(--tv-ink-3);
@@ -220,6 +239,40 @@
 
      Nothing is removed. Everything displaced lands in `More`, which is the
      only honest way to keep the promise the switcher makes. */
+
+  /* §6.1/§6.3 — the notice. Shown once, dismissable, and it never switches the
+     mode on its own: "Try Standard" is a button somebody presses. */
+  function showNotice() {
+    const M = window.Modes;
+    if (!M || !M.pendingNotice) return;
+    const notice = M.pendingNotice();
+    if (!notice) return;
+
+    const nav = document.querySelector('.portal-nav');
+    if (!nav || document.querySelector('.mode-notice')) return;
+
+    const box = h('<div class="mode-notice" role="status"></div>');
+    box.appendChild(h('<span>' + esc(notice.text) + '</span>'));
+    box.appendChild(h('<span class="sp"></span>'));
+
+    for (const a of notice.actions) {
+      const b = h(`<button type="button" class="${a.to ? 'primary' : ''}">${esc(a.label)}</button>`);
+      b.addEventListener('click', () => {
+        M.markNoticeSeen(notice.id);
+        if (a.to) {
+          P()?.setMode?.(a.to, 'notice');
+          document.dispatchEvent(new CustomEvent('ui-mode-changed', { detail: { to: a.to } }));
+        }
+        if (a.id === 'never') M.markNoticeSeen('savedWork');
+        track('mode_notice_answered', { notice: notice.id, action: a.id });
+        box.remove();
+      });
+      box.appendChild(b);
+    }
+
+    nav.parentNode.insertBefore(box, nav.nextSibling);
+    track('mode_notice_shown', { notice: notice.id });
+  }
 
   function buildTopMenu() {
     const menu = document.querySelector('.portal-nav .menu');
@@ -812,6 +865,7 @@
   function init() {
     buildPanels();
     buildModeSwitch();
+    showNotice();
     wireSearch();
     wireAvatar();
     mountShowcase();

@@ -304,6 +304,29 @@
     document.body.dataset.moneyProfile = policy?.formProfile || 'grouped';
   }
 
+  /* §29.5 — a transaction the visitor is halfway through typing must survive
+     a mode switch. The Quick Add dialog is a real form with real values in it. */
+  window.ModeOrchestrator?.registerStateAdapter('money', {
+    capture() {
+      const box = document.querySelector('.money-back');
+      if (!box) return null;
+      const vals = {};
+      box.querySelectorAll('input, select, textarea').forEach(el => {
+        if (el.id) vals[el.id] = el.value;
+      });
+      return { open: true, values: vals };
+    },
+    restore(own) {
+      if (!own || !own.open) return;
+      const box = document.querySelector('.money-back');
+      if (!box) return;
+      for (const [id, v] of Object.entries(own.values || {})) {
+        const el = box.querySelector('#' + id);
+        if (el && el.value !== v) el.value = v;
+      }
+    }
+  });
+
   function render() {
     const started = S.hasData() || S.state().profile.onboardingPath;
     $('onboard').hidden = Boolean(started);
