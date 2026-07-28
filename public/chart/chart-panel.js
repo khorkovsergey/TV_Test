@@ -28,14 +28,20 @@ window.ChartPanel = (function () {
     function paint() {
       root.dataset.tab = active;
       root.dataset.open = open ? 'true' : 'false';
+      /* §BUG-CHART-001 — `.cw-side` is display:flex, and an author `display`
+         beats the `hidden` attribute's UA rule. The inline style makes the
+         toggle independent of the stylesheet having loaded. */
       root.hidden = !open;
+      root.style.display = open ? '' : 'none';
       root.querySelectorAll('[data-tab-btn]').forEach(b => {
         const on = b.dataset.tabBtn === active;
         b.classList.toggle('on', on);
         b.setAttribute('aria-selected', on ? 'true' : 'false');
       });
       root.querySelectorAll('[data-tab-panel]').forEach(p => {
-        p.hidden = p.dataset.tabPanel !== active;
+        const on = p.dataset.tabPanel === active;
+        p.hidden = !on;
+        p.style.display = on ? '' : 'none';
       });
       document.body.dataset.chartPanel = open ? active : 'closed';
       root.classList.toggle('ch-sheet', isMobile());

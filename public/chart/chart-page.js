@@ -42,12 +42,24 @@
 
   /* ------------------------------------------------------------- states */
 
+  /* §BUG-CHART-001 — `hidden` alone is not enough here. Its `display:none`
+     comes from the browser's own stylesheet, so any author rule carrying a
+     `display` beats it: the loading overlay stayed on top of a fully drawn
+     chart. `chart-theme.css` now neutralises `[hidden]` inside the workspace,
+     and this sets the inline style as well, so the behaviour does not depend
+     on one stylesheet having loaded. */
+  function toggle(el, visible) {
+    if (!el) return;
+    el.hidden = !visible;
+    el.style.display = visible ? '' : 'none';
+  }
+
   function showState(html) {
     const box = $('chartState');
-    box.hidden = false;
     box.innerHTML = html;
+    toggle(box, true);
   }
-  const hideState = () => { $('chartState').hidden = true; };
+  const hideState = () => toggle($('chartState'), false);
 
   /* ---------------------------------------------------------- the header */
 
@@ -79,11 +91,11 @@
 
   function paintTooltip(index) {
     const box = $('chartTooltip');
-    if (index == null) { box.hidden = true; return; }
+    if (index == null) { toggle(box, false); return; }
     const s = D.candleStats(candles, index);
-    if (!s) { box.hidden = true; return; }
+    if (!s) { toggle(box, false); return; }
     const c = s.candle;
-    box.hidden = false;
+    toggle(box, true);
     box.innerHTML =
       `${esc(D.label(c.time, interval))}<br>` +
       `O ${D.price(c.open)}  H ${D.price(c.high)}<br>` +
@@ -115,8 +127,8 @@
 
   function paintSelLabel(stats) {
     const box = $('selLabel');
-    if (!stats) { box.hidden = true; return; }
-    box.hidden = false;
+    if (!stats) { toggle(box, false); return; }
+    toggle(box, true);
     box.innerHTML = '';
     const text = document.createElement('span');
     text.textContent = `${D.shortLabel(stats.candle.time, interval)} · ${D.pct(stats.changePct)}`;
@@ -130,7 +142,7 @@
 
   function clearSelection() {
     window.ChartSelection.clear(renderer);
-    $('selLabel').hidden = true;
+    toggle($('selLabel'), false);
     paintOhlc(null);
     window.ResearchCopilot?.updateContext(C.copilotContext());
   }
@@ -194,7 +206,7 @@
       if (!b || b.classList.contains('locked')) return;
       activeTool = b.dataset.tool;
       rail.querySelectorAll('[data-tool]').forEach(x => x.classList.toggle('on', x === b));
-      $('toolNote').hidden = activeTool === 'cursor';
+      toggle($('toolNote'), activeTool !== 'cursor');
       if (activeTool !== 'cursor') {
         $('toolNote').textContent =
           `${b.title} is a prototype drawing control: it takes the click so the chart does not, `
@@ -255,7 +267,7 @@
        worth writing (§26). */
     const restored = window.ChartSelection.restoreFromUrl(renderer, candles);
     if (restored && restored.missing) {
-      $('loadMoreNote').hidden = false;
+      toggle($('loadMoreNote'), true);
       $('loadMoreNote').textContent =
         `${restored.missing} is outside the loaded window.`;
     } else if (restored && restored.stats) {
@@ -300,7 +312,7 @@
     paintDetails();
 
     const banner = $('sampleBanner');
-    banner.hidden = false;
+    toggle(banner, true);
     banner.textContent = 'SAMPLE · NOT LIVE — a frozen NVIDIA series captured '
       + String(data.captured_at || '').slice(0, 10)
       + '. Prices are real but not current, and the Copilot will answer about the dates shown.';
@@ -350,7 +362,7 @@
       /* The panel opens on Watchlist, but a visitor who selected a candle is
          looking at Copilot — so the marker also goes where the chart is. */
       const banner = $('sampleBanner');
-      banner.hidden = !snap.isSample;
+      toggle(banner, snap.isSample);
       if (snap.isSample) {
         banner.textContent = 'SAMPLE · NOT LIVE — watchlist quotes come from the bundled snapshot; '
           + 'the candles above are live history.';
@@ -441,7 +453,7 @@
     renderer.setCompare(series);
     C.setCompare(series.map(s => s.symbol));
     const note = $('compareNote');
-    note.hidden = !series.length && !failed.length;
+    toggle(note, Boolean(series.length || failed.length));
     note.textContent = [
       series.length ? 'Comparing: ' + series.map(s => s.symbol).join(', ')
         + ' — lined up at the selected session, not at the left edge.' : '',
@@ -501,12 +513,12 @@
 
     const drawer = $('advDrawer');
     if (drawer) {
-      drawer.hidden = below === 0 && !drawerOpen;
+      toggle(drawer, below > 0 || drawerOpen);
       /* The count lives in its own span: rewriting the whole button label
          would delete it, and the next repaint would have nowhere to write. */
       $('advLabel').textContent = drawerOpen ? 'Back to the ' + mode + ' preset' : 'Advanced tools';
       $('advCount').textContent = below;
-      $('advCount').hidden = drawerOpen;
+      toggle($('advCount'), !drawerOpen);
     }
 
     const CAPTION = {
@@ -517,7 +529,7 @@
     $('modeCaption').textContent = CAPTION[mode];
     $('toolCap').textContent = mode === 'simple' ? '3 of 9' : mode === 'standard' ? '6 of 9' : '9 of 9';
     document.body.dataset.uiMode = mode;
-    $('simpleHint').hidden = mode !== 'simple';
+    toggle($('simpleHint'), mode === 'simple');
 
     if (renderer) renderer.draw();
   }
@@ -525,6 +537,13 @@
   /* ---------------------------------------------------------------- boot */
 
   function boot() {
+    /* The markup declares which elements start hidden; boot applies that
+       through the same path everything else uses. Without this the initial
+       state and the runtime state are set two different ways, and only one of
+       them survives a stylesheet that gives the element a `display` — which is
+       exactly how §BUG-CHART-001 got shipped. */
+    document.querySelectorAll('#workspace [hidden]').forEach(el => toggle(el, false));
+
     renderer = window.ChartRenderer.create({
       host: $('chartPlot'),
       on: {
@@ -670,7 +689,7 @@
 
   function setPickHint(text) {
     const el = $('pickHint');
-    el.hidden = !text;
+    toggle(el, Boolean(text));
     el.textContent = text || '';
     $('pickRangeBtn').classList.toggle('on', Boolean(text));
   }

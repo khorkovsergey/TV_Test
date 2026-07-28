@@ -8,6 +8,18 @@
    the site changes and a dark variant is a second block rather than a rewrite.
    ========================================================================= */
 
+/* §BUG-CHART-001. The loading overlay stayed on screen over a fully drawn
+   chart: `hidden` gets its `display:none` from the browser's own stylesheet,
+   and any author rule with a `display` — `.cw-state { display: flex }` — wins
+   on specificity. The data had loaded, the OHLC row was filled, and a white
+   panel sat on top of the candles saying "Loading NVDA 1d candles…".
+
+   The same trap was set for the side panel, the selection label and every
+   future element in here that is both flex and toggled. One rule closes it for
+   all of them. `!important` is the right tool exactly once: restoring the UA
+   behaviour that an author rule accidentally overrode. */
+.chart-workspace [hidden] { display: none !important; }
+
 .chart-workspace {
   --cw-bg: #FFFFFF;
   --cw-panel: #F8F9FB;

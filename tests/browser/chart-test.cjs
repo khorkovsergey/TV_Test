@@ -116,6 +116,33 @@ const hits = d => [...d.querySelectorAll('.ch-hit')];
   ok('13. свеча не рисуется нулевой высоты',
     [...D.querySelectorAll('.ch-body')].every(b => Number(b.getAttribute('height')) >= 1));
 
+  /* §BUG-CHART-001. Скелет «Loading NVDA 1d candles…» оставался поверх уже
+     нарисованного графика: атрибут hidden даёт display:none из браузерного
+     стиля, а `.cw-state { display:flex }` его перебивает по специфичности.
+     Прежняя проверка смотрела на атрибут и потому всё пропустила.
+
+     getComputedStyle тут не помощник: jsdom не учитывает !important в
+     каскаде и возвращает flex независимо от правила. Поэтому проверяем то,
+     что действительно решает исход в браузере — inline-стиль и наличие
+     нейтрализующего правила в самой таблице стилей. */
+  const state = D.getElementById('chartState');
+  ok('14a. оверлей загрузки не остаётся поверх готового графика',
+    state.hidden === true && state.style.display === 'none',
+    'hidden=' + state.hidden + ' display=' + JSON.stringify(state.style.display));
+
+  const themeCss = await (await fetch(B + '/chart/chart-theme.css')).text();
+  ok('14b. в таблице стилей есть правило, гасящее [hidden] внутри воркспейса',
+    /\.chart-workspace\s*\[hidden\][^}]*display:\s*none\s*!important/.test(themeCss));
+
+  /* Панель Copilot монтируется в воркспейс, но принадлежит copilot.js и
+     работает на всех страницах — её элементы сюда не входят. */
+  const owned = () => [...D.querySelectorAll('#workspace [hidden]')]
+    .filter(el => !el.closest('.cp-panel'));
+  ok('14c. каждый скрытый элемент страницы действительно скрыт',
+    owned().every(el => el.style.display === 'none'),
+    owned().filter(el => el.style.display !== 'none')
+      .map(el => el.id || el.className).join(','));
+
   /* ------------------------------------------------------------- выбор */
 
   console.log('\n[Выбор] Свеча — это контекст');
