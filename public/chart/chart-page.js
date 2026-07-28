@@ -581,10 +581,24 @@
     window.ChartToolbar.wire($('workspace'), $('maturityNote'));
     wireTools();
 
-    /* The Copilot docks into the panel column instead of covering the chart. */
-    const mount = () => window.ResearchCopilot?.mountInto($('copilotPane'));
+    /* The Copilot docks into the panel column instead of covering the chart.
+       Docked, it has no visible state of its own — the tab does — so it is
+       given the way to reveal itself. Without that every route in (the header
+       button, the floating button, a programmatic open) did nothing at all. */
+    const mount = () => {
+      window.ResearchCopilot?.mountInto($('copilotPane'), () => {
+        panel.show('copilot', 'copilot-api');
+      });
+    };
     if (window.ResearchCopilot) mount();
     else document.addEventListener('copilot-ready', mount, { once: true });
+
+    /* The header button exists on every page and was wired on every page but
+       this one — the rewrite dropped it. */
+    $('askCopilot')?.addEventListener('click', () => {
+      panel.show('copilot', 'header');
+      window.ResearchCopilot?.open({ contextPatch: copilotPatch(), reason: 'header' });
+    });
 
     $('modePill').addEventListener('click', e => {
       const b = e.target.closest('[data-mode]');

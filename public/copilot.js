@@ -92,6 +92,11 @@
     background:#2962FF;color:#fff;border:none;border-radius:999px;padding:13px 20px;cursor:pointer;
     font-family:'Trebuchet MS',Tahoma,sans-serif;font-size:14.5px;font-weight:700;box-shadow:0 6px 24px rgba(41,98,255,.45)}
   .cp-fab:hover{filter:brightness(1.1)}
+  /* BUG-CHART-002 — same trap as the chart overlay: the hidden attribute gets
+     its display:none from the browser stylesheet, and .cp-fab's display:flex
+     beats it. On the chart the panel is docked and the floating button was
+     hidden in code, yet stayed on screen and did nothing when pressed. */
+  .cp-fab[hidden]{display:none !important}
   .cp-panel{position:fixed;top:0;right:0;bottom:0;width:380px;max-width:100vw;z-index:9001;background:#0C0E13;
     border-left:1px solid #2A2E39;display:flex;flex-direction:column;transform:translateX(100%);
     transition:transform .18s ease;font-family:'Trebuchet MS',Tahoma,sans-serif;color:#D1D4DC}
@@ -646,7 +651,9 @@
       paintChips();
       paintSuggestions();
 
-      if (!docked) {
+      if (docked) {
+        if (onReveal) onReveal();
+      } else {
         panel.classList.add('open');
         panel.setAttribute('aria-hidden', 'false');
       }
@@ -682,13 +689,21 @@
     /* Mount the panel inside a host element. The page owns the geometry from
        that point on: the chart gets a narrower area and redraws, instead of
        being covered by a fixed panel. */
-    function mountInto(hostEl) {
+    /* `onReveal` is how a docked panel gets shown: the host page owns the
+       column, so `open()` has to ask it rather than toggle a class that means
+       nothing here. Without it, every route into the Copilot — the header
+       button, the FAB, a programmatic open — silently did nothing. */
+    let onReveal = null;
+
+    function mountInto(hostEl, reveal) {
       if (!hostEl) return;
       docked = true;
+      onReveal = typeof reveal === 'function' ? reveal : null;
       panel.classList.add('cp-docked', 'open');
       panel.setAttribute('aria-hidden', 'false');
       hostEl.appendChild(panel);
       fab.hidden = true;
+      fab.style.display = 'none';
     }
 
     fab.addEventListener('click', () => open({ reason: 'fab' }));

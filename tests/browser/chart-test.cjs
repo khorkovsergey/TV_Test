@@ -274,6 +274,30 @@ const hits = d => [...d.querySelectorAll('.ch-hit')];
   ok('24b. клик по свече открывает вкладку Copilot',
     CD.getElementById('sidePanel').dataset.tab === 'copilot');
 
+  /* §BUG-CHART-002. Плавающая кнопка Copilot оставалась на экране (у .cp-fab
+     свой display:flex, атрибут hidden его не перебивает), а нажатие на неё в
+     пристыкованном режиме не делало ничего: open() переключал класс, который
+     здесь ничего не значит. Со стороны это выглядело как «Copilot отвалился». */
+  ok('24c. плавающая кнопка убрана, когда панель пристыкована',
+    CD.querySelector('.cp-fab').hidden === true
+    && CD.querySelector('.cp-fab').style.display === 'none',
+    'hidden=' + CD.querySelector('.cp-fab').hidden
+    + ' display=' + JSON.stringify(CD.querySelector('.cp-fab').style.display));
+
+  /* Каждый путь внутрь должен приводить к открытой вкладке Copilot. */
+  for (const [name, act] of [
+    ['кнопка в шапке', () => click(c.w, CD.getElementById('askCopilot'))],
+    ['плавающая кнопка', () => click(c.w, CD.querySelector('.cp-fab'))],
+    ['программный open', () => c.w.ResearchCopilot.open({ reason: 'test' })]
+  ]) {
+    c.w.ChartPanel && CD.querySelector('[data-tab-btn="watchlist"]')
+      && click(c.w, CD.querySelector('[data-tab-btn="watchlist"]'));
+    act();
+    ok('24d. ' + name + ' открывает Copilot',
+      CD.getElementById('sidePanel').dataset.tab === 'copilot',
+      CD.getElementById('sidePanel').dataset.tab);
+  }
+
   const chips = [...CD.querySelectorAll('.cp-chip')].map(x => x.textContent);
   ok('25. чипы показывают символ, дату и OHLC',
     chips.some(x => /NVDA/.test(x)) && chips.includes(chTime)
