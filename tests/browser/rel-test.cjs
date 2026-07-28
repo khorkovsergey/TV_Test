@@ -26,7 +26,7 @@ async function open(path, opts = {}) {
 const click = (w, el) => el.dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
 const navOf = d => [...d.querySelectorAll('.portal-nav .menu a:not(.nav-panel a)')].map(a => a.textContent.trim());
 
-const SECTIONS = ['Overview', 'Research', 'Capital', 'Trade', 'Learn', 'Community'];
+const SECTIONS = ['Markets', 'Research', 'My Money', 'Learn', 'Community', 'Practice'];
 const PAGES = ['/', '/overview', '/research', '/capital', '/trade', '/learn', '/community',
                '/markets', '/screeners', '/symbols/BTCUSD', '/charts', '/learn/academy',
                '/learn/academy/lesson', '/capital/experts', '/staff', '/metrics', '/sitemap'];
@@ -123,7 +123,7 @@ const PAGES = ['/', '/overview', '/research', '/capital', '/trade', '/learn', '/
   click(home.w, doorLink);
   ok('повторный клик закрывает', doorLink.getAttribute('aria-expanded') === 'false');
   ok('отдельной кнопки-каретки больше нет', home.d.querySelectorAll('.nav-caret').length === 0);
-  ok('название пункта осталось чистым', doorLink.textContent.trim() === 'Overview', doorLink.textContent);
+  ok('название пункта осталось чистым', doorLink.textContent.trim() === 'Markets', doorLink.textContent);
   /* Клик с модификатором обязан вести в раздел, а не открывать меню. */
   const ev = new home.w.MouseEvent('click', { bubbles: true, cancelable: true, ctrlKey: true });
   doorLink.dispatchEvent(ev);

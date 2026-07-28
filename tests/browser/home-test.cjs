@@ -86,7 +86,7 @@ const navText = d => [...d.querySelectorAll('.portal-nav .menu a:not(.nav-panel 
   ok('заголовок — вопрос, а не слоган', /What do you want to do today/.test(d.querySelector('h1').textContent));
   ok('старого промо-героя нет', !/Look first/.test(d.body.textContent));
   ok('навигация из 6 пунктов',
-     JSON.stringify(navText(d)) === JSON.stringify(['Overview', 'Research', 'Capital', 'Trade', 'Learn', 'Community']),
+     JSON.stringify(navText(d)) === JSON.stringify(['Markets', 'Research', 'My Money', 'Learn', 'Community', 'Practice']),
      navText(d).join(','));
   ok('в шапке Copilot, режим, профиль', /Copilot/.test(d.querySelector('.portal-nav .right').textContent));
   ok('нет pricing-first кнопок «Get started»', !/Get started/i.test(d.body.textContent));
@@ -110,7 +110,11 @@ const navText = d => [...d.querySelectorAll('.portal-nav .menu a:not(.nav-panel 
 
   console.log('\n[3] Семь маршрутов + выход в воркспейс');
   const routes = [...d.querySelectorAll('.routes [data-route]')];
-  ok('восемь плиток (7 задач + Skip the portal)', routes.length === 8, 'найдено ' + routes.length);
+  /* §9.1 — задача про деньги добавлена первой, поэтому плиток девять.
+     Значение имеет не их число в разметке, а сколько видно без клика. */
+  ok('плитки задач на месте', routes.length >= 8, 'найдено ' + routes.length);
+  ok('первая задача — «Manage my money»',
+     routes[0].dataset.route === 'manage_money', routes[0].dataset.route);
   const ids = routes.map(x => x.dataset.route);
   ok('все семь задач размечены',
      ['understand_market', 'research_asset', 'find_idea', 'track_instruments', 'learn', 'prepare_event', 'start_trading']
@@ -126,7 +130,7 @@ const navText = d => [...d.querySelectorAll('.portal-nav .menu a:not(.nav-panel 
   click(w, routes[0]);
   const ev = () => w.Portal.events();
   ok('route_click с route_id',
-     ev().some(e => e.event === 'route_click' && e.route_id === 'understand_market'));
+     ev().some(e => e.event === 'route_click' && e.route_id === routes[0].dataset.route));
   ok('first_meaningful_action с ms_since_landing',
      ev().some(e => e.event === 'first_meaningful_action' && typeof e.ms_since_landing === 'number'));
   ok('home_variant проставлен в каждом событии',
@@ -160,7 +164,7 @@ const navText = d => [...d.querySelectorAll('.portal-nav .menu a:not(.nav-panel 
      /PORTAL HOME/.test(c.d.querySelector('.cp-ctx').textContent), c.d.querySelector('.cp-ctx').textContent);
 
   console.log('\n[7] Навигация одинакова на всех страницах');
-  const NAV = ['Overview', 'Research', 'Capital', 'Trade', 'Learn', 'Community'];
+  const NAV = ['Markets', 'Research', 'My Money', 'Learn', 'Community', 'Practice'];
   for (const p of ['/', '/charts', '/learn/academy', '/learn/academy/lesson', '/capital/experts', '/staff', '/metrics']) {
     store.clear(); session.clear();
     const page = await open(p, 'home_variant=task; tv_seen=1');

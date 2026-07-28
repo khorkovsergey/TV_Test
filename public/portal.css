@@ -544,3 +544,14 @@ body[data-ui-mode="pro"]      [data-only~="pro"]{display:revert}
 .flagship p{font-size:14.5px;color:var(--tv-muted);line-height:1.55;margin:10px 0 0;max-width:62ch}
 .flagship .cta{margin-top:16px;font-size:14px;font-weight:700;color:#5B8DFF}
 @media (max-width:640px){ .flagship{padding:20px} .flagship h3{font-size:21px} }
+
+
+/* A card the preset does not open with. Folded, never removed — one click and
+   it is back, and the data behind it never changed. */
+.folded-card{opacity:.72}
+.folded-card > *:not(.row):not(:first-child){display:none}
+.folded-card::after{content:"open in Standard mode, or click to expand";display:block;
+  font-family:var(--tv-mono, monospace);font-size:10px;color:var(--tv-ghost);margin-top:8px}
+.folded-card:hover{opacity:1}
+.folded-card:hover > *{display:block}
+.folded-card:hover::after{display:none}

@@ -215,12 +215,41 @@
         stage: ${esc(step.stage)} · the market is not the next step until the stage before it is done</div>`;
   }
 
+  /* §12 — one data store, three compositions. Simple opens with the month,
+     the ledger and one next step; Standard adds planning; Pro adds the
+     structural view. Nothing is removed at any level — the deeper cards fold
+     into a disclosure, and the mode never touches the numbers. */
+  function applyMode() {
+    const mode = P?.mode?.() || 'simple';
+    const policy = window.Modes?.policy(mode);
+    const deep = { categories: 1, safety: 2, netWorth: 3 };
+    const order = { simple: 0, standard: 1, pro: 2 };
+
+    const cards = [
+      ['categoriesCard', 1],
+      ['safetyCard', 2]
+    ];
+    for (const [id, complexity] of cards) {
+      const el = $(id);
+      if (!el) continue;
+      const open = complexity <= (order[mode] ?? 0) + 1;
+      el.classList.toggle('folded-card', !open);
+      el.dataset.complexity = String(complexity);
+    }
+
+    /* The teaching copy follows the preset the same way it does everywhere
+       else — guided keeps it, minimal drops it. */
+    P?.applyExplain?.(policy?.explanationDepth);
+    document.body.dataset.moneyMode = mode;
+  }
+
   function render() {
     const started = S.hasData() || S.state().profile.onboardingPath;
     $('onboard').hidden = Boolean(started);
     $('dash').hidden = !started;
-    if (!started) { paintOnboarding(); return; }
+    if (!started) { paintOnboarding(); applyMode(); return; }
     paintTotals(); paintCategories(); paintRecent(); paintGoals(); paintSafety(); paintNextStep();
+    applyMode();
   }
 
   /* ------------------------------------------------------------- quick add */

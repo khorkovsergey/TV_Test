@@ -58,7 +58,13 @@ const PAGES = ['/', '/charts', '/symbols/BTCUSD', '/learn/academy', '/learn/acad
   ok('нет заглушки hero visual', !/platform hero visual/.test(d.body.textContent));
   ok('нет витрины PRODUCTS', !/>Products</.test(html));
   const routes = [...d.querySelectorAll('.routes [data-route]')];
-  ok('7 маршрутов задач + Skip the portal', routes.length === 8, String(routes.length));
+  /* §9.1 — задач стало девять, но в Simple видно три: «Manage my money»
+     первой. Число маршрутов в разметке больше не показатель — показатель
+     то, сколько их видно без клика (проверяется в mode-test). */
+  ok('маршруты задач на месте', routes.length >= 8, String(routes.length));
+  ok('первая задача — деньги',
+     routes[0].querySelector('h3').textContent.trim() === 'Manage my money',
+     routes[0].querySelector('h3').textContent);
   ok('брифов ровно один', d.querySelectorAll('#brief').length === 1);
   ok('в брифе есть причина у каждой строки',
      [...d.querySelectorAll('.brief-row')].every(r => r.children.length === 4));
@@ -74,7 +80,7 @@ const PAGES = ['/', '/charts', '/symbols/BTCUSD', '/learn/academy', '/learn/acad
      !/Pricing/.test(d.querySelector('main').textContent) && /Pricing/.test(d.querySelector('.portal-footer').textContent));
 
   console.log('\n[§2] Одна навигация на всех страницах');
-  const NAV = ['Overview', 'Research', 'Capital', 'Trade', 'Learn', 'Community'];
+  const NAV = ['Markets', 'Research', 'My Money', 'Learn', 'Community', 'Practice'];
   for (const p of PAGES) {
     const page = await open(p);
     const nav = [...page.d.querySelectorAll('.portal-nav .menu a:not(.nav-panel a)')].map(a => a.textContent.trim());

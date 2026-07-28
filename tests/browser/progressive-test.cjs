@@ -185,7 +185,7 @@ const vis = el => el && !el.hidden && el.style.display !== 'none';
   ok('без ошибок', !events.some(e => e.startsWith('ERR')), events.filter(e => e.startsWith('ERR'))[0]);
 
   console.log('\n[13] Регрессия навигации и Copilot');
-  const NAV = ['Overview', 'Research', 'Capital', 'Trade', 'Learn', 'Community'];
+  const NAV = ['Markets', 'Research', 'My Money', 'Learn', 'Community', 'Practice'];
   for (const p of ['/charts', '/symbols/BTCUSD']) {
     store.clear(); session.clear();
     const page = await open(p);

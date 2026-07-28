@@ -150,7 +150,9 @@ async function switchTo(p, mode) {
   ok('ни один пункт не доступен только в Pro', missing.length === 0, missing.join(','));
 
   console.log('\n[Стратегические фичи] Видны во всех режимах (§2.3)');
-  const MUST = ['Wealth Hub', 'Expert Marketplace', 'Rewards', 'Academy', 'Search everything'];
+  /* §3.2 — раздел называется My Money, а пункт меню — «This month»:
+     навигация теперь говорит на языке задач, а не названий фич. */
+  const MUST = ['This month', 'Expert Marketplace', 'Community Rewards', 'Guided Academy', 'Screener'];
   for (const mode of M.LIST) {
     const p = mode === 'simple' ? simpleNav : mode === 'pro' ? proNav : await open('/overview', { store: modeStore('standard'), wait: 2200 });
     const labels = [...p.d.querySelectorAll('.nav-panel a[data-ia] span')].map(s => s.textContent.trim());
@@ -163,7 +165,7 @@ async function switchTo(p, mode) {
     const ids = [...p.d.querySelectorAll('[data-fid]')].map(a => a.dataset.fid);
     ok(`${mode}: блок инноваций на главной`, ids.length >= 4, ids.join(','));
     ok(`${mode}: Expert Marketplace на главной`, ids.includes('NEW-07'));
-    ok(`${mode}: Wealth Hub на главной`, ids.includes('NEW-05'));
+    ok(`${mode}: My Money на главной как флагман`, ids.includes('NEW-05'));
   }
   const newPage = {};
   for (const mode of M.LIST) {
@@ -364,7 +366,7 @@ async function switchTo(p, mode) {
   };
 
   const ROUTES = ['/', '/overview', '/markets', '/research', '/screeners', '/symbols/BTCUSD',
-                  '/charts', '/capital', '/capital/wealth', '/trade', '/learn', '/learn/academy',
+                  '/charts', '/money', '/trade', '/learn', '/learn/academy',
                   '/community', '/capital/experts', '/new'];
   for (const path of ROUTES) {
     const sh = {};
@@ -389,7 +391,7 @@ async function switchTo(p, mode) {
       txt: text(p.d)
     };
   };
-  for (const path of ['/overview', '/research', '/capital', '/community', '/new', '/capital/wealth']) {
+  for (const path of ['/overview', '/research', '/money', '/community', '/new']) {
     const w = { simple: await explainOf(path, 'simple'), standard: await explainOf(path, 'standard'), pro: await explainOf(path, 'pro') };
     ok(`${path}: обучающий абзац только в Simple`,
        w.simple.deep > 0 && w.standard.deep === 0 && w.pro.deep === 0,

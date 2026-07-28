@@ -169,8 +169,10 @@ const click = (w, el) => el.dispatchEvent(new w.MouseEvent('click', { bubbles: t
      briefRows[0].textContent.trim().slice(0, 60));
   ok('источник брифа указан', /Yahoo Finance/.test(d.getElementById('briefSource').textContent));
   ok('чипы вотчлиста показывают движение', /%/.test(d.getElementById('chips').textContent));
-  ok('навигация ведёт в Overview, где живут рынки',
-     Boolean(d.querySelector('.portal-nav .menu a[href="/overview"]')));
+  /* §3.1 — Overview покинул верхний уровень: Home уже делает его работу.
+     Рынки стали самостоятельным разделом, а не подпунктом обзора. */
+  ok('навигация ведёт в Markets',
+     Boolean(d.querySelector('.portal-nav .menu a[href="/markets"]')));
 
   console.log('\n[10] Воркспейс рисует настоящую серию');
   store.clear(); session.clear();
@@ -213,7 +215,7 @@ const click = (w, el) => el.dispatchEvent(new w.MouseEvent('click', { bubbles: t
     ok('под цифрами написано, что они не живые',
        /did not answer in time/.test(dd.getElementById('briefSource').textContent),
        dd.getElementById('briefSource').textContent.slice(0, 80));
-    ok('остальная главная работает', dd.querySelectorAll('.routes [data-route]').length === 8);
+    ok('остальная главная работает', dd.querySelectorAll('.routes [data-route]').length >= 8);
   }
 
   console.log(`\nИтог: пройдено ${pass}, провалено ${fail}`);
