@@ -92,7 +92,16 @@ const click = (w, el) => el.dispatchEvent(new w.MouseEvent('click', { bubbles: t
   ok('три блока движений дня', d.querySelectorAll('#movers .tv-card').length === 3);
   ok('тепловая карта отрисована', d.querySelectorAll('#heat .heat a').length >= 45,
      String(d.querySelectorAll('#heat .heat a').length));
-  ok('спарклайны в строках', d.querySelectorAll('#rows svg.spark').length >= 40);
+  /* Колонки теперь задаёт политика режима: Simple ведёт вопросом «почему»
+     вместо месячного спарклайна. Проверяем, что спарклайны рисуются там, где
+     режим их назначил, — гарантия та же, привязка к режиму честная. */
+  store.set('ui_mode', 'standard');
+  {
+    const st = await open('/markets');
+    ok('спарклайны в строках (Standard)', st.d.querySelectorAll('#rows svg.spark').length >= 40,
+       String(st.d.querySelectorAll('#rows svg.spark').length));
+  }
+  store.clear();
   ok('символы ведут на страницу инструмента',
      d.querySelector('#rows a.sym').getAttribute('href').startsWith('/symbols/'));
   ok('вкладки классов', d.querySelectorAll('#tabs button').length === 7);

@@ -406,6 +406,81 @@ const topMenu = d => [...d.querySelectorAll('.portal-nav .menu > a, .portal-nav 
     });
   })());
 
+  /* ---------------------------------------------- P1: Markets и My Money */
+
+  console.log('\n[P1] Markets и My Money читают матрицу');
+
+  const mk2 = {};
+  for (const m of ['simple', 'standard', 'pro']) {
+    mk2[m] = await open('/markets', { mode: m, wait: 2400 });
+  }
+  const heads = r => [...r.d.querySelectorAll('#head th')].map(t => t.textContent.trim().split(' ')[0]);
+  const cells = r => r.d.querySelector('#rows tr')?.querySelectorAll('td').length;
+
+  /* §BUG-MKT-001 — шапка фильтровалась по режиму, строки нет: в Simple таблица
+     заявляла пять колонок, а в каждой строке было десять ячеек, и начиная с
+     третьей все значения стояли под чужими заголовками. */
+  ok('34a. шапка и строки совпадают по числу колонок в каждом режиме',
+    ['simple', 'standard', 'pro'].every(m => heads(mk2[m]).length === cells(mk2[m])),
+    ['simple', 'standard', 'pro'].map(m => m + ':' + heads(mk2[m]).length + '/' + cells(mk2[m])).join(' '));
+
+  ok('35. набор колонок разный в трёх режимах',
+    new Set(['simple', 'standard', 'pro'].map(m => heads(mk2[m]).join())).size === 3,
+    ['simple', 'standard', 'pro'].map(m => m + ':' + heads(mk2[m]).length).join(' '));
+
+  ok('36. в Simple есть колонка «почему», ведущая к объяснению',
+    heads(mk2.simple).includes('Why')
+    && /\/symbols\/[A-Z]+#why/.test(mk2.simple.d.querySelector('#rows tr').innerHTML));
+
+  ok('38. Professional показывает объём и 52-недельный коридор',
+    heads(mk2.pro).some(h => /Volume/.test(h)) && heads(mk2.pro).some(h => /52w/.test(h)));
+
+  ok('34b. данные во всех режимах одни и те же',
+    new Set(['simple', 'standard', 'pro'].map(m =>
+      mk2[m].d.querySelectorAll('#rows tr').length)).size === 1,
+    ['simple', 'standard', 'pro'].map(m => mk2[m].d.querySelectorAll('#rows tr').length).join(','));
+
+  /* My Money — три композиции. */
+  const seed = JSON.stringify({
+    schemaVersion: 1, profile: { onboardingPath: 'notebook', primaryCurrency: 'USD' },
+    transactions: [{ id: 't1', type: 'income', amount: 1000, date: new Date().toISOString().slice(0, 10), categoryId: 'salary', accountId: 'a1' }],
+    accounts: [{ id: 'a1', name: 'Cash', type: 'cash', currency: 'USD', openingBalance: 500, includedInNetWorth: true }],
+    liabilities: [{ id: 'l1', name: 'Card', balance: 200 }], goals: [], recurring: []
+  });
+  const mn = {};
+  for (const m of ['simple', 'standard', 'pro']) {
+    mn[m] = await open('/money', {
+      store: new Map([['ui_mode', m], ['money_store_v1', seed]]), wait: 1600
+    });
+  }
+  const leadModule = r => [...r.d.querySelectorAll('#dash [data-placement="lead"]')]
+    .map(e => e.dataset.moduleId).join();
+  const openModules = r => [...r.d.querySelectorAll('#dash [data-module-id]')]
+    .filter(e => !e.classList.contains('folded-card')).map(e => e.dataset.moduleId);
+
+  ok('71. Simple открывается месяцем и ведёт меньшим числом модулей',
+    leadModule(mn.simple) === 'totals'
+    && openModules(mn.simple).length < openModules(mn.standard).length,
+    leadModule(mn.simple) + ' / ' + openModules(mn.simple).length + ' vs ' + openModules(mn.standard).length);
+
+  ok('73. Professional открывается чистым капиталом',
+    leadModule(mn.pro) === 'netWorth', leadModule(mn.pro));
+
+  ok('73b. модуль чистого капитала существует и считает', (() => {
+    const t = mn.pro.d.getElementById('netWorth').textContent.replace(/\s+/g, ' ');
+    return /What you own/.test(t) && /1\s?500/.test(t) && /Net worth/.test(t) && /1\s?300/.test(t);
+  })(), mn.pro.d.getElementById('netWorth').textContent.replace(/\s+/g, ' ').slice(0, 80));
+
+  ok('77. расчёты денег одинаковы во всех режимах',
+    new Set(['simple', 'standard', 'pro'].map(m =>
+      mn[m].d.getElementById('totals').textContent.replace(/\s+/g, ' '))).size === 1);
+
+  ok('68. ни один модуль My Money не пропал ни в одном режиме', (() => {
+    const ids = r => new Set([...r.d.querySelectorAll('#dash [data-module-id]')].map(e => e.dataset.moduleId));
+    const union = new Set(['simple', 'standard', 'pro'].flatMap(m => [...ids(mn[m])]));
+    return ['simple', 'standard', 'pro'].every(m => [...union].every(x => ids(mn[m]).has(x)));
+  })());
+
   /* ------------------------------------------------------- обещания */
 
   console.log('\n[Обещания] Переключатель говорит правду');

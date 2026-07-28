@@ -242,28 +242,66 @@
      the ledger and one next step; Standard adds planning; Pro adds the
      structural view. Nothing is removed at any level — the deeper cards fold
      into a disclosure, and the mode never touches the numbers. */
+  /* §19/GAP-09 — three compositions, not two folded cards.
+
+     Before this the mode reordered the onboarding choices, folded
+     `categoriesCard` and `safetyCard`, and changed the explanation depth. The
+     dashboard itself was the same page in all three modes, and `deep.netWorth`
+     was declared and never used.
+
+     Now the order and the placement come from the central matrix, and the
+     module the page opens with genuinely differs:
+
+       Simple        the month, the ledger, one next step
+       Standard      the month, then categories, goals and safety
+       Professional  net worth first, then the structure behind it            */
   function applyMode() {
     const mode = P?.mode?.() || 'simple';
     const policy = window.Modes?.policy(mode);
-    const deep = { categories: 1, safety: 2, netWorth: 3 };
-    const order = { simple: 0, standard: 1, pro: 2 };
+    const comp = window.ModeSurfaces ? window.ModeSurfaces.get('money', mode) : null;
 
-    const cards = [
-      ['categoriesCard', 1],
-      ['safetyCard', 2]
-    ];
-    for (const [id, complexity] of cards) {
-      const el = $(id);
-      if (!el) continue;
-      const open = complexity <= (order[mode] ?? 0) + 1;
-      el.classList.toggle('folded-card', !open);
-      el.dataset.complexity = String(complexity);
+    if (comp) {
+      const nodes = new Map();
+      document.querySelectorAll('#dash [data-module-id]').forEach(el =>
+        nodes.set(el.dataset.moduleId, el));
+
+      /* Reorder inside the column each module already lives in: moving a card
+         between columns would change the layout rather than the composition,
+         and the two-column grid is not what the mode is deciding. */
+      const byParent = new Map();
+      for (const id of comp.moduleOrder) {
+        const el = nodes.get(id);
+        if (!el || !el.parentElement) continue;
+        if (!byParent.has(el.parentElement)) byParent.set(el.parentElement, []);
+        byParent.get(el.parentElement).push(el);
+      }
+      for (const [parent, list] of byParent) {
+        for (const el of list) parent.appendChild(el);
+      }
+
+      /* Placement decides what is open and what is folded. `overflow` and
+         `advanced` still render — folded is a disclosure, never a deletion. */
+      for (const [id, el] of nodes) {
+        const place = comp.modulePlacement[id] || 'secondary';
+        const open = place === 'lead' || place === 'primary' || place === 'secondary';
+        el.classList.toggle('folded-card', !open);
+        el.dataset.placement = place;
+      }
+    } else {
+      /* Fallback for a build where the matrix has not loaded. */
+      const order = { simple: 0, standard: 1, pro: 2 };
+      for (const [id, complexity] of [['categoriesCard', 1], ['safetyCard', 2]]) {
+        const el = $(id);
+        if (!el) continue;
+        el.classList.toggle('folded-card', !(complexity <= (order[mode] ?? 0) + 1));
+      }
     }
 
     /* The teaching copy follows the preset the same way it does everywhere
        else — guided keeps it, minimal drops it. */
     P?.applyExplain?.(policy?.explanationDepth);
     document.body.dataset.moneyMode = mode;
+    document.body.dataset.moneyProfile = policy?.formProfile || 'grouped';
   }
 
   function render() {
@@ -271,8 +309,43 @@
     $('onboard').hidden = Boolean(started);
     $('dash').hidden = !started;
     if (!started) { paintOnboarding(); applyMode(); return; }
-    paintTotals(); paintCategories(); paintRecent(); paintGoals(); paintSafety(); paintNextStep();
+    paintTotals(); paintCategories(); paintRecent(); paintGoals(); paintSafety();
+    paintNetWorth(); paintNextStep();
     applyMode();
+  }
+
+  /* §GAP-09 — what you own minus what you owe. Null when there is nothing to
+     total: an empty net worth is not zero net worth. */
+  function paintNetWorth() {
+    const box = $('netWorth');
+    if (!box) return;
+    const st = S.state();
+    const accounts = st.accounts || [];
+    const liabilities = st.liabilities || [];
+
+    if (!accounts.length && !liabilities.length) {
+      box.innerHTML = '<p style="margin:0">No accounts recorded yet, so there is nothing to total. '
+        + 'Net worth appears once you add where your money sits.</p>';
+      return;
+    }
+
+    /* `netWorth` returns { assets, liabilities, net } — reading it as a number
+       gave "you own 0" over a funded account, because `nw + owed` was adding
+       an object to a number. Use the fields it actually provides. */
+    const nw = M.netWorth(accounts, liabilities, st.transactions || []);
+    const owned = nw.assets;
+    const owed = nw.liabilities;
+    box.innerHTML =
+      `<div class="row" style="justify-content:space-between"><span>What you own</span>
+        <b>${money(owned)}</b></div>
+       <div class="row" style="justify-content:space-between"><span>What you owe</span>
+        <b>${money(owed)}</b></div>
+       <div class="row" style="justify-content:space-between;margin-top:8px;
+            border-top:1px solid var(--tv-line);padding-top:8px">
+        <span>Net worth</span><b style="color:var(--tv-white)">${money(nw.net)}</b></div>
+       <p data-explain-level="context" style="font-size:12px;color:var(--tv-faint);margin-top:8px">
+         Accounts you marked as counting towards net worth, minus recorded debts. It is a
+         description of what you entered, not a valuation.</p>`;
   }
 
   /* ------------------------------------------------------------- quick add */

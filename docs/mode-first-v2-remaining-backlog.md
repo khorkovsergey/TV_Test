@@ -46,6 +46,19 @@ which is how this lands one page at a time.
 options desk and opens correlation and seasonality. Before this the page was the same ribbon in
 all three modes.
 
+**Markets reads the column policy (§14) — and a real defect came out of it.** The header was
+filtered by mode and the body was not: in Simple the table declared five columns while every row
+emitted ten, so from the third column on every value sat under the wrong heading. It survived
+because Professional, where the two happen to agree, is the mode a developer works in. Header and
+cells are now built from the same list, and Simple gains a `Why` column — one link per row into
+the page that explains the drivers.
+
+**My Money has three compositions (GAP-09), and a net-worth module that exists.** `deep.netWorth`
+was declared and never used, and the model had been computing net worth all along with nothing
+showing it. There is now a module: what you own, what you owe, the difference, and a line saying
+it describes what you entered rather than valuing anything. Simple opens with the month,
+Professional opens with net worth. Order and folding come from the matrix; nothing is removed.
+
 ## P1 — the remaining surfaces
 
 The matrix declares compositions for sixteen surfaces. **One page reads its own** — `/research`.
@@ -53,10 +66,10 @@ The rest still compose themselves the way they did before, which means:
 
 - `hub.js` accepts a composition, but only `/research` passes one. Overview, Learn, Community,
   Practice and Capital still call it the old way and are unchanged.
-- Markets still shows the same columns in all three modes (§14 open).
+
 - Screener still has one form layout (§16, §27 open).
 - Asset Hub still has one tab policy (§17 open).
-- My Money still folds two cards rather than recomposing (GAP-09 open).
+
 - Academy still adds a class and folds `[data-advanced]` (GAP-10 open).
 - The register changes the answer, but no page yet renders it differently — the panel shows the
   same layout for all three. That is presentation, and it is P1 work that is not done.

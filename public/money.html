@@ -101,12 +101,12 @@
       </div>
     </div>
 
-    <div class="stats mt-24" id="totals"></div>
+    <div class="stats mt-24" id="totals" data-module-id="totals"></div>
 
     <div class="grid-2 mt-24" style="grid-template-columns:1.35fr 1fr;align-items:start">
       <div style="display:flex;flex-direction:column;gap:14px">
 
-        <div class="tv-card" id="categoriesCard">
+        <div class="tv-card" id="categoriesCard" data-module-id="categories">
           <div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
             <p class="title" style="margin:0">Where it went</p>
             <span class="mono src" id="catNote"></span>
@@ -114,7 +114,7 @@
           <div id="categories" style="margin-top:12px"></div>
         </div>
 
-        <div class="tv-card">
+        <div class="tv-card" data-module-id="recent">
           <div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
             <p class="title" style="margin:0">Recent</p>
             <a href="/money/transactions" style="font-size:12.5px;font-weight:700">All transactions →</a>
@@ -129,15 +129,23 @@
 
         <!-- One next step, chosen by financial stage. Never a market action
              before the stage that earns it. -->
-        <div class="tv-card accent" id="nextStepCard"></div>
+        <div class="tv-card accent" id="nextStepCard" data-module-id="nextStep"></div>
 
-        <div class="tv-card">
+        <div class="tv-card" data-module-id="goals">
           <div class="row" style="justify-content:space-between"><p class="title" style="margin:0">Goals</p>
             <button type="button" class="preset" id="addGoal">+ goal</button></div>
           <div id="goals" style="margin-top:10px"></div>
         </div>
 
-        <div class="tv-card" id="safetyCard">
+        <!-- §GAP-09 — the model has computed net worth all along and no module
+             showed it. Professional opens with it; the other modes keep it,
+             folded. What you own minus what you owe, and nothing implied. -->
+        <div class="tv-card" id="netWorthCard" data-module-id="netWorth">
+          <p class="title" style="margin:0">Net worth</p>
+          <div id="netWorth" style="margin-top:10px;font-size:13px;color:var(--tv-muted);line-height:1.6"></div>
+        </div>
+
+        <div class="tv-card" id="safetyCard" data-module-id="safety">
           <p class="title" style="margin:0">Financial safety</p>
           <div id="safety" style="margin-top:10px;font-size:13px;color:var(--tv-muted);line-height:1.6"></div>
         </div>

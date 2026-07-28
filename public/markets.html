@@ -198,17 +198,50 @@ const ALL_COLUMNS = [
   { k: 'w1',        label: '1W',       num: true,  min: 'standard' },
   { k: 'm1',        label: '1M',       num: true,  min: 'standard' },
   { k: 'range',     label: '52w range',num: false, min: 'standard' },
-  { k: 'volume',    label: 'Volume',   num: true,  min: 'pro' }
+  { k: 'volume',    label: 'Volume',   num: true,  min: 'pro' },
+  /* §14 — Simple leads with what moved and WHY, so it gets a column the other
+     modes do not: one link per row into the page that explains the drivers.
+     It is not a new data source; it is a door. */
+  { k: 'why',       label: 'Why',      num: false, min: 'simple' }
 ];
 const ORDER = { simple: 0, standard: 1, pro: 2 };
 let COLUMNS = ALL_COLUMNS;
 function pickColumns() {
   const m = P?.mode?.() || 'simple';
-  COLUMNS = ALL_COLUMNS.filter(c => ORDER[c.min] <= ORDER[m]);
+
+  /* §14 — the column set is a central policy now. The page used to carry its
+     own `min` per column, which is why Simple and Professional differed by
+     row height and little else. The `min` fields stay as the fallback for a
+     build where the matrix has not loaded. */
+  const comp = window.ModeSurfaces ? window.ModeSurfaces.get('markets', m) : null;
+  if (comp && comp.visibleColumns) {
+    const want = comp.visibleColumns;
+    COLUMNS = want.map(k => ALL_COLUMNS.find(c => c.k === k)).filter(Boolean);
+  } else {
+    COLUMNS = ALL_COLUMNS.filter(c => ORDER[c.min] <= ORDER[m] && c.k !== 'why');
+  }
   if (!COLUMNS.some(c => c.k === sortKey)) sortKey = 'changePct';
 }
 
 const val = (i, k) => k === 'w1' ? i.perf?.w1 : k === 'm1' ? i.perf?.m1 : i[k];
+
+/* One renderer per column key. The header and the body read the same list, so
+   a column can be added, moved or dropped by the mode policy alone. */
+const CELL = {
+  symbol:    i => `<td><a class="sym" href="/symbols/${encodeURIComponent(i.symbol)}">${Q.esc(i.symbol)}</a></td>`,
+  name:      i => `<td class="nm">${Q.esc(i.name)}</td>`,
+  price:     i => `<td class="num">${Q.price(i.price, i)}</td>`,
+  change:    i => `<td class="num ${Q.cls(i.change)}">${Q.change(i.change, i)}</td>`,
+  changePct: i => `<td class="num ${Q.cls(i.changePct)}">${Q.pct(i.changePct)}</td>`,
+  w1:        i => `<td class="num ${Q.cls(i.perf?.w1)}">${Q.pct(i.perf?.w1)}</td>`,
+  m1:        i => `<td class="num ${Q.cls(i.perf?.m1)}">${Q.pct(i.perf?.m1)}</td>`,
+  volume:    i => `<td class="num">${Q.volume(i.volume)}</td>`,
+  range:     i => `<td>${Q.rangeBar(i)}</td>`,
+  spark:     i => `<td>${Q.spark(i.series)}</td>`,
+  /* Not a new number — a door into the page that explains the drivers. */
+  why:       i => `<td><a href="/symbols/${encodeURIComponent(i.symbol)}#why"
+                     style="font-size:12px;color:#5B8DFF">Why?</a></td>`
+};
 
 function renderHead() {
   $('head').innerHTML = COLUMNS.map(c => {
@@ -238,20 +271,17 @@ function renderRows() {
   $('rows').innerHTML = items.map(i => {
     if (!i.ok) {
       return `<tr><td class="sym">${Q.esc(i.symbol)}</td><td class="nm">${Q.esc(i.name)}</td>
-        <td colspan="8" style="color:var(--tv-orange);font-size:12.5px">could not be loaded — ${Q.esc(i.error || 'source unavailable')}</td></tr>`;
+        <td colspan="${Math.max(1, COLUMNS.length - 2)}" style="color:var(--tv-orange);font-size:12.5px">could not be loaded — ${Q.esc(i.error || 'source unavailable')}</td></tr>`;
     }
-    return `<tr>
-      <td><a class="sym" href="/symbols/${encodeURIComponent(i.symbol)}">${Q.esc(i.symbol)}</a></td>
-      <td class="nm">${Q.esc(i.name)}</td>
-      <td class="num">${Q.price(i.price, i)}</td>
-      <td class="num ${Q.cls(i.change)}">${Q.change(i.change, i)}</td>
-      <td class="num ${Q.cls(i.changePct)}">${Q.pct(i.changePct)}</td>
-      <td class="num ${Q.cls(i.perf?.w1)}">${Q.pct(i.perf?.w1)}</td>
-      <td class="num ${Q.cls(i.perf?.m1)}">${Q.pct(i.perf?.m1)}</td>
-      <td class="num">${Q.volume(i.volume)}</td>
-      <td>${Q.rangeBar(i)}</td>
-      <td>${Q.spark(i.series)}</td>
-    </tr>`;
+    /* §BUG-MKT-001. The header was filtered by mode and the body was not: in
+       Simple the table said five columns and every row had ten, so from the
+       third column on, every value sat under the wrong heading. It went
+       unnoticed because Professional — where the two agree — is the mode a
+       developer works in.
+
+       Cells are built from the same list the header is, so the two cannot
+       drift again. */
+    return '<tr>' + COLUMNS.map(c => CELL[c.k](i)).join('') + '</tr>';
   }).join('') || '<tr><td style="padding:22px;color:var(--tv-faint)">Nothing in this class.</td></tr>';
 }
 

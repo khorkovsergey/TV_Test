@@ -102,17 +102,19 @@ window.ModeSurfaces = (function () {
         ['movers', 'table', 'heatmap', 'events'],
         { movers: 'lead', table: 'primary', heatmap: 'collapsed', events: 'secondary' },
         ['explain_move', 'open_symbol'],
-        { visibleColumns: ['symbol', 'price', 'changePct', 'why'] }),
+        /* Keys are the page's own column keys, not prose: a matrix that names
+           columns the table does not have is a matrix nobody can apply. */
+        { visibleColumns: ['symbol', 'name', 'changePct', 'price', 'why'] }),
       standard: c('The market, filtered the way you work.',
         ['table', 'movers', 'heatmap', 'events'],
         { table: 'lead', movers: 'primary', heatmap: 'primary', events: 'secondary' },
         ['open_symbol', 'open_chart', 'add_watchlist'],
-        { visibleColumns: ['symbol', 'price', 'changePct', 'w1', 'm1', 'spark'] }),
+        { visibleColumns: ['symbol', 'name', 'price', 'changePct', 'change', 'w1', 'm1', 'spark'] }),
       pro: c('Dense table first, everything else beside it.',
         ['table', 'breadth', 'heatmap', 'movers', 'events'],
         { table: 'lead', breadth: 'primary', heatmap: 'secondary', movers: 'secondary', events: 'collapsed' },
         ['open_chart', 'open_screener', 'add_watchlist', 'compare'],
-        { visibleColumns: ['symbol', 'price', 'changePct', 'd1', 'w1', 'm1', 'volume', 'range52', 'spark'] })
+        { visibleColumns: ['symbol', 'name', 'price', 'changePct', 'change', 'w1', 'm1', 'volume', 'range', 'spark'] })
     },
 
     /* --------------------------------------------------------- research */
