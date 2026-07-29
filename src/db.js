@@ -104,6 +104,21 @@ CREATE TABLE IF NOT EXISTS consultations (
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Page views. No IP column, deliberately: the visitor column is a salted hash
+-- and the country is resolved from a masked prefix. Nothing here can leak an
+-- address. Written as an SQL comment, not a JS one: this block is a template
+-- literal, and a backtick inside it ends the schema early.
+CREATE TABLE IF NOT EXISTS page_views (
+  ts         TIMESTAMPTZ NOT NULL DEFAULT now(),
+  visitor    TEXT NOT NULL,
+  path       TEXT NOT NULL,
+  country    TEXT,
+  bot        BOOLEAN NOT NULL DEFAULT false,
+  ref        TEXT,
+  mode       TEXT
+);
+CREATE INDEX IF NOT EXISTS page_views_ts ON page_views (ts DESC);
+
 CREATE TABLE IF NOT EXISTS ai_calls (
   id            TEXT PRIMARY KEY,
   kind          TEXT NOT NULL,
@@ -148,7 +163,8 @@ const mem = {
   matches: [],
   bookings: new Map(),
   consultations: new Map(),
-  aiCalls: []
+  aiCalls: [],
+  pageViews: []
 };
 
 /* -------------------------------------------------------------------- init */
@@ -429,6 +445,41 @@ export async function listAiCalls(limit = 200) {
 
 /* §OPS-002 — the pool has to be closed on shutdown, or Postgres keeps the
    connections until it times them out itself. */
+/* ------------------------------------------------------------ page views */
+
+export async function logPageView(row) {
+  if (MODE === 'postgres') {
+    await q(`INSERT INTO page_views (ts, visitor, path, country, bot, ref, mode)
+             VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+      [row.ts, row.visitor, row.path, row.country, row.bot, row.ref, row.mode]);
+    return;
+  }
+  mem.pageViews.push(row);
+  if (mem.pageViews.length > 20000) mem.pageViews.splice(0, mem.pageViews.length - 20000);
+}
+
+/* The country arrives after the row does — the geo lookup must not delay a
+   response, so the row is written first and patched when the answer comes. */
+export async function setPageViewCountry(ts, visitor, country) {
+  if (MODE === 'postgres') {
+    await q(`UPDATE page_views SET country = $3 WHERE ts = $1 AND visitor = $2 AND country IS NULL`,
+      [ts, visitor, country]);
+    return;
+  }
+  const r = mem.pageViews.find(x => x.ts === ts && x.visitor === visitor);
+  if (r && !r.country) r.country = country;
+}
+
+export async function listPageViews(sinceIso) {
+  if (MODE === 'postgres') {
+    const { rows } = await q(
+      `SELECT ts, visitor, path, country, bot, ref, mode
+         FROM page_views WHERE ts >= $1 ORDER BY ts ASC LIMIT 200000`, [sinceIso]);
+    return rows.map(r => ({ ...r, ts: new Date(r.ts).toISOString() }));
+  }
+  return mem.pageViews.filter(r => r.ts >= sinceIso);
+}
+
 export async function close() {
   if (MODE === 'postgres' && pool) await pool.end();
 }

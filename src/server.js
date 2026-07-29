@@ -16,6 +16,7 @@ import { fileURLToPath } from 'node:url';
 import { randomUUID, timingSafeEqual } from 'node:crypto';
 import * as db from './db.js';
 import { ROUTES, PAGE_OF, LEGACY, chartRoute, symbolRoute } from './routes.js';
+import * as analytics from './analytics.js';
 import {
   buildBrief, rankMatches, hardFilter, streamSummary,
   hasKey, MODEL, RefusalError
@@ -37,6 +38,14 @@ app.set('trust proxy', 1);
 app.disable('x-powered-by');
 
 app.use(express.json({ limit: '256kb' }));
+
+/* Visit analytics. First in the chain so a page view is counted even if the
+   route below it 404s — a 404 is still somebody arriving.
+
+   It records an anonymous visitor hash and a country, never an IP. See
+   `src/analytics.js` for what that costs and what it buys. */
+analytics.useDb(db);
+app.use((req, _res, next) => { analytics.record(req); next(); });
 
 /* §SEC-006 — security headers, written out rather than pulled from a
    dependency, because there are six of them and the stand has no build step.
@@ -558,6 +567,13 @@ app.get('/api/bookings/:id/summary', staffOnly, wrap(async (req, res) => {
 /* Exactly the metrics named in the hypothesis: booking rate, completed
    consultations, repeat bookings — plus AI cost, without which the pilot's
    unit economics cannot be computed. */
+/* How many people, from where. Staff-only: it is aggregate and anonymous, but
+   it is still traffic data and does not belong on a public endpoint. */
+app.get('/api/analytics', staffOnly, wrap(async (req, res) => {
+  const period = String(req.query.period || '24h');
+  res.json(await analytics.summary(period));
+}));
+
 app.get('/api/metrics', staffOnly, wrap(async (_req, res) => {
   const [requests, bookings, consultations, calls, matched] = await Promise.all([
     db.listRequests(1000), db.listBookings(), db.listConsultations(),

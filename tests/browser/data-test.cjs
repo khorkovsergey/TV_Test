@@ -236,6 +236,72 @@ const click = (w, el) => el.dispatchEvent(new w.MouseEvent('click', { bubbles: t
     ok('остальная главная работает', dd.querySelectorAll('.routes [data-route]').length >= 8);
   }
 
+  /* ------------------------------------------------- аналитика посещений */
+
+  console.log('\n[Аналитика] Считает людей, а не запросы');
+
+  const AP = require('path').join(__dirname, '..', '..', 'src', 'analytics.js');
+  const an = await import(require('url').pathToFileURL(AP).href);
+
+  /* Маскирование — то, на чём держится обещание «адрес не хранится». */
+  ok('маска /24 у IPv4', an.maskIp('212.169.220.210') === '212.169.220.0',
+    an.maskIp('212.169.220.210'));
+  ok('маска /48 у IPv6', an.maskIp('2a02:6b8:c02:900::1') === '2a02:6b8:c02::',
+    an.maskIp('2a02:6b8:c02:900::1'));
+  ok('приватные адреса наружу не уходят',
+    an.maskIp('127.0.0.1') === '' && an.maskIp('192.168.1.5') === ''
+    && an.maskIp('10.0.0.7') === '', an.maskIp('192.168.1.5'));
+
+  /* Один и тот же человек — один идентификатор; разные — разные. */
+  const vid = an._visitorId;
+  ok('идентификатор посетителя устойчив',
+    vid('1.2.3.4', 'UA') === vid('1.2.3.4', 'UA'));
+  ok('разные устройства — разные идентификаторы',
+    vid('1.2.3.4', 'UA') !== vid('1.2.3.5', 'UA')
+    && vid('1.2.3.4', 'UA') !== vid('1.2.3.4', 'UA2'));
+  ok('в идентификаторе нет самого адреса',
+    !vid('212.169.220.210', 'UA').includes('212'), vid('212.169.220.210', 'UA'));
+
+  /* Сводка: люди и боты не смешиваются. Вчера все восемь заходов на стенд
+     были превью-краулером — панель, показавшая бы «8 посетителей», была бы
+     хуже отсутствия панели. */
+  an._reset();
+  const nowMs = Date.now();
+  const at = min => new Date(nowMs - min * 60000).toISOString();
+  an._push({ ts: at(10), visitor: 'aaa', path: '/', country: 'ES', bot: false, ref: 't.me', mode: 'simple' });
+  an._push({ ts: at(9),  visitor: 'aaa', path: '/economy', country: 'ES', bot: false, ref: null, mode: 'simple' });
+  an._push({ ts: at(8),  visitor: 'bbb', path: '/', country: 'RU', bot: false, ref: null, mode: null });
+  an._push({ ts: at(7),  visitor: 'ccc', path: '/markets', country: 'ES', bot: true,  ref: null, mode: null });
+
+  const sum = await an.summary('24h');
+  ok('уникальные считаются по людям', sum.visitors === 2, String(sum.visitors));
+  ok('просмотры считаются по людям', sum.views === 3, String(sum.views));
+  ok('боты посчитаны отдельно', sum.bot_views === 1 && sum.bot_visitors === 1);
+  ok('гео сгруппировано по посетителям, а не по запросам',
+    sum.countries.find(c => c.key === 'ES') && sum.countries.find(c => c.key === 'ES').visitors === 1
+    && sum.countries.find(c => c.key === 'ES').views === 2,
+    JSON.stringify(sum.countries));
+  /* Два пути, а не три: /markets в наборе выше — бот, и он не должен
+     попадать в страницы, которые смотрели люди. Ожидание тройки было моей
+     ошибкой и поймано этой же проверкой. */
+  ok('страницы считаются только по людям', sum.pages.length === 2
+    && !sum.pages.some(p => p.key === '/markets'),
+    sum.pages.map(p => p.key).join(','));
+  ok('источник перехода виден', sum.referrers.length === 1 && sum.referrers[0].key === 't.me');
+  ok('почасовая гистограмма — 24 корзины', sum.hourly.length === 24, String(sum.hourly.length));
+  ok('сводка честно называет своё хранилище', typeof sum.storage === 'string');
+
+  /* Эндпоинт закрыт токеном персонала: данные обезличенные, но это всё равно
+     трафик. Локально STAFF_TOKEN не задан и защита намеренно пропускает
+     запрос — поэтому проверяется сама регистрация маршрута, а не ответ
+     тестового сервера, который отвечал бы 200 и в исправном коде. */
+  const serverSrc = require('fs').readFileSync(
+    require('path').join(__dirname, '..', '..', 'src', 'server.js'), 'utf8');
+  ok('/api/analytics зарегистрирован под staffOnly',
+    /app\.get\('\/api\/analytics',\s*staffOnly/.test(serverSrc));
+  ok('в проде без токена персонала staff-маршруты отказывают',
+    /STAFF_TOKEN is not configured/.test(serverSrc));
+
   console.log(`\nИтог: пройдено ${pass}, провалено ${fail}`);
   process.exit(fail ? 1 : 0);
 })();

@@ -137,6 +137,52 @@
     <div id="emptyState" class="mono" style="font-size:12.5px; color:var(--tv-ghost); padding:18px 0 4px;">Enter a staff token and press Refresh to load data.</div>
   </div>
 
+  <!-- Traffic. Aggregate and anonymous: the server stores a salted visitor
+       hash and a country, never an address. -->
+  <div class="tv-card mt-32" id="trafficCard">
+    <div class="row" style="justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap">
+      <h2 style="font-size:20px;font-weight:700;color:var(--tv-white);margin:0">Who visited</h2>
+      <div class="row" style="gap:6px;flex-wrap:wrap" id="periodBar">
+        <button type="button" class="btn btn-quiet" data-period="1h"  style="padding:6px 12px;font-size:12px">1 hour</button>
+        <button type="button" class="btn btn-primary" data-period="24h" style="padding:6px 12px;font-size:12px">24 hours</button>
+        <button type="button" class="btn btn-quiet" data-period="7d"  style="padding:6px 12px;font-size:12px">7 days</button>
+        <button type="button" class="btn btn-quiet" data-period="30d" style="padding:6px 12px;font-size:12px">30 days</button>
+      </div>
+    </div>
+
+    <div class="kpis mt-16" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px">
+      <div class="kpi"><div class="lbl">Unique visitors</div>
+        <div class="val" id="trVisitors">—</div>
+        <div class="sub">people, bots excluded</div></div>
+      <div class="kpi"><div class="lbl">Page views</div>
+        <div class="val" id="trViews">—</div>
+        <div class="sub"><span id="trPerVisitor">—</span> per visitor</div></div>
+      <div class="kpi"><div class="lbl">Countries</div>
+        <div class="val" id="trCountries">—</div>
+        <div class="sub">resolved from a masked prefix</div></div>
+      <div class="kpi"><div class="lbl">Bot requests</div>
+        <div class="val" id="trBots">—</div>
+        <div class="sub">counted, never mixed in</div></div>
+    </div>
+
+    <div class="mt-32" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px">
+      <div>
+        <div class="mono" style="font-size:10px;letter-spacing:.08em;color:#5B8DFF">GEO</div>
+        <table class="tv mt-16" style="width:100%"><tbody id="trGeo"></tbody></table>
+      </div>
+      <div>
+        <div class="mono" style="font-size:10px;letter-spacing:.08em;color:#5B8DFF">PAGES</div>
+        <table class="tv mt-16" style="width:100%"><tbody id="trPages"></tbody></table>
+      </div>
+      <div>
+        <div class="mono" style="font-size:10px;letter-spacing:.08em;color:#5B8DFF">CAME FROM</div>
+        <table class="tv mt-16" style="width:100%"><tbody id="trRefs"></tbody></table>
+      </div>
+    </div>
+
+    <div class="mono" id="trNote" style="font-size:10.5px;color:var(--tv-ghost);margin-top:18px;line-height:1.7"></div>
+  </div>
+
   <div class="disclaimer" id="healthLine">Educational concierge MVP. Data is synthetic and consultants are
     demonstration profiles. Not investment advice.</div>
 </main>
@@ -232,12 +278,76 @@ async function load() {
     renderFunnel(m);
     renderAi(m);
     await renderBookings();
+    await loadTraffic();
     $('updatedAt').textContent = 'updated ' + new Date().toISOString().slice(11, 16) + ' UTC';
   } catch (err) {
     setEmpty('Could not load metrics: ' + err.message);
   }
   loadHealth();
 }
+
+/* -------------------------------------------------------------- traffic */
+
+let trafficPeriod = '24h';
+
+const FLAG = c => (/^[A-Z]{2}$/.test(c)
+  ? String.fromCodePoint(...[...c].map(ch => 0x1F1E6 + ch.charCodeAt(0) - 65)) + ' '
+  : '');
+
+function rows(el, list, label) {
+  const box = $(el);
+  if (!list.length) {
+    box.innerHTML = `<tr><td class="mono" style="color:var(--tv-ghost);font-size:12px">nothing yet</td></tr>`;
+    return;
+  }
+  box.innerHTML = list.map(r => `<tr>
+      <td style="font-size:13px">${label(r.key)}</td>
+      <td class="mono" style="text-align:right;color:var(--tv-white)">${r.visitors}</td>
+      <td class="mono" style="text-align:right;color:var(--tv-faint);font-size:11.5px">${r.views}</td>
+    </tr>`).join('');
+}
+
+async function loadTraffic() {
+  try {
+    const r = await fetch('/api/analytics?period=' + encodeURIComponent(trafficPeriod), { headers: headers() });
+    if (!r.ok) return;
+    const a = await r.json();
+
+    $('trVisitors').textContent  = a.visitors;
+    $('trViews').textContent     = a.views;
+    $('trPerVisitor').textContent = a.visitors ? (a.views / a.visitors).toFixed(1) : '0';
+    $('trCountries').textContent = a.countries.filter(c => c.key !== 'unknown').length;
+    $('trBots').textContent      = a.bot_views;
+
+    rows('trGeo',   a.countries, k => k === 'unknown' ? 'unknown' : FLAG(k) + k);
+    rows('trPages', a.pages,     k => k);
+    rows('trRefs',  a.referrers, k => k);
+
+    /* The caveats belong on the dashboard, not only in a doc: a number whose
+       limits are invisible is a number that will be quoted wrongly. */
+    const notes = [
+      `storage: ${a.storage}`,
+      a.salt_is_stable
+        ? 'visitor ids are stable across restarts'
+        : 'ANALYTICS_SALT is not set — a restart makes returning visitors look new',
+      a.geo_enabled
+        ? 'country resolved from a masked /24 prefix, never a full address'
+        : 'geo lookup is off — every country reads unknown'
+    ];
+    $('trNote').innerHTML = notes.map(n => '· ' + n).join('<br>');
+  } catch { /* the rest of the page still works */ }
+}
+
+$('periodBar').addEventListener('click', e => {
+  const b = e.target.closest('[data-period]');
+  if (!b) return;
+  trafficPeriod = b.dataset.period;
+  $('periodBar').querySelectorAll('[data-period]').forEach(x => {
+    x.classList.toggle('btn-primary', x === b);
+    x.classList.toggle('btn-quiet', x !== b);
+  });
+  loadTraffic();
+});
 
 function renderKpi(m) {
   $('kpiBookingRate').textContent  = m.booking_rate;
