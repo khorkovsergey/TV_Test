@@ -574,6 +574,55 @@ app.get('/api/bookings/:id/summary', staffOnly, wrap(async (req, res) => {
 /* Exactly the metrics named in the hypothesis: booking rate, completed
    consultations, repeat bookings — plus AI cost, without which the pilot's
    unit economics cannot be computed. */
+/* The same answer, streamed.
+
+   §COPILOT-STREAM. The non-streaming endpoint above still exists and still
+   works — it is the fallback when a browser or a proxy will not do streaming,
+   and it is what the tests exercise. Both call the same `ask()`; the only
+   difference is whether anybody is listening to the progress. */
+app.post('/api/copilot/stream', limitAI, wrap(async (req, res) => {
+  const { messages, context } = req.body || {};
+  if (!Array.isArray(messages) || !messages.length) {
+    return res.status(400).json({ error: 'messages is required' });
+  }
+
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream; charset=utf-8',
+    'Cache-Control': 'no-cache, no-transform',
+    Connection: 'keep-alive',
+    /* Nginx and friends buffer by default, which turns a stream back into one
+       late blob — the exact thing this endpoint exists to avoid. */
+    'X-Accel-Buffering': 'no'
+  });
+
+  const send = (event, data) => {
+    if (res.writableEnded) return;
+    res.write(`event: ${event}
+data: ${JSON.stringify(data)}
+
+`);
+  };
+
+  /* If the visitor closes the tab mid-answer, stop writing into a dead socket
+     — but let the model call finish, because it is already paid for and its
+     usage still has to be logged. */
+  let gone = false;
+  req.on('close', () => { gone = true; });
+
+  try {
+    const out = await copilotAsk({
+      messages,
+      context: context || {},
+      onEvent: (e) => { if (!gone) send(e.type, e); }
+    });
+    send('done', out);
+  } catch (err) {
+    send('failed', { error: String(err?.message || err), code: err?.code || null });
+  } finally {
+    if (!res.writableEnded) res.end();
+  }
+}));
+
 /* The page reporting how long it was actually read. Not staff-only — it is the
    visitor's own browser telling us about the visitor's own visit, and it can
    only ever write a duration onto a row that request already created. The

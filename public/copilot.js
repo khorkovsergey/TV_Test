@@ -157,6 +157,21 @@
   .cp-input button{background:#2962FF;border:none;border-radius:999px;width:38px;height:38px;color:#fff;font-size:15px;cursor:pointer}
   .cp-input button:disabled{opacity:.5;cursor:default}
   .cp-esc{margin-top:auto;padding:10px 14px;border-top:1px solid var(--tv-line);background:rgba(41,98,255,.05)}
+  /* Collapsed: one line. The offer stays, its weight does not. */
+  .cp-esc-toggle{display:none;width:100%;text-align:left;background:none;border:0;padding:2px 0;
+    color:#5B8DFF;font:inherit;font-size:12.5px;cursor:pointer}
+  .cp-esc.folded .cp-esc-toggle{display:block}
+  .cp-esc.folded .t,.cp-esc.folded a{display:none}
+  .cp-esc.folded.open .t,.cp-esc.folded.open a{display:flex}
+  .cp-esc.folded.open .t{display:block}
+  .cp-head-actions{display:flex;align-items:center;gap:4px}
+  .cp-fresh{background:none;border:1px solid var(--tv-line);border-radius:6px;padding:3px 9px;
+    color:var(--tv-faint);font:inherit;font-size:11.5px;cursor:pointer}
+  .cp-fresh:hover{border-color:#2962FF;color:#fff}
+  .cp-phase{color:var(--tv-faint)}
+  .cp-stream{white-space:pre-wrap;margin-top:6px}
+  .cp-stream:empty{display:none}
+  .cp-empty[hidden]{display:none !important}
 .cp-esc .t{font-size:10px;letter-spacing:.08em;color:var(--tv-ghost);font-family:var(--tv-mono, monospace)}
 .cp-esc a{display:flex;gap:8px;align-items:center;margin-top:6px;font-size:12.5px;color:var(--tv-white);text-decoration:none}
 .cp-esc a:hover{color:#5B8DFF}
@@ -207,11 +222,20 @@
       <aside class="cp-panel" role="dialog" aria-label="Research Copilot" aria-hidden="true">
         <div class="cp-head">
           <div><div class="cp-title">✦ Research Copilot</div><div class="cp-sub" hidden></div></div>
-          <button type="button" class="cp-close" aria-label="Close">✕</button></div>
+          <div class="cp-head-actions">
+            <button type="button" class="cp-fresh" hidden title="Start a new question">✚ New</button>
+            <button type="button" class="cp-close" aria-label="Close">✕</button>
+          </div></div>
         <div class="cp-ctx"></div>
         <div class="cp-body">
-          <div class="cp-note">I can explain moves, compare instruments, link news to the chart, set up alerts and help with Pine Script. I see the page you are on — not your money, and not your positions.</div>
-          <div class="cp-suggests"></div>
+          <!-- The empty state. It exists to answer "what can I ask?" and it is
+               removed the moment that question has been answered by the person
+               asking something. Leaving it above their own question made the
+               panel argue with them. -->
+          <div class="cp-empty">
+            <div class="cp-note">I can explain moves, compare instruments, link news to the chart, set up alerts and help with Pine Script. I see the page you are on — not your money, and not your positions.</div>
+            <div class="cp-suggests"></div>
+          </div>
         </div>
         <div class="cp-esc"></div>
         <div class="cp-input"><input type="text" placeholder="Ask about markets…" aria-label="Ask about markets"><button type="button" aria-label="Send">➤</button></div>
@@ -221,6 +245,7 @@
     document.body.appendChild(panel);
 
     const chips = panel.querySelector('.cp-ctx');
+    const empty = panel.querySelector('.cp-empty');
     const sugg = panel.querySelector('.cp-suggests');
     const sub = panel.querySelector('.cp-sub');
     const body = panel.querySelector('.cp-body');
@@ -258,8 +283,14 @@
         if (Number.isFinite(sel.high)) add('High ' + fmtPrice(sel.high));
         if (Number.isFinite(sel.low)) add('Low ' + fmtPrice(sel.low));
       } else {
-        [c.page.toUpperCase().replace('_', ' '), c.symbol, c.chartRange, String(c.mode).toUpperCase()]
-          .forEach(t => add(t));
+        /* Only what is genuinely in context. On the home page there is no
+           chart, so `BTCUSD` and `1D` were defaults being displayed as facts —
+           the panel claimed to be looking at something it was not. The mode
+           chip went too: `PRO` is an internal token, and presentation metadata
+           does not belong on a surface a visitor reads. */
+        add(c.page.toUpperCase().replace(/_/g, ' '));
+        if (c.symbol && c.page !== 'portal_home') add(c.symbol);
+        if (c.interval && c.page === 'chart_workspace') add(c.interval);
       }
 
       if (sel && sel.type !== 'none') {
@@ -291,6 +322,18 @@
       if (v >= 1e3) return (v / 1e3).toFixed(2) + 'K';
       return String(Math.round(v));
     }
+
+    /* One rule, one place: the panel is either introducing itself or holding a
+       conversation. It is never doing both. */
+    function showEmptyState(on) {
+      empty.hidden = !on;
+      empty.style.display = on ? '' : 'none';
+      esc_.classList.toggle('folded', !on);
+      const fresh = panel.querySelector('.cp-fresh');
+      if (fresh) { fresh.hidden = on; fresh.style.display = on ? 'none' : ''; }
+    }
+
+    const hasConversation = () => Boolean(body.querySelector('.cp-msg'));
 
     function paintSuggestions() {
       const c = context();
@@ -325,7 +368,13 @@
     const esc_ = panel.querySelector('.cp-esc');
     const Fx = window.Features;
     if (Fx) {
-      esc_.innerHTML = '<div class="t">WHEN AI IS NOT ENOUGH</div>' +
+      /* The intent is right — the moment an AI answer is not enough is the
+         moment somebody wants a human, and that should not be a paywall that
+         appears after the third question. What was wrong was the weight: two
+         cards with four badges, pinned to the bottom, competing with the
+         answer. It collapses to one line once a conversation starts. */
+      esc_.innerHTML = '<button type="button" class="cp-esc-toggle">Need a person instead? →</button>'
+        + '<div class="t">WHEN AI IS NOT ENOUGH</div>' +
         [['NEW-07', 'Talk to a licensed expert', 'verified adviser, you choose what is shared'],
          ['NEW-06', 'AI Private', 'multi-step research, premium tier']]
           .map(([id, title, sub2]) => {
@@ -336,6 +385,10 @@
               <span><b>${title}</b> ${Fx.badge(f)}<br><span class="s">${sub2}</span></span></a>`;
           }).join('');
       esc_.addEventListener('click', e => {
+        if (e.target.closest('.cp-esc-toggle')) {
+          esc_.classList.toggle('open');
+          return;
+        }
         const a = e.target.closest('[data-fid]');
         if (a) Fx.track('strategic_feature_opened', Fx.byId(a.dataset.fid), { surface: 'copilot' });
       });
@@ -356,7 +409,11 @@
     function setBusy(on) {
       busy = on;
       sendBtn.disabled = on;
-      input.disabled = on;
+      /* The SEND button is blocked, the FIELD is not. Disabling the input meant
+         a person could not draft the next question, or fix a typo, while an
+         answer was being written — the one moment they have nothing else to
+         do. */
+      input.setAttribute('aria-busy', String(on));
     }
 
     /* ---------- rendering an answer ---------- */
@@ -444,6 +501,70 @@
       return msg;
     }
 
+    /* Streamed first, whole-answer second.
+
+       SSE cannot be read with EventSource here — that is GET-only and the
+       question is a POST body — so the stream is read off `fetch`. If anything
+       in that path fails (an old browser, a proxy that buffers, a network that
+       drops the connection), the same request is retried against the
+       non-streaming endpoint, which is unchanged and still authoritative. The
+       visitor sees a slower answer, not an error. */
+    /* Built from char codes so the file itself can be edited by tools that
+       rewrite line endings without silently changing what a frame boundary
+       means. */
+    const NL = String.fromCharCode(10);
+    const SEP = NL + NL;
+
+    async function streamAnswer({ body, onStatus, onDelta }) {
+      try {
+        const r = await fetch('/api/copilot/stream', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body
+        });
+        if (!r.ok || !r.body || !r.body.getReader) throw new Error('no stream');
+
+        const reader = r.body.getReader();
+        const dec = new TextDecoder();
+        let buf = '';
+        let done = null;
+
+        for (;;) {
+          const { value, done: end } = await reader.read();
+          if (end) break;
+          buf += dec.decode(value, { stream: true });
+
+          /* SSE frames are separated by a blank line. A partial frame stays in
+             the buffer until the rest of it arrives. */
+          let cut;
+          while ((cut = buf.indexOf(SEP)) !== -1) {
+            const frame = buf.slice(0, cut);
+            buf = buf.slice(cut + 2);
+            let event = 'message', dataLine = '';
+            for (const line of frame.split(NL)) {
+              if (line.startsWith('event:')) event = line.slice(6).trim();
+              else if (line.startsWith('data:')) dataLine += line.slice(5).trim();
+            }
+            if (!dataLine) continue;
+            let payload;
+            try { payload = JSON.parse(dataLine); } catch { continue; }
+
+            if (event === 'status') onStatus(payload.phase);
+            else if (event === 'delta') onDelta(payload.text || '');
+            else if (event === 'done') done = payload;
+            else if (event === 'failed') return { __error: true, error: payload.error };
+          }
+        }
+        if (done) return done;
+        throw new Error('stream ended without an answer');
+      } catch {
+        /* Fall back to the endpoint that was here before streaming existed. */
+        const r = await fetch('/api/copilot', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body
+        });
+        const data = await r.json().catch(() => ({}));
+        return r.ok ? data : { __error: true, error: data.error };
+      }
+    }
+
     async function send(text) {
       if (busy || !text.trim()) return;
       const question = text.trim();
@@ -465,21 +586,45 @@
       history.push({ role: 'user', content: question });
       threadSelection = ctx.chartSelection ? { ...ctx.chartSelection } : null;
 
-      const pending = h('<div class="cp-msg ai"><span class="cp-tag">AI</span><div>thinking <span class="cp-dots"><i></i><i></i><i></i></span></div></div>');
+      /* The empty state has done its job the moment there is a question. */
+      showEmptyState(false);
+
+      const pending = h(`<div class="cp-msg ai">
+        <span class="cp-tag">AI</span>
+        <div class="cp-phase">thinking <span class="cp-dots"><i></i><i></i><i></i></span></div>
+        <div class="cp-stream"></div>
+      </div>`);
       body.appendChild(pending);
       scroll();
       setBusy(true);
 
+      const phaseEl = pending.querySelector('.cp-phase');
+      const streamEl = pending.querySelector('.cp-stream');
+
+      /* Naming the phase is most of the value. "Searching the web" and "stuck"
+         look identical when the only signal is a row of dots. */
+      const PHASES = {
+        searching: 'searching the web',
+        reading: 'reading what it found',
+        preparing: 'preparing an action',
+        writing: 'writing'
+      };
+
       try {
-        const r = await fetch('/api/copilot', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ messages: history.slice(-10), context: ctx })
+        const data = await streamAnswer({
+          body: JSON.stringify({ messages: history.slice(-10), context: ctx }),
+          onStatus: p => {
+            if (!PHASES[p]) return;
+            phaseEl.firstChild.textContent = PHASES[p] + ' ';
+          },
+          onDelta: t => {
+            streamEl.textContent += t;
+            scroll();
+          }
         });
-        const data = await r.json();
         pending.remove();
 
-        if (!r.ok) {
+        if (data && data.__error) {
           history.pop();                      // do not keep an unanswered turn
           showError(data.error || 'Something went wrong.', question);
           return;
@@ -543,7 +688,7 @@
       history = [];
       body.querySelectorAll('.cp-msg, .cp-divider, .cp-divider-actions').forEach(n => n.remove());
       if (contextPatch) patch = { ...patch, ...contextPatch };
-      paintChips(); paintSuggestions();
+      paintChips(); paintSuggestions(); showEmptyState(true);
       track('copilot_thread_started', { page: context().page });
     }
 
@@ -723,6 +868,11 @@
       fab.style.display = '';
       fab.setAttribute('aria-label', 'Show Research Copilot');
     }
+
+    panel.querySelector('.cp-fresh').addEventListener('click', () => {
+      startNewThread();
+      input.focus();
+    });
 
     fab.addEventListener('click', () => open({ reason: 'fab' }));
     panel.querySelector('.cp-close').addEventListener('click', close);

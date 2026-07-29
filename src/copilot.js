@@ -647,7 +647,22 @@ function usageOf(msg) {
 
 /* ------------------------------------------------------------------- main */
 
-export async function ask({ messages, context }) {
+/* One code path, streamed.
+
+   `ask()` used to call `messages.create` and hand back the whole answer at
+   once. With up to four web searches inside a single turn that is ten to
+   thirty seconds of a motionless "thinking …" — and the SDK's own guidance is
+   to stream anything with a high `max_tokens` regardless, to stay under the
+   HTTP timeout.
+
+   So there is no separate streaming function: `ask()` streams always, and
+   `onEvent` is how a caller listens. A caller that passes nothing gets exactly
+   the old return value, which is why the non-streaming endpoint did not have
+   to change. */
+export async function ask({ messages, context, onEvent }) {
+  const emit = typeof onEvent === 'function'
+    ? (e) => { try { onEvent(e); } catch { /* a listener must never break the answer */ } }
+    : () => {};
   const started = Date.now();
   const history = (messages || []).slice(-MAX_TURNS).map(m => ({
     role: m.role === 'assistant' ? 'assistant' : 'user',
@@ -684,8 +699,27 @@ export async function ask({ messages, context }) {
   let final = null;
   let refused = false;
 
+  /* Progress, not just an answer. A visitor should be able to tell
+     "searching the web" from "stuck" — those look identical when the only
+     signal is a spinner. */
+  async function runRound(params) {
+    const stream = anthropic().beta.messages.stream(params);
+    for await (const ev of stream) {
+      if (ev.type === 'content_block_start') {
+        const b = ev.content_block || {};
+        if (b.type === 'server_tool_use') emit({ type: 'status', phase: 'searching' });
+        else if (b.type === 'web_search_tool_result') emit({ type: 'status', phase: 'reading' });
+        else if (b.type === 'tool_use') emit({ type: 'status', phase: 'preparing' });
+        else if (b.type === 'text') emit({ type: 'status', phase: 'writing' });
+      } else if (ev.type === 'content_block_delta' && ev.delta && ev.delta.type === 'text_delta') {
+        emit({ type: 'delta', text: ev.delta.text });
+      }
+    }
+    return stream.finalMessage();
+  }
+
   for (let round = 0; round <= MAX_TOOL_ROUNDS; round++) {
-    const msg = await anthropic().beta.messages.create({
+    const msg = await runRound({
       model: MODEL,
       max_tokens: MAX_TOKENS,
       betas: [FALLBACK_BETA],
@@ -752,7 +786,7 @@ export async function ask({ messages, context }) {
      user would get an empty bubble. Ask once more with tools switched off so a
      reply always comes back in words. */
   if (!raw) {
-    const wrap = await anthropic().beta.messages.create({
+    const wrap = await runRound({
       model: MODEL,
       max_tokens: MAX_TOKENS,
       betas: [FALLBACK_BETA],

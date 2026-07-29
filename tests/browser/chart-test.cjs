@@ -549,9 +549,13 @@ const hits = d => [...d.querySelectorAll('.ch-hit')];
     home.w.ResearchCopilot && !home.w.ResearchCopilot.isDocked()
     && !!home.d.querySelector('.cp-fab'));
 
-  ok('56b. вне графика чипы прежние', (() => {
+  /* Переписано намеренно. Раньше здесь утверждалось «чипов не меньше трёх» —
+     и это было ровно тем дефектом: вне графика панель показывала BTCUSD, 1D и
+     PRO, то есть дефолты и внутренний токен режима, выданные за контекст.
+     Проверяется теперь не количество, а правдивость. */
+  ok('56b. вне графика чипы не выдумывают контекст', (() => {
     const cc = [...home.d.querySelectorAll('.cp-chip')].map(x => x.textContent);
-    return cc.length >= 3 && cc.some(x => /PORTAL HOME/.test(x));
+    return cc.length === 1 && cc[0] === 'PORTAL HOME';
   })(), [...home.d.querySelectorAll('.cp-chip')].map(x => x.textContent).join('|'));
 
   ok('57. существующие действия Copilot целы', (() => {
@@ -567,6 +571,100 @@ const hits = d => [...d.querySelectorAll('.ch-hit')];
   ok('20a. фича зарегистрирована как флагман',
     p.w.Features.byId('TUNE-10') && p.w.Features.byId('TUNE-10').prominence === 'flagship'
     && p.w.Features.byId('TUNE-10').route === '/charts');
+
+
+  /* ------------------------------------------- Copilot: шум и стриминг */
+
+  console.log('\n[Copilot] Панель перестала спорить с вопросом');
+
+  const cop = await open('/', { mode: 'simple', wait: 1200 });
+  const CPD = cop.d;
+
+  /* Пустое состояние — только пока сообщений нет. Раньше вводный абзац и три
+     кнопки-подсказки лежали в теле панели НАД вопросом человека и не
+     исчезали никогда. */
+  ok('C1. пустое состояние видно до первого вопроса',
+    CPD.querySelector('.cp-empty') && CPD.querySelector('.cp-empty').hidden === false);
+  ok('C2. подсказки в пустом состоянии, а не в диалоге',
+    CPD.querySelectorAll('.cp-empty .cp-suggest').length === 3,
+    String(CPD.querySelectorAll('.cp-empty .cp-suggest').length));
+
+  /* Чипы говорят правду: на главной нет графика, поэтому символ и интервал —
+     это дефолты, а не контекст. Чип режима убран: PRO — внутренний токен. */
+  const chipText = [...CPD.querySelectorAll('.cp-ctx .cp-chip')].map(c => c.textContent).join('|');
+  ok('C3. на главной один честный чип', chipText === 'PORTAL HOME', chipText);
+  ok('C4. режим не протекает в чипы', !/\bPRO\b|\bSIMPLE\b|\bSTANDARD\b/.test(chipText), chipText);
+
+  ok('C5. промо развёрнуто, пока разговора нет',
+    !CPD.querySelector('.cp-esc').classList.contains('folded'));
+  ok('C6. кнопки нового вопроса ещё нет', CPD.querySelector('.cp-fresh').hidden === true);
+  ok('C7. поле ввода не заблокировано', CPD.querySelector('.cp-input input').disabled === false);
+
+  /* Стриминг: сервер шлёт статус и куски текста, панель собирает ответ.
+     В jsdom нет TextDecoder — в браузерах он есть везде, — поэтому здесь он
+     подставляется явно, иначе проверялся бы откат, а не стрим. */
+  cop.w.TextDecoder = TextDecoder;
+  const SSE = [
+    'event: status', 'data: {"phase":"searching"}', '',
+    'event: delta', 'data: {"text":"A P/E ratio "}', '',
+    'event: delta', 'data: {"text":"compares price to earnings."}', '',
+    'event: done',
+    'data: {"text":"A P/E ratio compares price to earnings.","sources":[],"actions":[],"factors":[]}',
+    '', ''
+  ].join('\n');
+
+  const realFetch = cop.w.fetch;
+  let streamAsked = false;
+  cop.w.fetch = (u, o) => {
+    if (String(u).includes('/api/copilot/stream')) {
+      streamAsked = true;
+      const enc = new TextEncoder();
+      return Promise.resolve({
+        ok: true,
+        body: { getReader() {
+          let sent = false;
+          return { read() {
+            if (sent) return Promise.resolve({ done: true });
+            sent = true;
+            return Promise.resolve({ value: enc.encode(SSE), done: false });
+          } };
+        } }
+      });
+    }
+    return realFetch(u, o);
+  };
+
+  await cop.w.ResearchCopilot.send('What is a P/E ratio?');
+  await new Promise(r => setTimeout(r, 300));
+
+  ok('C8. виджет спрашивает потоковый эндпоинт', streamAsked);
+  const answer = [...CPD.querySelectorAll('.cp-msg.ai')].pop();
+  ok('C9. потоковый ответ собран и отрисован',
+    Boolean(answer && /P\/E ratio compares price to earnings/.test(answer.textContent)),
+    answer && answer.textContent.slice(0, 60));
+  ok('C10. ошибок не показано', CPD.querySelectorAll('.cp-msg.err').length === 0);
+
+  ok('C11. пустое состояние ушло после вопроса', CPD.querySelector('.cp-empty').hidden === true);
+  ok('C12. промо свернулось в одну строку',
+    CPD.querySelector('.cp-esc').classList.contains('folded'));
+  ok('C13. кнопка нового вопроса появилась', CPD.querySelector('.cp-fresh').hidden === false);
+
+  cop.w.ResearchCopilot.startNewThread();
+  ok('C14. новый тред возвращает подсказки', CPD.querySelector('.cp-empty').hidden === false);
+  ok('C15. и убирает кнопку нового вопроса', CPD.querySelector('.cp-fresh').hidden === true);
+
+  /* Откат: если стрим недоступен, ответ всё равно приходит — обычным
+     эндпоинтом, который никуда не делся. */
+  const fsMod = require('fs'); const pathMod = require('path');
+  const srvSrc = fsMod.readFileSync(pathMod.join(__dirname, '..', '..', 'src', 'server.js'), 'utf8');
+  ok('C16. обычный эндпоинт сохранён как откат',
+    srvSrc.includes("app.post('/api/copilot',") && srvSrc.includes("app.post('/api/copilot/stream',"));
+
+  const copSrc = fsMod.readFileSync(pathMod.join(__dirname, '..', '..', 'public', 'copilot.js'), 'utf8');
+  ok('C17. виджет откатывается на обычный эндпоинт при сбое стрима',
+    copSrc.includes("Fall back to the endpoint that was here before streaming existed"));
+  ok('C18. ввод больше не блокируется на время ответа',
+    !copSrc.includes('input.disabled = on'));
 
   console.log(`\n${pass} ok, ${fail} fail`);
   process.exit(fail ? 1 : 0);
