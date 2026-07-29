@@ -666,6 +666,17 @@ const hits = d => [...d.querySelectorAll('.ch-hit')];
   ok('C18. ввод больше не блокируется на время ответа',
     !copSrc.includes('input.disabled = on'));
 
+  /* §SSE-001 — сторож отключения слушал `req`, а запрос в Node шлёт `close`
+     сразу после чтения ТЕЛА, а не при отсоединении клиента. Флаг вставал
+     мгновенно, все статусы и дельты отбрасывались, до браузера доходил только
+     финальный `done` — стрим вёл себя ровно как эндпоинт, который он заменял.
+     Поймано на проде: клиентский тест подменяет fetch и настоящего сокета не
+     касается, поэтому увидеть это не мог. */
+  const sseGuard = srvSrc.slice(srvSrc.indexOf("app.post('/api/copilot/stream'"));
+  const guardBlock = sseGuard.slice(0, sseGuard.indexOf('}));'));
+  ok('C19. сторож отключения слушает ответ, а не запрос',
+    guardBlock.includes("res.on('close'") && !guardBlock.includes("req.on('close'"));
+
   console.log(`\n${pass} ok, ${fail} fail`);
   process.exit(fail ? 1 : 0);
 })().catch(e => { console.error(e); process.exit(1); });

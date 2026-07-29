@@ -605,9 +605,20 @@ data: ${JSON.stringify(data)}
 
   /* If the visitor closes the tab mid-answer, stop writing into a dead socket
      — but let the model call finish, because it is already paid for and its
-     usage still has to be logged. */
+     usage still has to be logged.
+
+     §SSE-001 — this listened on `req`, which is wrong and silently broke the
+     whole feature. In Node, a request stream emits `close` once its BODY has
+     been read, not when the client disconnects: `gone` flipped to true a
+     millisecond after the POST arrived, every progress and delta event was
+     dropped, and only the final `done` — which does not go through this guard —
+     ever reached the browser. The stream looked exactly like the non-streaming
+     endpoint it was built to replace.
+
+     Caught on production, not in the tests: the client-side test stubs `fetch`
+     and never touches a real socket, so it could not have seen this. */
   let gone = false;
-  req.on('close', () => { gone = true; });
+  res.on('close', () => { gone = true; });
 
   try {
     const out = await copilotAsk({

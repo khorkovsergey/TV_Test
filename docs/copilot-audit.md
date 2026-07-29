@@ -86,6 +86,30 @@ falls back silently and correctly — which is how the fallback path came to be 
 was ever needed in anger. The test supplies `TextDecoder` explicitly so that it checks the *stream*
 rather than the fallback, and says so in a comment.
 
+## §SSE-001 — the streaming was broken, and production said so
+
+The first deploy returned a single `done` frame and nothing before it. HTTP 200, a correct answer,
+no errors in the log — and the stream behaving exactly like the endpoint it was built to replace.
+
+The disconnect guard listened on the **request**:
+
+```js
+req.on('close', () => { gone = true; });   // wrong
+```
+
+In Node a request stream emits `close` once its **body has been read**, not when the client
+disconnects. The flag flipped a millisecond after the POST arrived, every status and delta event was
+dropped by `if (!gone)`, and only the final `done` — which does not pass through that guard — ever
+reached the browser.
+
+Fixed to `res.on('close')`.
+
+**The tests could not have caught this.** The client-side check stubs `fetch` and replays a
+pre-built SSE body; it never touches a real socket. The only way to see it was to call the live
+endpoint and look at whether any frame arrives *before* `done`. The check added now asserts the
+guard's target inside the endpoint block, rather than searching the whole file — a `req.on('close')`
+elsewhere in `server.js` is legitimate and must not fail it.
+
 ## One existing check was rewritten
 
 `56b. вне графика чипы прежние` asserted "at least three chips" off the chart. That assertion *was*
