@@ -345,6 +345,53 @@ const click = (w, el) => el.dispatchEvent(new w.MouseEvent('click', { bubbles: t
   ok('маячок без пути игнорируется',
     an.recordDwell({ visitor: 'zzz', path: '', ms: 1000 }) === false);
 
+  /* ------------------------------------------------------- схема БД */
+
+  console.log('\n[Хранилище] Схема применима к ПУСТОЙ базе');
+
+  const dbSrc = require('fs').readFileSync(
+    require('path').join(__dirname, '..', '..', 'src', 'db.js'), 'utf8');
+  const schema = dbSrc.slice(dbSrc.indexOf('const SCHEMA'), dbSrc.indexOf('\n' + '`;'));
+
+  /* §DB-007 — ALTER TABLE и CREATE INDEX стояли ВЫШЕ создания таблиц, к
+     которым обращались. На существующей базе это работало, поэтому дефект
+     пережил несколько релизов; на пустой — падал на первом же операторе.
+     Проверяется порядок, а не текст. */
+  const tablePos = {};
+  for (const m of schema.matchAll(/CREATE TABLE IF NOT EXISTS (\w+)/g)) tablePos[m[1]] = m.index;
+  const early = [];
+  for (const m of schema.matchAll(/(?:ALTER TABLE|INDEX[^\r\n]*? ON) (\w+)/g))
+    if (tablePos[m[1]] !== undefined && m.index < tablePos[m[1]]) early.push(m[1]);
+  ok('ни одна таблица не используется до создания', early.length === 0, early.join(','));
+
+  ok('семь таблиц объявлены',
+    ['consultants', 'requests', 'matches', 'bookings', 'consultations', 'page_views', 'ai_calls']
+      .every(t => tablePos[t] !== undefined),
+    Object.keys(tablePos).join(','));
+
+  /* Схема — шаблонная строка, и одна обратная кавычка обрывает её молча.
+     Этот файл на этом уже попадался дважды. */
+  /* Считать надо ПОСЛЕ открывающей кавычки шаблона, а не с фиксированного
+     смещения: slice(14) захватывал её саму и проверка падала на исправном
+     файле. */
+  const schemaBody = schema.slice(schema.indexOf('`') + 1);
+  ok('в схеме нет обратных кавычек', !schemaBody.includes('`'),
+    JSON.stringify(schemaBody.slice(Math.max(0, schemaBody.indexOf('`') - 40), schemaBody.indexOf('`') + 10)));
+
+  /* Порт открывается до подключения к базе: недоступный Postgres не должен
+     валить healthcheck и откатывать деплой. */
+  const srvSrc = require('fs').readFileSync(
+    require('path').join(__dirname, '..', '..', 'src', 'server.js'), 'utf8');
+  /* Искать надо ВЫЗОВ, а не упоминание: `db.init()` встречается ещё и в
+     комментарии §DB-006, который объясняет, почему порядок именно такой, —
+     и проверка ловила собственный комментарий, а не код. */
+  const listenAt = srvSrc.indexOf('const server = app.listen');
+  const initAt = srvSrc.indexOf('db.init().then(');
+  ok('сервер слушает порт до init базы', listenAt > 0 && initAt > listenAt,
+    'listen=' + listenAt + ' init=' + initAt);
+  ok('init не ожидается перед listen',
+    !/^\s*await db\.init\(\);/m.test(srvSrc));
+
   /* Эндпоинт закрыт токеном персонала: данные обезличенные, но это всё равно
      трафик. Локально STAFF_TOKEN не задан и защита намеренно пропускает
      запрос — поэтому проверяется сама регистрация маршрута, а не ответ

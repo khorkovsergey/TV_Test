@@ -66,19 +66,6 @@ CREATE TABLE IF NOT EXISTS requests (
   brief_error   TEXT
 );
 
--- Columns added after the first release; CREATE TABLE IF NOT EXISTS above will
--- not add them to an existing database.
-ALTER TABLE requests ADD COLUMN IF NOT EXISTS consent_ai BOOLEAN NOT NULL DEFAULT FALSE;
-ALTER TABLE requests ADD COLUMN IF NOT EXISTS consent_version TEXT;
-ALTER TABLE requests ADD COLUMN IF NOT EXISTS consent_at TIMESTAMPTZ;
-ALTER TABLE requests ADD COLUMN IF NOT EXISTS access_hash TEXT;
-ALTER TABLE bookings ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'held';
-
-CREATE INDEX IF NOT EXISTS requests_created_at_idx ON requests (created_at DESC);
-CREATE INDEX IF NOT EXISTS matches_request_idx ON matches (request_id);
-CREATE INDEX IF NOT EXISTS bookings_request_idx ON bookings (request_id);
-CREATE INDEX IF NOT EXISTS bookings_consultant_idx ON bookings (consultant_id);
-
 CREATE TABLE IF NOT EXISTS matches (
   request_id    TEXT NOT NULL,
   consultant_id TEXT NOT NULL,
@@ -128,7 +115,6 @@ CREATE TABLE IF NOT EXISTS page_views (
   ref        TEXT,
   mode       TEXT
 );
-CREATE INDEX IF NOT EXISTS page_views_ts ON page_views (ts DESC);
 
 CREATE TABLE IF NOT EXISTS ai_calls (
   id            TEXT PRIMARY KEY,
@@ -143,6 +129,40 @@ CREATE TABLE IF NOT EXISTS ai_calls (
   ms            INTEGER NOT NULL DEFAULT 0,
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- §DB-007 — MIGRATIONS AND INDEXES LAST, and they used to be neither.
+--
+-- These five ALTERs and four indexes sat in the middle of the file, above the
+-- CREATE TABLE statements for matches and bookings that they refer to. On a
+-- database that already had those tables it worked, which is why it survived
+-- several releases: every environment that ran it had been created by an
+-- earlier version of the schema.
+--
+-- On an EMPTY database it fails on the first statement, ALTER TABLE bookings,
+-- when there is no bookings table yet, and the whole schema aborts. That is
+-- exactly what happened the first time a real DATABASE_URL was attached, and
+-- the error read: relation "bookings" does not exist.
+--
+-- ADD COLUMN IF NOT EXISTS guards the COLUMN, never the table. Nothing here
+-- was ever conditional on the table existing.
+--
+-- NOTE: no backticks anywhere in this block. It lives inside a template
+-- literal, and one backtick ends the schema early — a trap this file has
+-- already sprung once.
+--
+-- Columns added after the first release; CREATE TABLE IF NOT EXISTS above will
+-- not add them to an existing database.
+ALTER TABLE requests ADD COLUMN IF NOT EXISTS consent_ai BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE requests ADD COLUMN IF NOT EXISTS consent_version TEXT;
+ALTER TABLE requests ADD COLUMN IF NOT EXISTS consent_at TIMESTAMPTZ;
+ALTER TABLE requests ADD COLUMN IF NOT EXISTS access_hash TEXT;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'held';
+
+CREATE INDEX IF NOT EXISTS requests_created_at_idx ON requests (created_at DESC);
+CREATE INDEX IF NOT EXISTS matches_request_idx ON matches (request_id);
+CREATE INDEX IF NOT EXISTS bookings_request_idx ON bookings (request_id);
+CREATE INDEX IF NOT EXISTS bookings_consultant_idx ON bookings (consultant_id);
+CREATE INDEX IF NOT EXISTS page_views_ts ON page_views (ts DESC);
 `;
 
 /* Demo roster. Licences are marked unverified — this is a pilot, not a registry.
