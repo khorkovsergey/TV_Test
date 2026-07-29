@@ -201,6 +201,114 @@ function modeOf(req) {
   return m ? m[1] : null;
 }
 
+/* ----------------------------------------------------------- dwell time
+
+   How long somebody stayed on a page cannot be measured on the server: the
+   server sees an arrival and then silence, and silence is the same whether
+   they read for four minutes or closed the tab at once.
+
+   Two sources, in order of trust:
+
+     1. A beacon from the page itself, sent on `pagehide`/`visibilitychange`
+        with the milliseconds the tab was actually visible. This is the real
+        number, and it is the ONLY way to know how long the LAST page of a
+        visit was read — there is no next arrival to subtract from.
+
+     2. Failing that, the gap to that visitor's next page view. Accurate for
+        every page but the last, and free.
+
+   The panel says which of the two produced each figure, because "4 minutes,
+   measured" and "4 minutes, inferred from the next click" are different
+   claims. */
+
+const dwell = new Map();          // visitor|path|ts → measured ms
+
+export function recordDwell({ visitor, path, ms }) {
+  if (!visitor || !path) return false;
+  const n = Number(ms);
+  /* A tab left open overnight is not four hours of reading. Anything past an
+     hour is treated as "left it open" and dropped rather than averaged in. */
+  if (!Number.isFinite(n) || n < 0 || n > 3600_000) return false;
+
+  /* Attach to that visitor's most recent view of that path. */
+  for (let i = ring.length - 1; i >= 0; i--) {
+    const r = ring[i];
+    if (r.visitor === visitor && r.path === path) {
+      r.dwellMs = Math.round(n);
+      dwell.set(`${visitor}|${path}|${r.ts}`, r.dwellMs);
+      return true;
+    }
+  }
+  return false;
+}
+
+/* The id the browser must send back. Derived the same way the row was, so a
+   page never needs to know an address either. */
+export function beaconIdFor(req) {
+  return visitorId(req.ip || '', String(req.get('user-agent') || ''));
+}
+
+/* -------------------------------------------------------------- sessions
+
+   A visit, not a page view. Consecutive views by the same visitor belong to
+   one session while the gap between them stays under thirty minutes — the
+   convention every analytics tool uses, stated here rather than assumed. */
+
+const SESSION_GAP_MS = 30 * 60 * 1000;
+
+function sessionsOf(rows) {
+  const byVisitor = new Map();
+  for (const r of rows) {
+    if (!byVisitor.has(r.visitor)) byVisitor.set(r.visitor, []);
+    byVisitor.get(r.visitor).push(r);
+  }
+
+  const out = [];
+  for (const [visitor, list] of byVisitor) {
+    list.sort((a, b) => Date.parse(a.ts) - Date.parse(b.ts));
+    let cur = null;
+    for (const r of list) {
+      const t = Date.parse(r.ts);
+      if (!cur || t - cur.lastTs > SESSION_GAP_MS) {
+        cur = { visitor, country: r.country, ref: r.ref, started: r.ts, lastTs: t, steps: [] };
+        out.push(cur);
+      }
+      cur.steps.push({ at: r.ts, path: r.path, dwellMs: r.dwellMs ?? null });
+      cur.lastTs = t;
+      if (r.country && !cur.country) cur.country = r.country;
+      if (r.ref && !cur.ref) cur.ref = r.ref;
+    }
+  }
+
+  for (const s of out) {
+    for (let i = 0; i < s.steps.length; i++) {
+      const step = s.steps[i];
+      const next = s.steps[i + 1];
+      if (step.dwellMs != null) {
+        step.seconds = Math.round(step.dwellMs / 1000);
+        step.source = 'measured';
+      } else if (next) {
+        step.seconds = Math.round((Date.parse(next.at) - Date.parse(step.at)) / 1000);
+        step.source = 'inferred';
+      } else {
+        /* The last page with no beacon. Reporting zero would be a lie that
+           averages nicely; null is the truth. */
+        step.seconds = null;
+        step.source = 'unknown';
+      }
+      delete step.dwellMs;
+    }
+    s.ended = s.steps[s.steps.length - 1].at;
+    const known = s.steps.filter(x => x.seconds != null);
+    s.seconds = known.reduce((a, x) => a + x.seconds, 0);
+    s.pages = s.steps.length;
+    s.complete = s.steps.every(x => x.source !== 'unknown');
+    delete s.lastTs;
+  }
+
+  return out.sort((a, b) => Date.parse(b.started) - Date.parse(a.started));
+}
+
 /* --------------------------------------------------------------- reading */
 
 const HOURS = { '1h': 1, '24h': 24, '7d': 24 * 7, '30d': 24 * 30 };
@@ -219,6 +327,8 @@ export async function summary(period = '24h') {
 
   const people = rows.filter(r => !r.bot);
   const bots = rows.filter(r => r.bot);
+  const sess = sessionsOf(people);
+  const rowsWithDwell = people.filter(r => r.dwellMs != null).length;
 
   const uniq = list => new Set(list.map(r => r.visitor)).size;
   const tally = (list, key) => {
@@ -262,13 +372,28 @@ export async function summary(period = '24h') {
     pages: tally(people, 'path').slice(0, 25),
     referrers: tally(people.filter(r => r.ref), 'ref').slice(0, 15),
     modes: tally(people.filter(r => r.mode), 'mode'),
-    hourly: buckets
+    hourly: buckets,
+
+    /* The timeline: who arrived when, where they went next, and how long each
+       page held them. Capped so a busy day cannot produce a ten-megabyte
+       response; the cap is reported rather than applied silently. */
+    sessions: sess.slice(0, SESSION_LIMIT),
+    sessions_total: sess.length,
+    sessions_truncated: sess.length > SESSION_LIMIT,
+    time_on_page: {
+      measured: rowsWithDwell,
+      inferred: people.length - rowsWithDwell,
+      note: 'measured comes from the page itself; inferred is the gap to the next view'
+    }
   };
 }
+
+const SESSION_LIMIT = 100;
 
 /* Exposed for the tests: they need to be able to write a row without an HTTP
    request and to clear what previous checks left behind. */
 export const _ring = ring;
 export function _reset() { ring.length = 0; geoCache.clear(); }
 export function _push(row) { remember(row); }
+export { sessionsOf as _sessionsOf };
 export { visitorId as _visitorId };

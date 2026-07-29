@@ -351,3 +351,58 @@ window.Portal = (function () {
     BOUNCE_MS
   };
 })();
+
+/* =========================================================================
+   Time-on-page beacon.
+
+   The server sees an arrival and then silence, and silence is the same whether
+   somebody read for four minutes or closed the tab immediately. This reports
+   the visible time back once, when the page goes away — and it is the only way
+   to know how long the LAST page of a visit was read, because there is no next
+   arrival to subtract from.
+
+   What is sent: the path and a number of milliseconds. No id — the server
+   derives that from the same request it already sees, so a page cannot claim
+   time on somebody else's behalf.
+
+   Only VISIBLE time counts. A tab left open in the background for an hour is
+   not an hour of reading, and counting it would quietly inflate every average
+   on the dashboard.
+   ========================================================================= */
+(function beacon() {
+  if (typeof document === 'undefined') return;
+  if (!document.body) {
+    document.addEventListener('DOMContentLoaded', beacon, { once: true });
+    return;
+  }
+
+  let visibleMs = 0;
+  let since = document.visibilityState === 'visible' ? Date.now() : null;
+  let sent = false;
+
+  function accrue() {
+    if (since != null) { visibleMs += Date.now() - since; since = null; }
+  }
+
+  function send() {
+    accrue();
+    if (sent || visibleMs < 500) return;    // a bounce through a page is not a read
+    sent = true;
+    const body = JSON.stringify({ path: location.pathname, ms: Math.round(visibleMs) });
+    try {
+      /* sendBeacon survives the page being torn down; fetch usually does not. */
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon('/api/analytics/dwell', new Blob([body], { type: 'application/json' }));
+      } else {
+        fetch('/api/analytics/dwell', { method: 'POST', body, keepalive: true,
+          headers: { 'Content-Type': 'application/json' } }).catch(() => {});
+      }
+    } catch { /* analytics may never break a page, least of all while it closes */ }
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') { since = Date.now(); sent = false; }
+    else send();
+  });
+  window.addEventListener('pagehide', send);
+})();

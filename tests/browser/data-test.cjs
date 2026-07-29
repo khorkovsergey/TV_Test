@@ -291,6 +291,60 @@ const click = (w, el) => el.dispatchEvent(new w.MouseEvent('click', { bubbles: t
   ok('почасовая гистограмма — 24 корзины', sum.hourly.length === 24, String(sum.hourly.length));
   ok('сводка честно называет своё хранилище', typeof sum.storage === 'string');
 
+  /* ------------------------------------------------ хронология визита */
+
+  console.log('\n[Аналитика] Хронология: когда пришёл, куда перешёл, сколько пробыл');
+
+  an._reset();
+  const visitStart = Date.now() - 20 * 60000;
+  const iso = ms => new Date(ms).toISOString();
+  an._push({ ts: iso(visitStart),             visitor: 'zzz', path: '/',        country: 'ES', bot: false, ref: 't.me', mode: null });
+  an._push({ ts: iso(visitStart + 30000),     visitor: 'zzz', path: '/economy', country: 'ES', bot: false, ref: null, mode: null });
+  an._push({ ts: iso(visitStart + 95000),     visitor: 'zzz', path: '/charts',  country: 'ES', bot: false, ref: null, mode: null });
+  /* Через 40 минут — это уже другой визит, а не продолжение того же. */
+  an._push({ ts: iso(visitStart + 40 * 60000), visitor: 'zzz', path: '/',       country: 'ES', bot: false, ref: null, mode: null });
+
+  const s2 = await an.summary('24h');
+  ok('визиты разделены получасовым разрывом', s2.sessions_total === 2, String(s2.sessions_total));
+
+  const first = s2.sessions.find(x => x.pages === 3);
+  ok('шаги визита идут по порядку',
+    first && first.steps.map(x => x.path).join(' → ') === '/ → /economy → /charts',
+    first && first.steps.map(x => x.path).join(' → '));
+  ok('время на странице выведено из следующего перехода',
+    first.steps[0].seconds === 30 && first.steps[0].source === 'inferred',
+    JSON.stringify(first.steps[0]));
+  ok('второй шаг — 65 секунд',
+    first.steps[1].seconds === 65, String(first.steps[1].seconds));
+
+  /* Последняя страница визита: следующего перехода нет, и без маячка честный
+     ответ — «неизвестно», а не ноль, который красиво усредняется. */
+  ok('последняя страница без маячка не притворяется нулём',
+    first.steps[2].seconds === null && first.steps[2].source === 'unknown',
+    JSON.stringify(first.steps[2]));
+  ok('визит помечен неполным', first.complete === false);
+
+  /* Маячок страницы даёт настоящее число — и только он умеет измерить
+     последнюю страницу. */
+  ok('маячок принят', an.recordDwell({ visitor: 'zzz', path: '/charts', ms: 42000 }) === true);
+  const s3 = await an.summary('24h');
+  const withBeacon = s3.sessions.find(x => x.pages === 3);
+  ok('после маячка последняя страница измерена',
+    withBeacon.steps[2].seconds === 42 && withBeacon.steps[2].source === 'measured',
+    JSON.stringify(withBeacon.steps[2]));
+  ok('визит стал полным', withBeacon.complete === true);
+  ok('панель различает измеренное и выведенное',
+    s3.time_on_page.measured === 1 && s3.time_on_page.inferred === 3,
+    JSON.stringify(s3.time_on_page));
+
+  /* Вкладка, забытая на ночь, — не восемь часов чтения. */
+  ok('нереальная длительность отбрасывается',
+    an.recordDwell({ visitor: 'zzz', path: '/charts', ms: 8 * 3600 * 1000 }) === false);
+  ok('отрицательная длительность отбрасывается',
+    an.recordDwell({ visitor: 'zzz', path: '/charts', ms: -5 }) === false);
+  ok('маячок без пути игнорируется',
+    an.recordDwell({ visitor: 'zzz', path: '', ms: 1000 }) === false);
+
   /* Эндпоинт закрыт токеном персонала: данные обезличенные, но это всё равно
      трафик. Локально STAFF_TOKEN не задан и защита намеренно пропускает
      запрос — поэтому проверяется сама регистрация маршрута, а не ответ

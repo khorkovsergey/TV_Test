@@ -180,6 +180,14 @@
       </div>
     </div>
 
+    <div class="mt-32">
+      <div class="row" style="justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap">
+        <div class="mono" style="font-size:10px;letter-spacing:.08em;color:#5B8DFF">VISITS — WHO ARRIVED WHEN, AND WHERE THEY WENT</div>
+        <div class="mono" style="font-size:10px;color:var(--tv-ghost)" id="trSessionsNote"></div>
+      </div>
+      <div id="trSessions" class="mt-16"></div>
+    </div>
+
     <div class="mono" id="trNote" style="font-size:10.5px;color:var(--tv-ghost);margin-top:18px;line-height:1.7"></div>
   </div>
 
@@ -294,6 +302,62 @@ const FLAG = c => (/^[A-Z]{2}$/.test(c)
   ? String.fromCodePoint(...[...c].map(ch => 0x1F1E6 + ch.charCodeAt(0) - 65)) + ' '
   : '');
 
+/* Local time, because a person reading this dashboard thinks in their own
+   clock, not in UTC. The ISO timestamp stays in the title attribute for
+   anyone comparing against a server log. */
+const clock = iso => new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+const day = iso => new Date(iso).toLocaleDateString([], { day: '2-digit', month: 'short' });
+
+function secs(n, source) {
+  if (n == null) return '<span class="mono" style="color:var(--tv-ghost)" title="the last page of a visit, and the browser sent no beacon">—</span>';
+  const t = n >= 90 ? Math.round(n / 60) + 'm ' + (n % 60) + 's' : n + 's';
+  /* Measured and inferred are different claims and are not allowed to look
+     alike: one is what the page reported, the other is the gap to the next
+     click. */
+  return source === 'measured'
+    ? `<span class="mono" style="color:var(--tv-white)" title="reported by the page">${t}</span>`
+    : `<span class="mono" style="color:var(--tv-faint)" title="inferred from the next page view">${t}~</span>`;
+}
+
+function renderSessions(a) {
+  const box = $('trSessions');
+  const list = a.sessions || [];
+  $('trSessionsNote').textContent = a.sessions_truncated
+    ? `showing ${list.length} of ${a.sessions_total}`
+    : `${a.sessions_total} visit${a.sessions_total === 1 ? '' : 's'}`;
+
+  if (!list.length) {
+    box.innerHTML = `<div class="mono" style="font-size:12px;color:var(--tv-ghost)">No visits in this period.</div>`;
+    return;
+  }
+
+  box.innerHTML = list.map(s => `
+    <details class="tv-card" style="margin-bottom:8px;padding:12px 14px">
+      <summary style="cursor:pointer;list-style:none">
+        <div class="row" style="justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline">
+          <span class="mono" style="font-size:12.5px;color:var(--tv-white)"
+            title="${s.started}">${day(s.started)} ${clock(s.started)}</span>
+          <span style="font-size:12.5px;color:var(--tv-muted)">
+            ${s.country && s.country !== 'unknown' ? FLAG(s.country) + s.country : '—'}
+            · ${s.pages} page${s.pages === 1 ? '' : 's'}
+            · ${s.seconds >= 60 ? Math.round(s.seconds / 60) + 'm' : s.seconds + 's'}
+            ${s.ref ? ' · from ' + s.ref : ''}
+          </span>
+          <span class="mono" style="font-size:10px;color:var(--tv-ghost)">${s.visitor.slice(0, 8)}</span>
+        </div>
+      </summary>
+      <table class="tv mt-16" style="width:100%"><tbody>
+        ${s.steps.map((st, i) => `<tr>
+          <td class="mono" style="font-size:11px;color:var(--tv-ghost);width:1%">${i + 1}</td>
+          <td class="mono" style="font-size:11.5px;color:var(--tv-faint);width:1%;white-space:nowrap"
+            title="${st.at}">${clock(st.at)}</td>
+          <td style="font-size:13px">${st.path}</td>
+          <td style="text-align:right;width:1%;white-space:nowrap">${secs(st.seconds, st.source)}</td>
+        </tr>`).join('')}
+      </tbody></table>
+    </details>`).join('');
+}
+
 function rows(el, list, label) {
   const box = $(el);
   if (!list.length) {
@@ -319,6 +383,7 @@ async function loadTraffic() {
     $('trCountries').textContent = a.countries.filter(c => c.key !== 'unknown').length;
     $('trBots').textContent      = a.bot_views;
 
+    renderSessions(a);
     rows('trGeo',   a.countries, k => k === 'unknown' ? 'unknown' : FLAG(k) + k);
     rows('trPages', a.pages,     k => k);
     rows('trRefs',  a.referrers, k => k);
@@ -332,7 +397,9 @@ async function loadTraffic() {
         : 'ANALYTICS_SALT is not set — a restart makes returning visitors look new',
       a.geo_enabled
         ? 'country resolved from a masked /24 prefix, never a full address'
-        : 'geo lookup is off — every country reads unknown'
+        : 'geo lookup is off — every country reads unknown',
+      `time on page: ${a.time_on_page.measured} measured by the page, ${a.time_on_page.inferred} inferred from the next view (~)`,
+      'a visit ends after 30 minutes without a page view'
     ];
     $('trNote').innerHTML = notes.map(n => '· ' + n).join('<br>');
   } catch { /* the rest of the page still works */ }

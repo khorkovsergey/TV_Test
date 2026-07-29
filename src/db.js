@@ -11,7 +11,18 @@ import pg from 'pg';
 import { randomUUID, createHash, timingSafeEqual } from 'node:crypto';
 
 const URL = process.env.DATABASE_URL || '';
-export const MODE = URL ? 'postgres' : 'memory';
+
+/* Not a constant: a Postgres that will not answer must be able to demote the
+   process to memory rather than keep the portal down. `MODE` is therefore a
+   getter over a mutable value, and every reader — /api/system/status, the boot
+   log, the analytics module — sees the demotion without being told. */
+let _mode = URL ? 'postgres' : 'memory';
+
+/* Exported as a live ESM binding, not a copy: when `init()` demotes the
+   process to memory, every reader — /api/system/status, the boot log, the
+   analytics summary — sees it immediately, with no call site changed and no
+   second source of truth to drift. */
+export { _mode as MODE };
 
 /* ------------------------------------------------------------------ schema */
 
@@ -169,9 +180,58 @@ const mem = {
 
 /* -------------------------------------------------------------------- init */
 
-export async function init() {
-  if (MODE === 'postgres') {
-    pool = new pg.Pool(pgConfig());
+/* Bounded, and it may give up.
+
+   §DB-006 — `init()` used to be awaited before `app.listen`, which meant a
+   database that did not answer stopped the portal from listening at all: the
+   healthcheck failed after sixty seconds and the deploy was rolled back. The
+   comment three lines from the call already said "a Postgres outage should not
+   take the portal down"; the code did the opposite, and the first real
+   DATABASE_URL proved it.
+
+   Railway's private network is also not reachable for the first few hundred
+   milliseconds of a container's life, so the very first attempt can fail on a
+   perfectly healthy database. Hence retries, and a deadline. */
+export async function init({ timeoutMs = 8000, attempts = 3 } = {}) {
+  if (_mode === 'postgres') {
+    for (let i = 1; i <= attempts; i++) {
+      try {
+        await withTimeout(connect(), timeoutMs);
+        return;
+      } catch (e) {
+        const last = i === attempts;
+        console.error(`[storage] postgres attempt ${i}/${attempts} failed: ${e.message}`);
+        if (last) {
+          console.error('[storage] giving up on postgres — serving from memory.');
+          console.error('[storage] the portal stays up; stored data will not survive a restart.');
+          try { await pool?.end(); } catch { /* already broken */ }
+          pool = null;
+          _mode = 'memory';
+          seedMemory();
+          return;
+        }
+        await new Promise(r => setTimeout(r, 400 * i));
+      }
+    }
+  }
+  seedMemory();
+}
+
+function withTimeout(promise, ms) {
+  return Promise.race([
+    promise,
+    new Promise((_, rej) => setTimeout(() => rej(new Error(`timed out after ${ms}ms`)), ms))
+  ]);
+}
+
+function seedMemory() {
+  if (mem.consultants.size) return;
+  for (const c of SEED) mem.consultants.set(c.id, { ...c, license_state: 'unverified', active: true });
+}
+
+async function connect() {
+  pool = new pg.Pool(pgConfig());
+  {
     await pool.query(SCHEMA);
     const { rows } = await pool.query('SELECT count(*)::int AS n FROM consultants');
     if (rows[0].n === 0) {
@@ -184,10 +244,6 @@ export async function init() {
         );
       }
     }
-  } else {
-    for (const c of SEED) {
-      mem.consultants.set(c.id, { ...c, license_state: 'unverified', active: true });
-    }
   }
 }
 
@@ -196,7 +252,7 @@ const q = (text, params) => pool.query(text, params);
 /* ------------------------------------------------------------- consultants */
 
 export async function listConsultants() {
-  if (MODE === 'postgres') {
+  if (_mode === 'postgres') {
     const { rows } = await q('SELECT * FROM consultants WHERE active ORDER BY name');
     return rows;
   }
@@ -204,7 +260,7 @@ export async function listConsultants() {
 }
 
 export async function getConsultant(id) {
-  if (MODE === 'postgres') {
+  if (_mode === 'postgres') {
     const { rows } = await q('SELECT * FROM consultants WHERE id=$1', [id]);
     return rows[0] || null;
   }
@@ -231,7 +287,7 @@ export async function createRequest(r) {
   const access_hash = hashToken(token);
   const consentAt = new Date().toISOString();
 
-  if (MODE === 'postgres') {
+  if (_mode === 'postgres') {
     await q(
       `INSERT INTO requests (id,contact_name,contact_email,country,language,capital_band,goal_text,
                              consent,consent_ai,consent_version,consent_at,access_hash)
@@ -260,7 +316,7 @@ export async function requestAccessOk(id, token) {
 }
 
 export async function setBrief(id, brief, error) {
-  if (MODE === 'postgres') {
+  if (_mode === 'postgres') {
     await q('UPDATE requests SET brief=$2, brief_error=$3 WHERE id=$1',
       [id, brief ? JSON.stringify(brief) : null, error || null]);
   } else {
@@ -270,7 +326,7 @@ export async function setBrief(id, brief, error) {
 }
 
 export async function getRequest(id) {
-  if (MODE === 'postgres') {
+  if (_mode === 'postgres') {
     const { rows } = await q('SELECT * FROM requests WHERE id=$1', [id]);
     return rows[0] || null;
   }
@@ -278,7 +334,7 @@ export async function getRequest(id) {
 }
 
 export async function listRequests(limit = 50) {
-  if (MODE === 'postgres') {
+  if (_mode === 'postgres') {
     const { rows } = await q('SELECT * FROM requests ORDER BY created_at DESC LIMIT $1', [limit]);
     return rows;
   }
@@ -290,7 +346,7 @@ export async function listRequests(limit = 50) {
 /* ----------------------------------------------------------------- matches */
 
 export async function saveMatches(requestId, ranked) {
-  if (MODE === 'postgres') {
+  if (_mode === 'postgres') {
     await q('DELETE FROM matches WHERE request_id=$1', [requestId]);
     for (const m of ranked) {
       await q(
@@ -305,7 +361,7 @@ export async function saveMatches(requestId, ranked) {
 }
 
 export async function getMatches(requestId) {
-  if (MODE === 'postgres') {
+  if (_mode === 'postgres') {
     const { rows } = await q('SELECT * FROM matches WHERE request_id=$1 ORDER BY score DESC', [requestId]);
     return rows;
   }
@@ -315,7 +371,7 @@ export async function getMatches(requestId) {
 /* How many requests ever reached the matching step — the funnel needs this
    between "brief built" and "booked". */
 export async function countRequestsWithMatches() {
-  if (MODE === 'postgres') {
+  if (_mode === 'postgres') {
     const { rows } = await q('SELECT count(DISTINCT request_id)::int AS n FROM matches');
     return rows[0].n;
   }
@@ -340,7 +396,7 @@ export async function createBooking(requestId, consultantId, slot) {
   /* §DB-004 — full identifier. A truncated UUID is 32 bits of entropy for a
      value that appears in URLs and is used to look records up. */
   const id = 'bk_' + randomUUID();
-  if (MODE === 'postgres') {
+  if (_mode === 'postgres') {
     try {
       await q('INSERT INTO bookings (id,request_id,consultant_id,slot,status) VALUES ($1,$2,$3,$4,$5)',
         [id, requestId, consultantId, slot, 'held']);
@@ -366,7 +422,7 @@ export async function createBooking(requestId, consultantId, slot) {
 }
 
 export async function getBooking(id) {
-  if (MODE === 'postgres') {
+  if (_mode === 'postgres') {
     const { rows } = await q('SELECT * FROM bookings WHERE id=$1', [id]);
     return rows[0] || null;
   }
@@ -374,7 +430,7 @@ export async function getBooking(id) {
 }
 
 export async function listBookings() {
-  if (MODE === 'postgres') {
+  if (_mode === 'postgres') {
     const { rows } = await q('SELECT * FROM bookings ORDER BY created_at DESC');
     return rows;
   }
@@ -382,14 +438,14 @@ export async function listBookings() {
 }
 
 export async function setBookingStatus(id, status) {
-  if (MODE === 'postgres') await q('UPDATE bookings SET status=$2 WHERE id=$1', [id, status]);
+  if (_mode === 'postgres') await q('UPDATE bookings SET status=$2 WHERE id=$1', [id, status]);
   else { const b = mem.bookings.get(id); if (b) b.status = status; }
 }
 
 /* ----------------------------------------------------------- consultations */
 
 export async function saveConsultation(bookingId, notes, summaryMd) {
-  if (MODE === 'postgres') {
+  if (_mode === 'postgres') {
     await q(
       `INSERT INTO consultations (booking_id,notes,summary_md) VALUES ($1,$2,$3)
        ON CONFLICT (booking_id) DO UPDATE SET notes=EXCLUDED.notes, summary_md=EXCLUDED.summary_md`,
@@ -403,7 +459,7 @@ export async function saveConsultation(bookingId, notes, summaryMd) {
 }
 
 export async function getConsultation(bookingId) {
-  if (MODE === 'postgres') {
+  if (_mode === 'postgres') {
     const { rows } = await q('SELECT * FROM consultations WHERE booking_id=$1', [bookingId]);
     return rows[0] || null;
   }
@@ -411,7 +467,7 @@ export async function getConsultation(bookingId) {
 }
 
 export async function listConsultations() {
-  if (MODE === 'postgres') {
+  if (_mode === 'postgres') {
     const { rows } = await q('SELECT * FROM consultations');
     return rows;
   }
@@ -422,7 +478,7 @@ export async function listConsultations() {
 
 export async function logAiCall(rec) {
   const row = { id: 'ai_' + randomUUID(), created_at: new Date().toISOString(), ...rec };
-  if (MODE === 'postgres') {
+  if (_mode === 'postgres') {
     await q(
       `INSERT INTO ai_calls (id,kind,model,request_id,stop_reason,input_tokens,output_tokens,cache_read,cache_write,ms)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
@@ -436,7 +492,7 @@ export async function logAiCall(rec) {
 }
 
 export async function listAiCalls(limit = 200) {
-  if (MODE === 'postgres') {
+  if (_mode === 'postgres') {
     const { rows } = await q('SELECT * FROM ai_calls ORDER BY created_at DESC LIMIT $1', [limit]);
     return rows;
   }
@@ -448,7 +504,7 @@ export async function listAiCalls(limit = 200) {
 /* ------------------------------------------------------------ page views */
 
 export async function logPageView(row) {
-  if (MODE === 'postgres') {
+  if (_mode === 'postgres') {
     await q(`INSERT INTO page_views (ts, visitor, path, country, bot, ref, mode)
              VALUES ($1,$2,$3,$4,$5,$6,$7)`,
       [row.ts, row.visitor, row.path, row.country, row.bot, row.ref, row.mode]);
@@ -461,7 +517,7 @@ export async function logPageView(row) {
 /* The country arrives after the row does — the geo lookup must not delay a
    response, so the row is written first and patched when the answer comes. */
 export async function setPageViewCountry(ts, visitor, country) {
-  if (MODE === 'postgres') {
+  if (_mode === 'postgres') {
     await q(`UPDATE page_views SET country = $3 WHERE ts = $1 AND visitor = $2 AND country IS NULL`,
       [ts, visitor, country]);
     return;
@@ -471,7 +527,7 @@ export async function setPageViewCountry(ts, visitor, country) {
 }
 
 export async function listPageViews(sinceIso) {
-  if (MODE === 'postgres') {
+  if (_mode === 'postgres') {
     const { rows } = await q(
       `SELECT ts, visitor, path, country, bot, ref, mode
          FROM page_views WHERE ts >= $1 ORDER BY ts ASC LIMIT 200000`, [sinceIso]);
@@ -481,5 +537,5 @@ export async function listPageViews(sinceIso) {
 }
 
 export async function close() {
-  if (MODE === 'postgres' && pool) await pool.end();
+  if (_mode === 'postgres' && pool) await pool.end();
 }

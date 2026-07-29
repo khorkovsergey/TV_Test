@@ -88,6 +88,44 @@ An offline database would avoid the third party completely. The usual one, `geoi
 **115 MB** — not a reasonable thing to add to a prototype's build, so it was rejected. Recorded here
 so the choice is visible rather than inferred.
 
+## The timeline: arrival, transitions, time on page
+
+`/metrics` → **VISITS** shows one row per visit — arrival time, country, page count, total time,
+referrer — expanding into the step-by-step path: step number, clock time, page, seconds spent.
+
+A **visit** ends after 30 minutes without a page view. The convention every analytics tool uses,
+written into the code rather than assumed.
+
+### Time on page has two sources, and they are never mixed
+
+The server sees an arrival and then silence, and silence is identical whether somebody read for
+four minutes or closed the tab at once. So:
+
+| source | how | accurate for |
+|---|---|---|
+| **measured** | the page itself reports its *visible* milliseconds on `pagehide` / `visibilitychange`, via `navigator.sendBeacon` | any page, **and the only way to know the last page of a visit** |
+| **inferred** | the gap to that visitor's next page view | every page except the last |
+
+The dashboard renders them differently — measured in white, inferred in grey with a `~`. "4 minutes,
+measured" and "4 minutes, calculated from the next click" are different claims and are not allowed
+to look alike.
+
+A last page with no beacon shows **an em-dash, not a zero**. Zero would average beautifully and be
+a lie.
+
+### What the beacon sends, and what it cannot do
+
+`{ path, ms }` — nothing else. No id: the server derives the visitor hash from the same request it
+already sees, so a page cannot attribute time to somebody else.
+
+Only **visible** time counts. A tab left open in the background for an hour is not an hour of
+reading. Anything over an hour is discarded as "left it open" rather than averaged in, and under
+500 ms is discarded as passing through.
+
+`POST /api/analytics/dwell` is deliberately **not** staff-gated: it is the visitor's own browser
+reporting on the visitor's own visit, and it can only ever write a duration onto a row that request
+already created.
+
 ## Storage
 
 With `DATABASE_URL` set: a `page_views` table, plus an in-memory ring as a fast read path.
@@ -98,8 +136,7 @@ one is in force rather than letting the reader assume.
 
 ## What it does not answer
 
-- **Sessions and time-on-page.** One row per view, no session stitching. "Views per visitor" is the
-  closest available signal.
+- **Cross-device identity.** A visit from a phone and one from a laptop are two visitors, always.
 - **Who, personally.** By design. Identifying visitors needs a legal basis and a consent banner,
   and this is a public case-study stand carrying brand assets it does not own — the wrong place for
   it.

@@ -282,6 +282,13 @@ function fail(res, err) {
    portal unhealthy and get it restarted. Liveness, readiness and feature
    status are different questions and are now asked separately. */
 
+/* "Not set" and "set but unreachable" are different problems with different
+   fixes, and reporting the second as the first sent me looking for a missing
+   variable that was already there. */
+const storageProblem = () => process.env.DATABASE_URL
+  ? 'DATABASE_URL is set but Postgres did not answer: serving from memory, data will be lost on restart'
+  : 'DATABASE_URL is not set: data will be lost on restart';
+
 /* Liveness: the process is up and answering. Nothing else. */
 app.get('/health/live', (_req, res) => res.json({ ok: true }));
 
@@ -302,7 +309,7 @@ app.get('/health/ready', wrap(async (_req, res) => {
    staff screen and by a human checking a deploy — never by the healthcheck. */
 app.get('/api/system/status', wrap(async (req, res) => {
   const problems = [];
-  if (db.MODE === 'memory') problems.push('DATABASE_URL is not set: data will be lost on restart');
+  if (db.MODE === 'memory') problems.push(storageProblem());
   if (!hasKey()) problems.push('ANTHROPIC_API_KEY is not set: AI steps will return 503');
   if (IS_PROD && !STAFF_TOKEN) problems.push('STAFF_TOKEN is not set: the staff area refuses every request');
   res.json({
@@ -319,7 +326,7 @@ app.get('/api/system/status', wrap(async (req, res) => {
    length, never values. Kept for the existing dashboards and tests. */
 app.get('/api/health', wrap(async (_req, res) => {
   const problems = [];
-  if (db.MODE === 'memory') problems.push('DATABASE_URL is not set: data will be lost on restart');
+  if (db.MODE === 'memory') problems.push(storageProblem());
   if (!hasKey()) problems.push('ANTHROPIC_API_KEY is not set: AI steps will return 503');
   if (!STAFF_TOKEN) problems.push('STAFF_TOKEN is not set: consultant desk and metrics are open to anyone');
   else if (STAFF_TOKEN.length < 12) problems.push('STAFF_TOKEN is shorter than 12 characters — guessable');
@@ -567,6 +574,17 @@ app.get('/api/bookings/:id/summary', staffOnly, wrap(async (req, res) => {
 /* Exactly the metrics named in the hypothesis: booking rate, completed
    consultations, repeat bookings — plus AI cost, without which the pilot's
    unit economics cannot be computed. */
+/* The page reporting how long it was actually read. Not staff-only — it is the
+   visitor's own browser telling us about the visitor's own visit, and it can
+   only ever write a duration onto a row that request already created. The
+   visitor id is derived server-side from the same address and agent, so a
+   caller cannot attribute time to somebody else. */
+app.post('/api/analytics/dwell', (req, res) => {
+  const { path: p, ms } = req.body || {};
+  analytics.recordDwell({ visitor: analytics.beaconIdFor(req), path: String(p || ''), ms });
+  res.status(204).end();
+});
+
 /* How many people, from where. Staff-only: it is aggregate and anonymous, but
    it is still traffic data and does not belong on a public endpoint. */
 app.get('/api/analytics', staffOnly, wrap(async (req, res) => {
@@ -862,8 +880,29 @@ app.use((req, res) => {
 
 /* -------------------------------------------------------------------- boot */
 
-const server = await (async () => {
-  await db.init();
+/* §DB-006 — LISTEN FIRST, connect second.
+
+   This used to `await db.init()` before `app.listen`. The first deploy with a
+   real DATABASE_URL then failed its healthcheck after sixty seconds and was
+   rolled back: the database was reachable a moment later, but by then Railway
+   had already decided the container was dead. Railway's private network is not
+   up for the first few hundred milliseconds of a container's life, so the very
+   first connection attempt can fail on a perfectly healthy database.
+
+   The comment on §DB-005 already promised that a Postgres outage would not take
+   the portal down. It said so three lines above the call that made it false.
+   The port now opens immediately; the database connects behind it, retries, and
+   demotes itself to memory if it cannot. */
+const server = app.listen(PORT, () => {
+  console.log(`TradingView portal prototype listening on ${PORT}`);
+  console.log(`  storage: connecting…`);
+  console.log(`  AI: ${hasKey() ? MODEL : 'no key set, AI steps will return 503'}`);
+  console.log(`  staff area: ${STAFF_TOKEN ? 'protected' : (IS_PROD ? 'REFUSING — STAFF_TOKEN is not set' : 'open (development)')}`);
+  market.warm();          // fills the quote cache before the first visitor asks
+});
+
+db.init().then(() => {
+  console.log(`  storage: ${db.MODE}${db.MODE === 'memory' ? ' (non-persistent — set DATABASE_URL)' : ''}`);
 
   /* §DB-005 — memory storage in production is a data-loss policy, not a
      default. It stays allowed (this is a public stand, and a Postgres outage
@@ -874,15 +913,11 @@ const server = await (async () => {
     console.warn('[storage] Every enquiry will be lost on the next restart.');
     console.warn('[storage] Set DATABASE_URL, or set DEMO_EPHEMERAL=true to acknowledge this deliberately.');
   }
-
-  return app.listen(PORT, () => {
-    console.log(`TradingView portal prototype listening on ${PORT}`);
-    console.log(`  storage: ${db.MODE}${db.MODE === 'memory' ? ' (non-persistent — set DATABASE_URL)' : ''}`);
-    console.log(`  AI: ${hasKey() ? MODEL : 'no key set, AI steps will return 503'}`);
-    console.log(`  staff area: ${STAFF_TOKEN ? 'protected' : (IS_PROD ? 'REFUSING — STAFF_TOKEN is not set' : 'open (development)')}`);
-    market.warm();          // fills the quote cache before the first visitor asks
-  });
-})();
+}).catch(e => {
+  /* `init()` already handles its own failures and demotes to memory. Reaching
+     here means something unforeseen — say so and keep serving. */
+  console.error('[storage] init failed unexpectedly:', e.message);
+});
 
 /* §OPS-002 — stop accepting, let what is in flight finish, close the pool,
    and never hang forever waiting for a socket that will not close. */
